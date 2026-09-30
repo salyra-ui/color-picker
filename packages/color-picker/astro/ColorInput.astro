@@ -1,0 +1,55 @@
+---
+import type { ColorFormat } from '../core';
+import type { ColorPartClasses } from '../core';
+import ColorTextInput from './ColorTextInput.astro';
+import ColorChannelInput from './ColorChannelInput.astro';
+interface Props {
+  class?: string;
+  classes?: ColorPartClasses;
+  value?: string;
+  format?: ColorFormat;
+  label?: string;
+}
+const {
+  classes = {},
+  class: className = '',
+  value = '#6366F1',
+  format,
+  label,
+} = Astro.props;
+---
+
+<cp-input
+  data-classes={JSON.stringify(classes)}
+  class={className}
+  format={format}
+  label={label}
+  data-rendered-format={format ?? 'hex'}
+>
+  {!format || format === 'hex' ? (
+    <ColorTextInput
+      classes={classes}
+      format="hex"
+      value={value}
+      label={label ?? 'HEX'}
+    />
+  ) : (
+    <div
+      class="cp-channels"
+      role="group"
+      aria-label={label ?? format.toUpperCase()}
+    >
+      {([0, 1, 2] as const).map((index) => (
+        <ColorChannelInput
+          classes={classes}
+          value={value}
+          format={format}
+          index={index}
+        />
+      ))}
+    </div>
+  )}
+</cp-input>
+<script>
+  import './client';
+</script>

@@ -1,0 +1,16 @@
+---
+import type { ColorView } from '../core';
+interface Props {
+  view?: ColorView;
+  value?: string;
+  class?: string;
+}
+const { value = '#6366F1', class: className } = Astro.props;
+---
+
+<cp-provider value={value} view={Astro.props.view ?? 'area'} class={className}>
+  <slot />
+</cp-provider>
+<script>
+  import './client';
+</script>

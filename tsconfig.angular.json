@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
+    "noEmit": false,
+    "allowImportingTsExtensions": false,
+    "outDir": ".angular-build",
+    "declaration": true
+  },
+  "angularCompilerOptions": {
+    "strictTemplates": true,
+    "compilationMode": "partial"
+  },
+  "include": [
+    "packages/*/angular/**/*.ts",
+    "examples/angular/**/*.ts",
+    "tests/angular-ssr.ts"
+  ]
+}

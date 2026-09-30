@@ -1,0 +1,44 @@
+---
+import {
+  createColorStore,
+  areaStyle,
+  thumbStyle,
+  type ColorPartClasses,
+} from '@sebytza23/color-picker';
+interface Props {
+  value?: string;
+  class?: string;
+  classes?: ColorPartClasses;
+  style?: string;
+  thumbText?: string;
+}
+const { classes = {}, style = '', thumbText = '' } = Astro.props;
+const state = createColorStore(Astro.props.value).getSnapshot();
+---
+
+<cp-area class={Astro.props.class}>
+  <div
+    data-area
+    class={`cp-area ${classes.root ?? ''}`}
+    data-cp-part="surface"
+    data-custom-style={style}
+    role="group"
+    tabindex="0"
+    aria-label="Saturation and brightness. Arrow keys adjust; Shift for larger steps."
+    style={`${areaStyle(state)};${style}`}
+  >
+    <span
+      data-cp-part="thumb"
+      class={classes.thumb}
+      aria-hidden="true"
+      style={thumbStyle(state)}
+    >
+      <span data-cp-part="thumb-text" class={classes.text}>
+        <slot name="thumb">{thumbText}</slot>
+      </span>
+    </span>
+  </div>
+</cp-area>
+<script>
+  import './client';
+</script>

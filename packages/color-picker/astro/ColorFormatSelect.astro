@@ -1,0 +1,20 @@
+---
+import { colorFormats } from '../core';
+interface Props {
+  label?: string;
+}
+---
+
+<cp-format-select>
+  <label class="cp-format">
+    {Astro.props.label ?? 'Color format'}
+    <select>
+      {colorFormats.map((format) => (
+        <option value={format}>{format.toUpperCase()}</option>
+      ))}
+    </select>
+  </label>
+</cp-format-select>
+<script>
+  import './client';
+</script>

@@ -1,0 +1,84 @@
+---
+import {
+  createColorStore,
+  wheelStyle,
+  wheelThumbStyle,
+  markerWheelStyle,
+  markerStyle,
+  type ColorMarker,
+  type ColorPartClasses,
+} from '@sebytza23/color-picker';
+interface Props {
+  value?: string;
+  class?: string;
+  classes?: ColorPartClasses;
+  style?: string;
+  thumbText?: string;
+  label?: string;
+  markers?: readonly ColorMarker[];
+  activeId?: string;
+}
+const {
+    value,
+    class: className = '',
+    classes = {},
+    style = '',
+    thumbText = '',
+    label = 'Hue and saturation wheel',
+    markers,
+    activeId,
+  } = Astro.props,
+  state = createColorStore(value).getSnapshot();
+---
+
+<cp-wheel
+  data-markers={markers ? JSON.stringify(markers) : undefined}
+  data-active-id={activeId}
+  data-classes={JSON.stringify(classes)}
+  data-custom-style={style}
+>
+  <div
+    data-area
+    data-cp-part="surface"
+    class:list={['cp-wheel', className, classes.root]}
+    role="group"
+    tabindex="0"
+    aria-label={label}
+    style={`${markers ? markerWheelStyle() : wheelStyle(state)};${style}`}
+  >
+    {markers ? (
+      markers.map((marker) => (
+        <button
+          type="button"
+          data-cp-part="marker"
+          data-marker-id={marker.id}
+          data-small={
+            markers.length === 1 || !marker.label ? 'true' : undefined
+          }
+          class:list={['cp-wheel-marker', classes.marker]}
+          aria-label={marker.ariaLabel ?? `Select ${marker.id} marker`}
+          aria-pressed={activeId === marker.id}
+          style={markerStyle(marker, activeId === marker.id)}
+        >
+          <span data-cp-part="marker-text" class={classes.text}>
+            {marker.label ?? ''}
+          </span>
+        </button>
+      ))
+    ) : (
+      <span
+        data-cp-part="thumb"
+        aria-hidden="true"
+        class={classes.thumb}
+        style={wheelThumbStyle(state)}
+      >
+        <span data-cp-part="thumb-text" class={classes.text}>
+          <slot name="thumb">{thumbText}</slot>
+        </span>
+      </span>
+    )}
+  </div>
+</cp-wheel>
+<script>
+  import './client';
+</script>

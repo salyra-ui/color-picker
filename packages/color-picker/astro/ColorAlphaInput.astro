@@ -1,0 +1,46 @@
+---
+import { hexAlpha, type ColorPartClasses } from '../core';
+interface Props {
+  value?: string;
+  label?: string;
+  class?: string;
+  classes?: ColorPartClasses;
+}
+const {
+  value = '#6366F1',
+  label = 'Alpha',
+  class: className = '',
+  classes = {},
+} = Astro.props;
+---
+
+<cp-alpha-input>
+  <label
+    class:list={[
+      'cp-alpha-input',
+      'cp-channel',
+      className,
+      classes.root,
+      classes.label,
+    ]}
+    data-cp-part="alpha-input"
+  >
+    {label}
+    <span class="cp-channel-field">
+      <input
+        data-cp-part="input"
+        class={classes.input}
+        type="number"
+        min="0"
+        max="100"
+        step="0.1"
+        value={hexAlpha(value) * 100}
+        aria-label={label}
+      />
+      <span>%</span>
+    </span>
+  </label>
+</cp-alpha-input>
+<script>
+  import './client';
+</script>

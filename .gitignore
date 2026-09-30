@@ -1,0 +1,12 @@
+node_modules/
+dist/
+release/
+artifacts/
+.angular-build/
+.types-build/
+examples/astro/dist/
+examples/astro/.astro/
+.env*
+.DS_Store
+playwright-report/
+test-results/

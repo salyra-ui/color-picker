@@ -1,0 +1,20 @@
+---
+import { colorViews } from '@sebytza23/color-picker';
+interface Props {
+  label?: string;
+}
+---
+
+<cp-view-select>
+  <label class="cp-format">
+    {Astro.props.label ?? 'Picker view'}
+    <select>
+      {colorViews.map((view) => (
+        <option value={view}>{view === 'area' ? 'Rectangle' : 'Wheel'}</option>
+      ))}
+    </select>
+  </label>
+</cp-view-select>
+<script>
+  import './client';
+</script>

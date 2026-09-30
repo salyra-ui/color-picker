@@ -1,0 +1,71 @@
+{
+  "name": "sebytza23-color-picker-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Copy-first theme engine and composable framework components",
+  "scripts": {
+    "test": "vitest run",
+    "check": "tsc --noEmit && svelte-check --tsconfig ./tsconfig.svelte.json && vue-tsc --noEmit -p tsconfig.vue.json && ngc -p tsconfig.angular.json && astro check --root examples/astro",
+    "dev": "vite --host 127.0.0.1",
+    "build": "node scripts/build.mjs && vite build",
+    "test:browser": "playwright test",
+    "bench": "tsx scripts/bench.ts",
+    "dev:astro": "astro dev --root examples/astro",
+    "test:ssr": "tsx scripts/ssr-check.ts && tsx --tsconfig tsconfig.angular.json scripts/angular-ssr-check.ts",
+    "format": "prettier --write .",
+    "build:packages": "node scripts/build.mjs && node scripts/split-packages.mjs",
+    "build:site": "npm run build:packages && vite build && node scripts/site-build.mjs",
+    "pack:all": "npm run build:packages && node scripts/pack-all.mjs"
+  },
+  "devDependencies": {
+    "@angular/common": "~19.2.0",
+    "@angular/compiler": "~19.2.0",
+    "@angular/compiler-cli": "~19.2.0",
+    "@angular/core": "~19.2.0",
+    "@angular/platform-browser": "~19.2.0",
+    "@angular/platform-server": "~19.2.0",
+    "@astrojs/check": "^0.9.4",
+    "@astrojs/svelte": "^7.0.0",
+    "@playwright/test": "^1.50.0",
+    "@sveltejs/vite-plugin-svelte": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "@vitejs/plugin-vue": "^5.2.0",
+    "@vue/server-renderer": "^3.5.0",
+    "astro": "^5.0.0",
+    "esbuild": "^0.28.2",
+    "jsdom": "^26.0.0",
+    "prettier": "^3.9.9",
+    "prettier-plugin-astro": "^1.1.0",
+    "prettier-plugin-svelte": "^4.1.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "rxjs": "^7.8.1",
+    "svelte": "^5.20.0",
+    "svelte-check": "^4.1.0",
+    "tsx": "^4.19.0",
+    "typescript": "~5.8.3",
+    "vite": "^6.1.0",
+    "vitest": "^3.0.0",
+    "vue": "^3.5.0",
+    "vue-tsc": "^2.2.0"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "dependencies": {
+    "@sebytza23/theme-kit": "file:vendor/sebytza23-theme-kit-0.1.0.tgz",
+    "@sebytza23/theme-kit-react": "file:vendor/sebytza23-theme-kit-react-0.1.0.tgz",
+    "@sebytza23/theme-kit-svelte": "file:vendor/sebytza23-theme-kit-svelte-0.1.0.tgz",
+    "@sebytza23/theme-kit-vue": "file:vendor/sebytza23-theme-kit-vue-0.1.0.tgz",
+    "@sebytza23/theme-kit-angular": "file:vendor/sebytza23-theme-kit-angular-0.1.0.tgz",
+    "@sebytza23/theme-kit-astro": "file:vendor/sebytza23-theme-kit-astro-0.1.0.tgz",
+    "@sebytza23/theme-kit-vanilla": "file:vendor/sebytza23-theme-kit-vanilla-0.1.0.tgz"
+  }
+}

@@ -1,0 +1,38 @@
+---
+import { formatColor, type ColorFormat } from '../core';
+import type { ColorPartClasses } from '../core';
+interface Props {
+  class?: string;
+  classes?: ColorPartClasses;
+  value?: string;
+  label?: string;
+  format?: ColorFormat;
+}
+const {
+  classes = {},
+  class: className = '',
+  value = '#6366F1',
+  format,
+  label,
+} = Astro.props;
+---
+
+<cp-text-input
+  data-classes={JSON.stringify(classes)}
+  format={format}
+  label={label}
+>
+  <label class:list={['cp-input', className, classes.root, classes.label]}>
+    <span data-label>{label ?? (format ?? 'hex').toUpperCase()}</span>
+    <input
+      data-cp-part="input"
+      class={classes.input}
+      value={formatColor(value, format)}
+      spellcheck="false"
+      maxlength={format === undefined || format === 'hex' ? 9 : 64}
+    />
+  </label>
+</cp-text-input>
+<script>
+  import './client';
+</script>

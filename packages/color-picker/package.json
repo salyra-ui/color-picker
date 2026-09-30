@@ -1,0 +1,58 @@
+{
+  "name": "@sebytza23/color-picker",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "sideEffects": [
+    "**/*.css",
+    "**/astro/client.*",
+    "**/vanilla/*"
+  ],
+  "exports": {
+    ".": "./core/index.ts",
+    "./react": "./react/index.tsx",
+    "./svelte": "./svelte/index.ts",
+    "./vue": "./vue/index.ts",
+    "./angular": "./angular/index.ts",
+    "./astro/*": "./astro/*",
+    "./styles.css": "./styles.css",
+    "./astro/client": "./astro/client.ts",
+    "./vanilla": "./vanilla/index.ts",
+    "./browser/*": "./browser/*"
+  },
+  "files": [
+    "core",
+    "react",
+    "svelte",
+    "vue",
+    "angular",
+    "astro",
+    "styles.css",
+    "dist",
+    "README.md",
+    "THIRD_PARTY_NOTICES.md",
+    "vanilla",
+    "browser"
+  ],
+  "peerDependencies": {
+    "react": ">=18",
+    "svelte": ">=5",
+    "vue": ">=3.5",
+    "@angular/core": ">=19"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "svelte": {
+      "optional": true
+    },
+    "vue": {
+      "optional": true
+    },
+    "@angular/core": {
+      "optional": true
+    }
+  },
+  "dependencies": {}
+}

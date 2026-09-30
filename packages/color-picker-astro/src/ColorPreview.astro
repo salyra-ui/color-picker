@@ -1,0 +1,21 @@
+---
+import { normalizeColorHex } from '@sebytza23/color-picker';
+interface Props {
+  value?: string;
+  class?: string;
+}
+const value = normalizeColorHex(Astro.props.value ?? '#6366F1');
+---
+
+<cp-preview>
+  <output
+    class:list={['cp-preview', Astro.props.class]}
+    style={`background:${value}`}
+    aria-label={`Selected color ${value}`}
+  >
+    {value}
+  </output>
+</cp-preview>
+<script>
+  import './client';
+</script>

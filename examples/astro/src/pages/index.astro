@@ -1,0 +1,190 @@
+---
+import ThemeSelect from '@sebytza23/theme-kit-astro/ThemeSelect.astro';
+import ThemeExport from '@sebytza23/theme-kit-astro/ThemeExport.astro';
+import ThemePicker from '@sebytza23/theme-kit-astro/ThemePicker.astro';
+import ColorSurface from '@sebytza23/color-picker-astro/ColorSurface.astro';
+import ColorViewSelect from '@sebytza23/color-picker-astro/ColorViewSelect.astro';
+import ThemeHarmony from '@sebytza23/theme-kit-astro/ThemeHarmony.astro';
+import ThemeRadius from '@sebytza23/theme-kit-astro/ThemeRadius.astro';
+import ThemeBorderWidth from '@sebytza23/theme-kit-astro/ThemeBorderWidth.astro';
+import ThemeBackground from '@sebytza23/theme-kit-astro/ThemeBackground.astro';
+import ThemeProvider from '@sebytza23/theme-kit-astro/ThemeProvider.astro';
+import ThemePalette from '@sebytza23/theme-kit-astro/ThemePalette.astro';
+import ThemeMode from '@sebytza23/theme-kit-astro/ThemeMode.astro';
+import ThemeName from '@sebytza23/theme-kit-astro/ThemeName.astro';
+import ThemeLoading from '@sebytza23/theme-kit-astro/ThemeLoading.astro';
+import ThemeReady from '@sebytza23/theme-kit-astro/ThemeReady.astro';
+import ThemeError from '@sebytza23/theme-kit-astro/ThemeError.astro';
+import ColorProvider from '@sebytza23/color-picker-astro/ColorProvider.astro';
+import ColorAlphaInput from '@sebytza23/color-picker-astro/ColorAlphaInput.astro';
+import ColorPreview from '@sebytza23/color-picker-astro/ColorPreview.astro';
+import ColorSlider from '@sebytza23/color-picker-astro/ColorSlider.astro';
+import ColorFormatSelect from '@sebytza23/color-picker-astro/ColorFormatSelect.astro';
+import ColorMode from '@sebytza23/color-picker-astro/ColorMode.astro';
+import ColorInput from '@sebytza23/color-picker-astro/ColorInput.astro';
+import { generateTheme } from '@sebytza23/theme-kit';
+import '../../../demo.css';
+const theme = generateTheme('#6366F1', { name: 'Indigo' }),
+  themes = [
+    theme,
+    generateTheme('#ef6b52', { name: 'Coral' }),
+    generateTheme('#277d59', { name: 'Forest' }),
+  ];
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Theme kit · Astro</title>
+  </head>
+  <body>
+    <nav>
+      <strong>theme / kit</strong>
+      <span>Astro / native elements</span>
+    </nav>
+    <main>
+      <div class="eyebrow">Server rendered / zero framework runtime</div>
+      <h1>
+        Make it
+        <br />
+        your color.
+      </h1>
+      <p class="intro">
+        The initial theme arrives as CSS in the HTML. Client controls share
+        their closest provider without global stores.
+      </p>
+      <div class="demo-grid">
+        <section class="panel">
+          <div class="panel-header">
+            <h2>01 / Color picker</h2>
+          </div>
+          <ColorProvider value="#EF6B52">
+            <div class="panel-body">
+              <ColorViewSelect />
+              <ColorSurface value="#EF6B52" />
+              <ColorSlider channel="alpha" value={100} />
+              <ColorAlphaInput value="#EF6B52" />
+              <ColorPreview value="#EF6B52" />
+              <ColorFormatSelect />
+              <ColorInput value="#EF6B52" />
+              <ColorMode />
+            </div>
+          </ColorProvider>
+        </section>
+        <section class="panel">
+          <div data-editor>
+            <ThemeProvider theme={theme}>
+              <div class="panel-header">
+                <h2>02 / Theme generator</h2>
+                <ThemeMode />
+              </div>
+              <div class="panel-body">
+                <ThemeName />
+                <ThemeSelect themes={themes} theme={theme} />
+                <ThemePicker theme={theme} />
+                <ThemeHarmony {theme} />
+
+                <details class="editor-details">
+                  <summary>Borders &amp; shape</summary>
+                  <div class="border-editors">
+                    <ThemeRadius {theme} target="card" label="Card radius" />
+                    <ThemeBorderWidth
+                      {theme}
+                      target="card"
+                      label="Card border width"
+                    />
+                    <ThemeRadius
+                      {theme}
+                      target="button"
+                      label="Button radius"
+                    />
+                    <ThemeBorderWidth
+                      {theme}
+                      target="button"
+                      label="Button border width"
+                    />
+                  </div>
+                </details>
+                <ThemeBackground />
+                <article class="preview-card">
+                  <h3>A theme that feels like you.</h3>
+                  <button class="primary-btn">Create something</button>
+                  <input
+                    class="preview-input"
+                    aria-label="Preview input"
+                    placeholder="Your input shape"
+                  />
+                </article>
+                <ThemePalette theme={theme} />
+                <details class="editor-details">
+                  <summary>Export configuration</summary>
+                  <ThemeExport theme={theme} />
+                </details>
+              </div>
+            </ThemeProvider>
+          </div>
+        </section>
+      </div>
+      <div class="section-note">03 / Async failure + fallback</div>
+      <div class="panel" data-simulation>
+        <ThemeProvider src="/missing-theme.json" fallbackTheme={theme}>
+          <ThemeLoading>
+            <div class="loading">Loading theme</div>
+          </ThemeLoading>
+          <ThemeError>
+            <div class="error">
+              Fetch failed. Selected theme fallback is active.{' '}
+              <button data-tk-retry>Retry</button>
+            </div>
+          </ThemeError>
+          <ThemeReady>
+            <div class="panel-body">
+              <article class="preview-card">
+                <h3>Selected theme preview</h3>
+                <button class="primary-btn">Create something</button>
+                <input class="preview-input" aria-label="Simulation input" />
+              </article>
+              <ThemePalette theme={theme} />
+              <p>Content available</p>
+            </div>
+          </ThemeReady>
+        </ThemeProvider>
+      </div>
+      <div class="suggestions">
+        <button data-simulate="success">Simulate success</button>
+        <button data-simulate="failure">Simulate failure</button>
+      </div>
+    </main>
+  </body>
+</html>
+
+<script>
+  import { createThemeStore } from '@sebytza23/theme-kit';
+  import type { ThemeProviderElement } from '@sebytza23/theme-kit-astro/client';
+  const editor = document.querySelector<ThemeProviderElement>(
+      '[data-editor] tk-provider',
+    )!,
+    simulation = document.querySelector<ThemeProviderElement>(
+      '[data-simulation] tk-provider',
+    )!;
+  for (const button of document.querySelectorAll<HTMLElement>(
+    '[data-simulate]',
+  ))
+    button.addEventListener('click', () => {
+      const selected = editor.store!.getSnapshot(),
+        fail = button.dataset.simulate === 'failure';
+      simulation.setStore(
+        createThemeStore({
+          fallbackTheme: selected.theme,
+          mode: selected.mode,
+        modeStorage: false,
+          loadTheme: async () => {
+            await new Promise((r) => setTimeout(r, 900));
+            if (fail) throw new Error('Demo offline');
+            return selected.theme;
+          },
+        }),
+      );
+    });
+</script>
