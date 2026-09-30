@@ -22,7 +22,7 @@ import {
   colorMarkup,
   colorExample,
   themeExample,
-  loaderExample,
+  renderingExample,
   customThemeMarkup,
   defaultCustom,
   type CustomSettings,
@@ -39,49 +39,107 @@ export const escape = (s: string) =>
         c
       ]!,
   );
+let panelSequence = 0;
 export function codePanel(
   host: HTMLElement,
   getCode: (integration: Integration) => string,
-  options: { label?: string; integration?: Integration; file?: string } = {},
+  options: {
+    label?: string;
+    integration?: Integration;
+    file?: string;
+    baseName?: string;
+    files?: (integration: Integration) => { name: string; code: string }[];
+  } = {},
 ) {
-  let current = options.integration ?? 'Svelte';
-  host.classList.add('code-panel');
-  host.innerHTML = `<div class="code-toolbar"><span class="fixed-source-file" ${options.file ? '' : 'hidden'}>${escape(options.file ?? '')}</span><label ${options.file ? 'hidden' : ''}>${options.label ?? 'Implementation'}<select aria-label="${options.label ?? 'Implementation'} framework">${integrations.map((i) => `<option ${i === current ? 'selected' : ''}>${i}</option>`).join('')}</select></label><label class="source-file-label" hidden>File<select aria-label="Source file"></select></label><button type="button" class="copy-button">Copy code</button></div><pre tabindex="0"><code></code></pre><p class="copy-status" aria-live="polite"></p>`;
-  const select = host.querySelector('select')!,
-    fileSelect = host.querySelector<HTMLSelectElement>(
-      '[aria-label="Source file"]',
-    )!,
-    code = host.querySelector('code')!,
-    button = host.querySelector('button')!,
-    status = host.querySelector('.copy-status')!;
+  let current = options.integration ?? 'React';
+  let selectedFile = 0;
   let files: { name: string; code: string }[] = [];
+  const id = `source-${++panelSequence}`;
+  host.classList.add('code-panel');
+  host.innerHTML = `<div class="code-toolbar"><div class="framework-tabs" role="tablist" aria-label="${escape(options.label ?? 'Example')} framework" ${options.file ? 'hidden' : ''}>${integrations.map((i) => `<button type="button" role="tab" id="${id}-${i}" aria-controls="${id}-code" data-framework="${i}">${i}</button>`).join('')}</div><span class="fixed-source-file" ${options.file ? '' : 'hidden'}>${escape(options.file ?? '')}</span><button type="button" class="copy-button">Copy code</button></div><div class="source-file-tabs" role="tablist" aria-label="${escape(options.label ?? 'Example')} files"></div><pre id="${id}-code" role="tabpanel" tabindex="0"><code></code></pre><p class="copy-status" aria-live="polite"></p>`;
+  const code = host.querySelector('code')!;
+  const button = host.querySelector<HTMLButtonElement>('.copy-button')!;
+  const status = host.querySelector('.copy-status')!;
+  const fileTabs = host.querySelector<HTMLElement>('.source-file-tabs')!;
+  const frameworkTabs = host.querySelector<HTMLElement>('.framework-tabs')!;
   const displayFile = () => {
-    code.textContent = files[Number(fileSelect.value) || 0].code;
+    code.textContent = files[selectedFile].code;
+    fileTabs.querySelectorAll<HTMLButtonElement>('[data-file]').forEach((b) => {
+      const selected = Number(b.dataset.file) === selectedFile;
+      b.setAttribute('aria-selected', String(selected));
+      b.tabIndex = selected ? 0 : -1;
+    });
     status.textContent = '';
     button.textContent = 'Copy code';
   };
   const update = () => {
-    const previousFile = files[Number(fileSelect.value) || 0]?.name;
-    files = options.file
-      ? [{ name: options.file, code: getCode(current) }]
-      : sourceFiles(getCode(current), current);
-    fileSelect.innerHTML = files
-      .map((file, i) => `<option value="${i}">${file.name}</option>`)
-      .join('');
-    fileSelect.value = String(
-      Math.max(
-        0,
-        files.findIndex((file) => file.name === previousFile),
-      ),
+    const previousFile = files[selectedFile]?.name;
+    files =
+      options.files?.(current) ??
+      (options.file
+        ? [{ name: options.file, code: getCode(current) }]
+        : sourceFiles(getCode(current), current, options.baseName));
+    selectedFile = Math.max(
+      0,
+      files.findIndex((f) => f.name === previousFile),
     );
-    fileSelect.closest<HTMLElement>('label')!.hidden = files.length < 2;
+    fileTabs.innerHTML = files
+      .map(
+        (f, i) =>
+          `<button type="button" role="tab" aria-controls="${id}-code" data-file="${i}">${escape(f.name)}</button>`,
+      )
+      .join('');
+    fileTabs.hidden = Boolean(options.file);
+    frameworkTabs
+      .querySelectorAll<HTMLButtonElement>('[data-framework]')
+      .forEach((b) => {
+        const selected = b.dataset.framework === current;
+        b.setAttribute('aria-selected', String(selected));
+        b.tabIndex = selected ? 0 : -1;
+      });
+    if (!options.file)
+      host
+        .querySelector('pre')!
+        .setAttribute('aria-labelledby', `${id}-${current}`);
     displayFile();
   };
-  fileSelect.addEventListener('change', displayFile);
-  select.addEventListener('change', () => {
-    current = select.value as Integration;
-    update();
+  frameworkTabs.addEventListener('click', (e) => {
+    const tab = (e.target as HTMLElement).closest<HTMLButtonElement>(
+      '[data-framework]',
+    );
+    if (tab) {
+      current = tab.dataset.framework as Integration;
+      update();
+    }
   });
+  fileTabs.addEventListener('click', (e) => {
+    const tab = (e.target as HTMLElement).closest<HTMLButtonElement>(
+      '[data-file]',
+    );
+    if (tab) {
+      selectedFile = Number(tab.dataset.file);
+      displayFile();
+    }
+  });
+  for (const tabs of [frameworkTabs, fileTabs])
+    tabs.addEventListener('keydown', (e) => {
+      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
+      const buttons = [...tabs.querySelectorAll<HTMLButtonElement>('button')];
+      const index = buttons.indexOf(
+        document.activeElement as HTMLButtonElement,
+      );
+      if (index < 0) return;
+      e.preventDefault();
+      const next =
+        e.key === 'Home'
+          ? 0
+          : e.key === 'End'
+            ? buttons.length - 1
+            : (index + (e.key === 'ArrowRight' ? 1 : -1) + buttons.length) %
+              buttons.length;
+      buttons[next].click();
+      buttons[next].focus();
+    });
   button.addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(code.textContent ?? '');
@@ -101,7 +159,6 @@ export function codePanel(
     refresh: update,
     setIntegration(i: Integration) {
       current = i;
-      select.value = i;
       update();
     },
   };
@@ -152,10 +209,16 @@ export function mountExplorer(
   const body = host.querySelector<HTMLElement>('.example-body')!,
     content = host.querySelector<HTMLElement>('.preview-content')!,
     description = host.querySelector('.example-description p')!;
-  const panel = codePanel(host.querySelector('.example-code')!, (i) =>
-    isColor
-      ? colorExample(i, variant as ColorVariant, custom)
-      : themeExample(i, variant as ThemeVariant, custom),
+  const panel = codePanel(
+    host.querySelector('.example-code')!,
+    (i) =>
+      isColor
+        ? colorExample(i, variant as ColorVariant, custom)
+        : themeExample(i, variant as ThemeVariant, custom),
+    {
+      label: isColor ? 'Color picker' : 'Theme editor',
+      baseName: isColor ? 'ColorPicker' : 'ThemeEditor',
+    },
   );
   const show = () => {
     cleanup?.();
@@ -380,14 +443,19 @@ export function download(value: string, name: string) {
 }
 export function mountRenderingLab(host: HTMLElement) {
   host.classList.add('rendering-lab');
-  host.innerHTML = `<div class="lab-controls" role="group" aria-label="Rendering scenario"><button data-scenario="standalone" aria-pressed="true">Standalone</button><button data-scenario="success" aria-pressed="false">Fetch success</button><button data-scenario="failure" aria-pressed="false">Fetch error</button><button data-scenario="timeout" aria-pressed="false">Timeout</button></div><div class="lab-description"><p data-lab-description></p><p class="muted">Requests are simulated locally. Loading, validation, timeout and fallback use the real theme store.</p></div><div class="lab-grid"><div class="lab-preview"><div class="request-status" role="status"><span data-status></span><span data-lab-name></span></div><div data-lab-loading class="loading-example" hidden><div class="loading-bar"></div><h3>Loading theme</h3><p>This area is custom loading content.</p></div><div data-lab-content>${sampleMarkup()}</div><div class="error-example" data-lab-error hidden><p></p><button type="button" data-retry>Retry successfully</button></div><div class="lab-replay"><button type="button" data-replay>Run again</button><span data-lab-mode></span></div></div><div data-lab-code></div></div>`;
-  codePanel(host.querySelector('[data-lab-code]')!, loaderExample, {
-    label: 'Loading & fallback',
-  });
+  host.innerHTML = `<div class="lab-controls" role="group" aria-label="Rendering scenario"><button data-scenario="standalone" aria-pressed="true">Standalone</button><button data-scenario="success" aria-pressed="false">Fetch success</button><button data-scenario="failure" aria-pressed="false">Fetch error</button><button data-scenario="timeout" aria-pressed="false">Timeout</button></div><div class="lab-description"><p data-lab-description></p><p class="muted">The preview simulates a request locally; the source uses /api/theme. Return a Theme object as JSON. HTTP errors, invalid theme data and timeouts apply the fallback.</p></div><div class="lab-grid"><div class="lab-preview"><div class="request-status" role="status"><span data-status></span><span data-lab-name></span></div><div data-lab-loading class="loading-example" hidden><div class="loading-bar"></div><h3>Loading theme</h3><p>This area is custom loading content.</p></div><div data-lab-content>${sampleMarkup()}</div><div class="error-example" data-lab-error hidden><p></p><button type="button" data-retry>Retry successfully</button></div><div class="lab-replay"><button type="button" data-replay>Run again</button><span data-lab-mode></span></div></div><div data-lab-code></div></div>`;
   let stop: (() => void) | undefined,
     unsubscribe: (() => void) | undefined,
     active = 'standalone',
     retrySuccess = false;
+  const panel = codePanel(
+    host.querySelector('[data-lab-code]')!,
+    (i) => renderingExample(i, active),
+    {
+      label: 'Theme loading',
+      baseName: 'ThemeLoadingExample',
+    },
+  );
   const descriptions: Record<string, string> = {
     standalone:
       'A supplied theme is ready immediately. No fetch and no loading screen.',
@@ -402,6 +470,7 @@ export function mountRenderingLab(host: HTMLElement) {
     unsubscribe?.();
     stop?.();
     retrySuccess = false;
+    panel.refresh();
     host
       .querySelectorAll<HTMLButtonElement>('[data-scenario]')
       .forEach((b) =>

@@ -1601,3 +1601,100 @@ td code {
   padding: 7px;
   font-size: 11px;
 }
+/* Source controls stay local to each example. */
+.code-toolbar {
+  padding: 0;
+  align-items: stretch;
+  flex-wrap: nowrap;
+  gap: 0;
+}
+.framework-tabs {
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+  overflow-x: auto;
+  flex: 1;
+}
+.framework-tabs button,
+.source-file-tabs button {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.framework-tabs button {
+  padding: 15px 12px;
+  border-bottom: 2px solid transparent;
+}
+.framework-tabs button[aria-selected='true'] {
+  border-bottom-color: var(--accent);
+  color: var(--ink);
+  background: white;
+}
+.code-toolbar .copy-button {
+  margin: 9px;
+  align-self: center;
+}
+.source-file-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--line);
+  background: white;
+  overflow: auto;
+}
+.source-file-tabs button {
+  padding: 10px 16px;
+  border-right: 1px solid var(--line);
+}
+.source-file-tabs button[aria-selected='true'] {
+  color: var(--ink);
+  background: var(--surface);
+}
+.fixed-source-file {
+  padding: 16px;
+}
+.code-panel [hidden] {
+  display: none;
+}
+.api-table td {
+  vertical-align: top;
+}
+.api-table td:first-child {
+  width: 30%;
+}
+.api-table td p {
+  margin: 0 0 6px;
+}
+.api-table small {
+  color: var(--muted);
+  font-size: 12px;
+  display: block;
+}
+.docs-content h3 {
+  margin-top: 28px;
+}
+.adapter-notes {
+  padding: 18px 20px;
+  border-left: 2px solid var(--accent);
+  margin: 24px 0;
+  background: var(--surface);
+}
+.adapter-notes p:last-child {
+  margin-bottom: 0;
+}
+@media (max-width: 600px) {
+  .framework-tabs button {
+    padding: 14px 10px;
+    font-size: 11px;
+  }
+  .code-toolbar .copy-button {
+    margin: 8px 6px;
+    padding: 7px 8px;
+    font-size: 10px;
+  }
+  .api-table td:first-child {
+    width: 35%;
+  }
+}

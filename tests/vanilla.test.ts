@@ -1,8 +1,20 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi } from 'vitest';
 import { mountColorPicker, type ColorProviderElement } from '@sebytza23/color-picker-vanilla';
-import { mountThemeKit, generateTheme, createThemeStore, type ThemeProviderElement } from '@sebytza23/theme-kit-vanilla';
+import { mountThemeKit, themePickerMarkup, generateTheme, createThemeStore, type ThemeProviderElement } from '@sebytza23/theme-kit-vanilla';
 describe('native HTML adapters', () => {
+ it('initializes a declarative picker when its children arrive after the parent connects', async () => {
+   const host = document.createElement('div'); document.body.append(host);
+   host.innerHTML = `<tk-provider data-config='{"modeStorage":false}'><tk-picker></tk-picker></tk-provider>`;
+   const picker = host.querySelector('tk-picker')!;
+   picker.innerHTML = themePickerMarkup.replace('<tk-picker>', '').replace('</tk-picker>', '');
+   await Promise.resolve();
+   expect(picker.querySelectorAll('[data-marker-id]')).toHaveLength(3);
+   const provider = host.querySelector('tk-provider') as ThemeProviderElement;
+   provider.store!.setColor('primary', '#ff0000');
+   expect((picker.querySelector('cp-input input') as HTMLInputElement).value).toBe('#FF0000');
+   host.remove();
+ });
  it('returns color names, all formats and alpha with separate RGB fields', () => {
    const host = document.createElement('div'); document.body.append(host);
    const change = vi.fn(), picker = mountColorPicker(host, { value: '#12345680', format: 'rgb', onChange: change });

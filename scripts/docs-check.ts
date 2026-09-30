@@ -1,4 +1,6 @@
-import { JSDOM } from 'jsdom';
+import { JSDOM, VirtualConsole } from 'jsdom';
+const nativeErrors: Error[] = [];
+const virtualConsole = new VirtualConsole().on('jsdomError', error => nativeErrors.push(error));
 import ts from 'typescript';
 import { compile } from 'svelte/compiler';
 import { parse, compileTemplate } from '@vue/compiler-sfc';
@@ -7,6 +9,7 @@ import { parseTemplate } from '@angular/compiler';
 import { sourceFiles } from '../examples/docs/code-files';
 const dom = new JSDOM('<!doctype html><body></body>', {
   url: 'http://localhost',
+  virtualConsole,
 });
 Object.assign(globalThis, {
   window: dom.window,
@@ -14,6 +17,7 @@ Object.assign(globalThis, {
   HTMLElement: dom.window.HTMLElement,
   customElements: dom.window.customElements,
   CustomEvent: dom.window.CustomEvent,
+  Event: dom.window.Event,
 });
 const {
   integrations,
@@ -23,7 +27,12 @@ const {
   themeExample,
   loaderExample,
   modeExample,
+  standaloneExample,
+  renderingExample,
 } = await import('../examples/docs/snippets');
+const nativeColor = await import('@sebytza23/color-picker-vanilla');
+const nativeTheme = await import('@sebytza23/theme-kit-vanilla');
+let nativeCount = 0;
 let count = 0;
 const typedSources = new Map<string, string>();
 for (const integration of integrations) {
@@ -32,6 +41,8 @@ for (const integration of integrations) {
     ...themeVariants.map((v) => themeExample(integration, v.id)),
     loaderExample(integration),
     modeExample(integration),
+    standaloneExample(integration),
+    renderingExample(integration, 'timeout'),
   ];
   for (const [index, sample] of samples.entries()) {
     const files = sourceFiles(sample, integration);
@@ -93,9 +104,27 @@ for (const integration of integrations) {
           for (const script of doc.window.document.querySelectorAll(
             'script:not([src])',
           )) {
-            if (integration === 'PHP' && script.textContent?.includes('<?'))
-              continue;
             new Function(script.textContent ?? '');
+          }
+          if (integration === 'Vanilla' && (index < 9 || index === 11)) {
+            dom.window.document.body.innerHTML =
+              doc.window.document.body.innerHTML;
+            for (const script of dom.window.document.querySelectorAll(
+              'script:not([src])',
+            ))
+              new Function('ColorPicker', 'ThemeKit', 'console', script.textContent ?? '')(
+                nativeColor,
+                nativeTheme,
+                { log() {} },
+              );
+            const provider = dom.window.document.querySelector(
+              'tk-provider, cp-provider',
+            ) as (HTMLElement & { store?: { getSnapshot(): unknown } }) | null;
+            if (!provider?.store?.getSnapshot())
+              throw new Error('Native example did not initialize its store');
+            dom.window.document.body.replaceChildren();
+            if (nativeErrors.length) throw nativeErrors.shift();
+            nativeCount++;
           }
           doc.window.close();
         }
@@ -141,4 +170,8 @@ if (errors.length)
 dom.window.close();
 console.log(
   `Validated syntax for ${count} color/theme/loading examples across ${integrations.length} integrations.`,
+);
+
+console.log(
+  `Executed ${nativeCount} supplied-store Vanilla examples against the native adapters.`,
 );

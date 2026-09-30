@@ -1,6 +1,6 @@
 # @sebytza23/color-picker
 
-Composable color controls, conversions, alpha and color naming for React, Svelte, Vue, Angular, Astro and vanilla HTML/PHP/htmx.
+Composable color controls, conversions, alpha and color naming for React, Svelte, Vue, Angular, Astro and Vanilla.
 
 ## Install
 
@@ -36,3 +36,5 @@ Full API documentation: [packages/color-picker/README.md](packages/color-picker/
 ## Interactive documentation
 
 The site has separate color picker and theme kit catalogs, inline previews, framework source selectors and copy controls. Custom examples show thumb text, control colors, sizing and classes. Theme examples include standalone, asynchronous success, failure/fallback and timeout scenarios. `check:docs` validates the generated examples; requests in the documentation preview are simulated locally.
+
+Code examples have independent React, Svelte, Vue, Angular, Astro and Vanilla tabs, separate source/style files, and local live customization. The docs explain channel units, context composition, seeded SSR, theme loading, fallback, exports and persistence.
