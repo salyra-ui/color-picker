@@ -15,6 +15,7 @@ Use Node 22.19 or newer.
 `npm ci`
 `npm test`
 `npm run check`
+`npm run check:docs`
 `npm run test:ssr`
 `npm run build:site`
 `npm run pack:all`
@@ -31,3 +32,7 @@ Documentation: https://sebytza23.github.io/color-picker/docs.html
 Studio: https://sebytza23.github.io/color-picker/generator.html
 
 Full API documentation: [packages/color-picker/README.md](packages/color-picker/README.md).
+
+## Interactive documentation
+
+The site has separate color picker and theme kit catalogs, inline previews, framework source selectors and copy controls. Custom examples show thumb text, control colors, sizing and classes. Theme examples include standalone, asynchronous success, failure/fallback and timeout scenarios. `check:docs` validates the generated examples; requests in the documentation preview are simulated locally.

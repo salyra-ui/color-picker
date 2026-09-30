@@ -1,266 +1,509 @@
-export type Integration = 'React' | 'Svelte' | 'Vue' | 'Angular' | 'Astro' | 'Vanilla' | 'PHP' | 'htmx';
-export const integrations: Integration[] = ['React','Svelte','Vue','Angular','Astro','Vanilla','PHP','htmx'];
-export const examples: Record<Integration, { color: string; theme: string; note: string }> = {
-  React: {
-    note: 'Compose primitives in a provider. Hooks can read and edit the closest context; use one store per SSR request.',
-    color: `import { useState } from 'react';
-import { createColorStore } from '@sebytza23/color-picker';
-import { ColorProvider, ColorSurface, ColorViewSelect,
-  ColorSlider, ColorFormatSelect, ColorInput } from '@sebytza23/color-picker-react';
-import '@sebytza23/color-picker/styles.css';
-
-export function Picker() {
-  const [store] = useState(() => createColorStore('#6366f180'));
-  return <ColorProvider store={store} onChange={() => {
-    console.log(store.getColor().name, store.getValue('hsl'));
-  }}>
-    <ColorViewSelect /><ColorSurface />
-    <ColorSlider channel="alpha" />
-    <ColorFormatSelect /><ColorInput />
-  </ColorProvider>;
-}`,
-    theme: `import { generateTheme, browserModeStorage } from '@sebytza23/theme-kit';
-import { ThemeProvider, ThemePicker, ThemeName, ThemeSelect,
-  ThemeMode, ThemeExport } from '@sebytza23/theme-kit-react';
-import '@sebytza23/color-picker/styles.css';
-import '@sebytza23/theme-kit/styles.css';
-
-const themes = [generateTheme('#6366f1'), generateTheme('#277d59')];
-export function App() {
-  return <ThemeProvider theme={themes[0]} mode="system"
-    modeStorage={browserModeStorage('my-app:mode')}>
-    <ThemeMode value="system">🖥 System</ThemeMode>
-    <ThemeMode value="light">☀ Light</ThemeMode>
-    <ThemeMode value="dark">🌙 Dark</ThemeMode>
-    <ThemeName /><ThemeSelect themes={themes} />
-    <ThemePicker view="shared-wheel" />
-    <ThemeExport onChange={config => console.log(config)} />
-  </ThemeProvider>;
-}`,
+import { themePickerMarkup, generateTheme } from '@sebytza23/theme-kit-vanilla';
+export const integrations = [
+  'React',
+  'Svelte',
+  'Vue',
+  'Angular',
+  'Astro',
+  'Vanilla',
+  'PHP',
+  'htmx',
+] as const;
+export type Integration = (typeof integrations)[number];
+export type Kit = 'color-picker' | 'theme-kit';
+export type ColorVariant = 'rectangle' | 'wheel' | 'channels' | 'custom';
+export type ThemeVariant =
+  'shared' | 'rectangle' | 'single' | 'presets' | 'custom';
+export const colorVariants: {
+  id: ColorVariant;
+  title: string;
+  description: string;
+}[] = [
+  {
+    id: 'rectangle',
+    title: 'Rectangle',
+    description:
+      'Saturation and brightness on a two-axis surface. Hue and alpha stay independent.',
   },
-  Svelte: {
-    note: 'Native Svelte 5 components. Snippets customize the content; useThemeMode() is a subscribable store with setMode() and cycle().',
-    color: `<script>
-  import { createColorStore } from '@sebytza23/color-picker';
-  import { ColorProvider, ColorSurface, ColorViewSelect,
-    ColorSlider, ColorFormatSelect, ColorInput } from '@sebytza23/color-picker-svelte';
-  import '@sebytza23/color-picker/styles.css';
-  const store = createColorStore('#6366f180');
-</script>
-<ColorProvider {store} onChange={() => console.log(store.getColor())}>
-  <ColorViewSelect /><ColorSurface /><ColorSlider channel="alpha" />
-  <ColorFormatSelect /><ColorInput />
-</ColorProvider>`,
-    theme: `<script>
-  import { generateTheme, browserModeStorage } from '@sebytza23/theme-kit';
-  import { ThemeProvider, ThemePicker, ThemeName, ThemeSelect,
-    ThemeMode, ThemeExport } from '@sebytza23/theme-kit-svelte';
-  import '@sebytza23/color-picker/styles.css';
-  import '@sebytza23/theme-kit/styles.css';
-  const themes = [generateTheme('#6366f1'), generateTheme('#277d59')];
-</script>
-<ThemeProvider options={{ theme: themes[0], mode: 'system',
-  modeStorage: browserModeStorage('my-app:mode') }}>
-  <ThemeMode value="dark">{#snippet children(mode)}🌙 Dark{/snippet}</ThemeMode>
-  <ThemeName /><ThemeSelect {themes} />
-  <ThemePicker view="shared-wheel" />
-  <ThemeExport onChange={config => console.log(config)} />
-</ThemeProvider>`,
+  {
+    id: 'wheel',
+    title: 'Wheel',
+    description:
+      'Hue around the circle, saturation toward the edge. Use brightness for the third dimension.',
   },
-  Vue: {
-    note: 'Native Vue 3 components and scoped slots. useThemeMode() returns computed preference/resolvedMode refs and actions.',
-    color: `<script setup>
-import { createColorStore } from '@sebytza23/color-picker';
-import { ColorProvider, ColorSurface, ColorViewSelect,
-  ColorSlider, ColorFormatSelect, ColorInput } from '@sebytza23/color-picker-vue';
-import '@sebytza23/color-picker/styles.css';
-const store = createColorStore('#6366f180');
-</script>
-<template>
-  <ColorProvider :store="store" @change="console.log(store.getColor())">
-    <ColorViewSelect /><ColorSurface /><ColorSlider channel="alpha" />
-    <ColorFormatSelect /><ColorInput />
-  </ColorProvider>
-</template>`,
-    theme: `<script setup>
-import { generateTheme } from '@sebytza23/theme-kit';
-import { ThemeProvider, ThemePicker, ThemeName, ThemeSelect,
-  ThemeMode, ThemeExport } from '@sebytza23/theme-kit-vue';
-import '@sebytza23/color-picker/styles.css';
-import '@sebytza23/theme-kit/styles.css';
-const themes = [generateTheme('#6366f1'), generateTheme('#277d59')];
-</script>
-<template>
-  <ThemeProvider :options="{ theme: themes[0], mode: 'system' }">
-    <ThemeMode value="dark">🌙 Dark</ThemeMode>
-    <ThemeName /><ThemeSelect :themes="themes" />
-    <ThemePicker view="shared-wheel" />
-    <ThemeExport @change="config => console.log(config)" />
-  </ThemeProvider>
-</template>`,
+  {
+    id: 'channels',
+    title: 'Channel inputs',
+    description:
+      'No surface required. Compose numeric RGB, HSL, HSV, OKLCH or OKLab fields with alpha.',
   },
-  Angular: {
-    note: 'Standalone Angular components; include them in imports. useThemeMode() exposes readonly signals plus actions inside the provider injection context.',
-    color: `import { Component } from '@angular/core';
-import { createColorStore } from '@sebytza23/color-picker';
-import { ColorProvider, ColorSurface, ColorViewSelect,
-  ColorSlider, ColorFormatSelect, ColorInput } from '@sebytza23/color-picker-angular';
-
-@Component({ standalone: true, selector: 'app-picker',
-  imports: [ColorProvider, ColorSurface, ColorViewSelect,
-    ColorSlider, ColorFormatSelect, ColorInput],
-  template: \`<cp-provider [store]="store" (colorChange)="changed()">
-    <cp-view-select /><cp-surface /><cp-slider channel="alpha" />
-    <cp-format-select /><cp-input />
-  </cp-provider>\` })
-export class Picker {
-  readonly store = createColorStore('#6366f180');
-  changed() { console.log(this.store.getColor()); }
+  {
+    id: 'custom',
+    title: 'Custom controls',
+    description:
+      'A square thumb, your own label and thicker tracks. The same store drives every part.',
+  },
+];
+export const themeVariants: {
+  id: ThemeVariant;
+  title: string;
+  description: string;
+}[] = [
+  {
+    id: 'shared',
+    title: 'Shared wheel',
+    description:
+      'Three markers, one surface. Select a role to edit only its brightness and channels.',
+  },
+  {
+    id: 'rectangle',
+    title: 'Separate role editing',
+    description:
+      'Choose primary, secondary or accent, then edit it on a rectangular surface.',
+  },
+  {
+    id: 'single',
+    title: 'Primary only',
+    description:
+      'One anonymous dot. Use a single role and export only the tokens your application needs.',
+  },
+  {
+    id: 'presets',
+    title: 'Presets & appearance',
+    description:
+      'Apply a theme from a list. System, light and dark share the same persisted context.',
+  },
+  {
+    id: 'custom',
+    title: 'Custom generator',
+    description:
+      'Your labels, classes and controls. Compose a brand-color editor and custom appearance buttons in the same theme context.',
+  },
+];
+export function packageFor(kit: Kit, integration: Integration) {
+  return `@sebytza23/${kit}-${['PHP', 'htmx'].includes(integration) ? 'vanilla' : integration.toLowerCase()}`;
 }
-// Add color-picker/styles.css to the application's global styles.`,
-    theme: `import { Component } from '@angular/core';
-import { generateTheme, type ThemeOptions } from '@sebytza23/theme-kit';
-import { ThemeProvider, ThemeMode, ThemeName, ThemePicker,
-  ThemeSelect, ThemeExport } from '@sebytza23/theme-kit-angular';
-
-@Component({ standalone: true, selector: 'app-themes',
-  imports: [ThemeProvider, ThemeMode, ThemeName, ThemePicker,
-    ThemeSelect, ThemeExport],
-  template: \`<tk-provider [options]="options">
-    <tk-mode value="dark"><ng-template>🌙 Dark</ng-template></tk-mode>
-    <tk-name /><tk-select [themes]="themes" /><tk-picker />
-    <tk-export (configurationChange)="save($event)" />
-  </tk-provider>\` })
-export class Themes {
-  readonly themes = [generateTheme('#6366f1'), generateTheme('#277d59')];
-  readonly options: ThemeOptions = { theme: this.themes[0], mode: 'system' };
-  save(config: unknown) { console.log(config); }
-}
-// Add both packages' styles.css to the application's global styles.`,
-  },
-  Astro: {
-    note: 'Astro renders initial HTML and CSS on the server. Native custom elements add interaction; no framework island is required.',
-    color: `---
-import ColorProvider from '@sebytza23/color-picker-astro/ColorProvider.astro';
-import ColorWheel from '@sebytza23/color-picker-astro/ColorWheel.astro';
-import ColorSlider from '@sebytza23/color-picker-astro/ColorSlider.astro';
-import ColorInput from '@sebytza23/color-picker-astro/ColorInput.astro';
-import '@sebytza23/color-picker/styles.css';
----
-<ColorProvider value="#6366f180" view="wheel">
-  <ColorWheel value="#6366f180" />
-  <ColorSlider channel="alpha" /><ColorInput />
-  <cp-output format="name"><output></output></cp-output>
-</ColorProvider>
-<script>
-  import type { ColorProviderElement } from '@sebytza23/color-picker-astro/client';
-  document.querySelector('cp-provider')?.addEventListener('color-change', e => {
-    console.log((e.currentTarget as ColorProviderElement).store?.getColor());
-  });
-</script>`,
-    theme: `---
-import { generateTheme } from '@sebytza23/theme-kit';
-import ThemeProvider from '@sebytza23/theme-kit-astro/ThemeProvider.astro';
-import ThemePicker from '@sebytza23/theme-kit-astro/ThemePicker.astro';
-import ThemeMode from '@sebytza23/theme-kit-astro/ThemeMode.astro';
-import ThemeName from '@sebytza23/theme-kit-astro/ThemeName.astro';
-import ThemeExport from '@sebytza23/theme-kit-astro/ThemeExport.astro';
-import '@sebytza23/color-picker/styles.css';
-import '@sebytza23/theme-kit/styles.css';
-const theme = generateTheme('#6366f1');
----
-<ThemeProvider {theme} mode="system" modeStorageKey="my-app:mode">
-  <ThemeMode value="dark">🌙 Dark</ThemeMode>
-  <ThemeName {theme} /><ThemePicker {theme} view="shared-wheel" />
-  <ThemeExport {theme} />
-</ThemeProvider>
-<script>
-  document.querySelector('tk-export')?.addEventListener('configuration-change', e => {
-    console.log((e as CustomEvent).detail);
-  });
-</script>`,
-  },
-  Vanilla: {
-    note: 'Native DOM, no framework dependencies. Mount the ready layout or compose cp-* / tk-* elements yourself. All options and stores remain available.',
-    color: `import { mountColorPicker } from '@sebytza23/color-picker-vanilla';
-import '@sebytza23/color-picker/styles.css';
-
-const picker = mountColorPicker(document.querySelector('#color'), {
-  value: '#6366f180', view: 'wheel',
-  onChange(color) { console.log(color.name, color.hex, color.hsl, color.oklch); },
-});
-const hsl = picker.getValue('hsl');
-// picker.destroy(); // removes DOM and subscriptions`,
-    theme: `import { mountThemeKit, generateTheme, browserStorage,
-  browserModeStorage } from '@sebytza23/theme-kit-vanilla';
-import '@sebytza23/color-picker/styles.css';
-import '@sebytza23/theme-kit/styles.css';
-
-const themes = [generateTheme('#6366f1'), generateTheme('#277d59')];
-const kit = mountThemeKit(document.querySelector('#theme'), {
-  theme: themes[0], themes, mode: 'system',
-  storage: browserStorage('my-app:theme'),
-  modeStorage: browserModeStorage('my-app:mode'),
-  picker: { view: 'shared-wheel' },
-  onChange(config) { console.log(config.theme, config.modePreference, config.css); },
-});
-kit.store.setName('My own theme');
-// kit.destroy();`,
-  },
-  PHP: {
-    note: 'PHP produces HTML; the browser runs the picker. No PHP extension is needed. Copy the built JS/CSS assets into your public directory; keep server data escaped.',
-    color: `<?php $color = '#6366f180'; ?>
-<link rel="stylesheet" href="/vendor/color-picker/styles.css">
-<div id="color"></div>
-<script src="/vendor/color-picker/color-picker.js"></script>
-<script>
-const picker = ColorPicker.mountColorPicker(document.querySelector('#color'), {
-  value: <?= json_encode($color, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>,
-  onChange(color) { console.log(color.name, color.formats, color.rgb); }
-});
-</script>`,
-    theme: `<link rel="stylesheet" href="/vendor/color-picker/styles.css">
-<link rel="stylesheet" href="/vendor/theme-kit/styles.css">
-<div id="theme"></div>
-<form method="post"><input type="hidden" name="theme_json"><button>Save theme</button></form>
-<!-- This bundle includes the color-picker dependency. -->
-<script src="/vendor/theme-kit/theme-kit.js"></script>
-<script>
-const themes = [ThemeKit.generateTheme('#6366f1'), ThemeKit.generateTheme('#277d59')];
-const kit = ThemeKit.mountThemeKit(document.querySelector('#theme'), {
-  themes, theme: themes[0], mode: 'system',
-  onChange(config) {
-    document.querySelector('input[name="theme_json"]').value = config.json;
+const customCss = `.custom-picker {\n  --cp-thumb-size: 22px;\n  --cp-thumb-radius: 0;\n  --cp-track-height: 12px;\n  --cp-track-radius: 0;\n}\n.custom-picker [data-cp-part="thumb-text"] { font-size: 10px; }`;
+function baseColorExample(
+  integration: Integration,
+  variant: ColorVariant,
+): string {
+  const pkg = packageFor('color-picker', integration);
+  const surface = variant === 'wheel' ? 'ColorWheel' : 'ColorArea';
+  const parts = [
+    ...(variant === 'channels' ? [] : [surface]),
+    ...(variant === 'rectangle' || variant === 'custom'
+      ? ['ColorSlider']
+      : ['ColorSlider']),
+    'ColorFormatSelect',
+    'ColorInput',
+    'ColorAlphaInput',
+    'ColorMode',
+  ];
+  const custom = variant === 'custom';
+  const props = custom
+    ? " thumbText=\"C\" classes={{ root: 'brand-surface', thumb: 'brand-thumb' }}"
+    : '';
+  const children = `${variant === 'channels' ? '' : `<${surface}${props} />\n    `}<ColorSlider channel="${variant === 'wheel' ? 'v' : variant === 'channels' ? 'alpha' : 'h'}" />${variant === 'channels' ? '' : '\n    <ColorSlider channel="alpha" />'}\n    <ColorFormatSelect /><ColorInput /><ColorAlphaInput /><ColorMode />`;
+  const format = variant === 'channels' ? 'rgb' : 'hex';
+  const imports = `ColorProvider, ${[...new Set(parts)].join(', ')}, createColorStore`;
+  const cssImport = `import '${pkg}/styles.css';`;
+  if (integration === 'React')
+    return `import { useState } from 'react';\nimport { ${imports} } from '${pkg}';\n${cssImport}\n\nexport function Picker() {\n  const [store] = useState(() => createColorStore('#5268E080', '${format}'));\n  return <div${custom ? ' className="picker-parts custom-picker"' : ' className="picker-parts"'}>\n    <ColorProvider store={store} onChange={() => {\n      const color = store.getColor();\n      console.log(color.name, color.hex, color.hsl, color.formats);\n    }}>\n    ${children}\n    </ColorProvider>\n  </div>;\n}${custom ? '\n\n/* Add to your stylesheet: */\n' + customCss : ''}`;
+  if (integration === 'Svelte')
+    return `<script lang="ts">\n  import { ${imports} } from '${pkg}';\n  ${cssImport}\n  const store = createColorStore('#5268E080', '${format}');\n</script>\n\n<div${custom ? ' class="picker-parts custom-picker"' : ' class="picker-parts"'}>\n  <ColorProvider {store} onChange={() => console.log(store.getColor())}>\n    ${children}\n  </ColorProvider>\n</div>${custom ? '\n<style>\n' + customCss.replace('[data-cp-part="thumb-text"]', ':global([data-cp-part="thumb-text"])') + '\n</style>' : ''}`;
+  if (integration === 'Vue')
+    return `<script setup lang="ts">\nimport { ${imports} } from '${pkg}';\n${cssImport}\nconst store = createColorStore('#5268E080', '${format}');\n</script>\n\n<template>\n  <div${custom ? ' class="picker-parts custom-picker"' : ' class="picker-parts"'}>\n  <ColorProvider :store="store" @change="console.log(store.getColor())">\n    ${children.replace("classes={{ root: 'brand-surface', thumb: 'brand-thumb' }}", ":classes=\"{ root: 'brand-surface', thumb: 'brand-thumb' }\"")}\n  </ColorProvider>\n  </div>\n</template>${custom ? '\n<style>\n' + customCss + '\n</style>' : ''}`;
+  const angularChildren = children
+    .replace(
+      "classes={{ root: 'brand-surface', thumb: 'brand-thumb' }}",
+      "[classes]=\"{ root: 'brand-surface', thumb: 'brand-thumb' }\"",
+    )
+    .replace(/ColorArea/g, 'cp-area')
+    .replace(/ColorWheel/g, 'cp-wheel')
+    .replace(/ColorSlider/g, 'cp-slider')
+    .replace(/ColorFormatSelect/g, 'cp-format-select')
+    .replace(/ColorInput/g, 'cp-input')
+    .replace(/ColorAlphaInput/g, 'cp-alpha-input')
+    .replace(/ColorMode/g, 'cp-mode');
+  if (integration === 'Angular')
+    return `import { Component } from '@angular/core';\nimport { ${imports} } from '${pkg}';\n\n@Component({\n  selector: 'app-color-picker', standalone: true,\n  imports: [ColorProvider, ${[...new Set(parts)].join(', ')}],\n  template: \`<div${custom ? ' class="picker-parts custom-picker"' : ' class="picker-parts"'}>\n  <cp-provider [store]="store" (colorChange)="changed()">\n    ${angularChildren}\n  </cp-provider></div>\`,\n})\nexport class Picker {\n  readonly store = createColorStore('#5268E080', '${format}');\n  changed() { console.log(this.store.getColor()); }\n}\n\n/* In your global stylesheet: */\n@import '${pkg}/styles.css';${custom ? '\n' + customCss : ''}`;
+  if (integration === 'Astro') {
+    const components = ['ColorProvider', ...new Set(parts)];
+    const astroChildren = children
+      .replace(
+        /<(ColorArea|ColorWheel|ColorInput|ColorAlphaInput)(?=[ />])/g,
+        '<$1 {value}',
+      )
+      .replace(
+        '<ColorSlider channel="h"',
+        '<ColorSlider value={state.h} channel="h"',
+      )
+      .replace(
+        '<ColorSlider channel="v"',
+        '<ColorSlider value={state.v} channel="v"',
+      )
+      .replaceAll(
+        '<ColorSlider channel="alpha"',
+        '<ColorSlider value={state.alpha * 100} channel="alpha"',
+      );
+    return `---\nimport { createColorStore } from '${pkg}';\n${components.map((c) => `import ${c} from '${pkg}/${c}.astro';`).join('\n')}\n${cssImport}\nconst value = '#5268E080';\nconst state = createColorStore(value).getSnapshot();\n---\n<div${custom ? ' class="picker-parts custom-picker"' : ' class="picker-parts"'}>\n  <ColorProvider {value}>\n    ${astroChildren}\n  </ColorProvider>\n</div>\n<script>\n  import type { ColorProviderElement } from '${pkg}/client';\n  document.querySelector('cp-provider')?.addEventListener('color-change', event => {\n    console.log((event.currentTarget as ColorProviderElement).store?.getColor());\n  });\n</script>${custom ? '\n<style is:global>\n' + customCss + '\n</style>' : ''}`;
   }
-});
+  const markup = colorMarkup(variant);
+  const mounted = `const store = ${integration === 'PHP' ? 'ColorPicker.' : ''}createColorStore(${integration === 'PHP' ? '<?= json_encode($color, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>' : "'#5268E080'"}, '${format}');\nconst provider = document.querySelector('cp-provider');\nprovider.setStore(store);\nprovider.addEventListener('color-change', () => console.log(store.getColor()));`;
+  if (integration === 'Vanilla')
+    return `<link rel="stylesheet" href="/assets/color-picker.css">
+<script src="/assets/color-picker.js"></script>
+${markup}
+<script>
+${mounted.replace('createColorStore(', 'ColorPicker.createColorStore(')}
+</script>${custom ? '\n<style>\n' + customCss + '\n</style>' : ''}`;
+  if (integration === 'PHP')
+    return `<?php $color = '#5268E080'; ?>\n<link rel="stylesheet" href="/assets/color-picker.css">\n<script src="/assets/color-picker.js"></script>\n${markup}\n<script>\n${mounted}\n</script>${custom ? '\n<style>\n' + customCss + '\n</style>' : ''}`;
+  return `<!-- Load color-picker.js and color-picker.css once in the outer page. -->\n<!-- Return this HTML from an htmx endpoint. -->\n${markup}\n<!-- Native elements connect on insertion and clean up on removal.\n     Listen for color-values on a parent to read name and all formats. -->${custom ? '\n<style>\n' + customCss + '\n</style>' : ''}`;
+}
+export function colorMarkup(variant: ColorVariant) {
+  const surface =
+    variant === 'channels'
+      ? ''
+      : variant === 'wheel'
+        ? `<cp-wheel><div class="cp-wheel" data-area data-cp-part="surface" tabindex="0" role="group" aria-label="Hue and saturation wheel"><span data-cp-part="thumb"></span></div></cp-wheel>`
+        : `<cp-area><div class="cp-area" data-area data-cp-part="surface" tabindex="0" role="group" aria-label="Saturation and brightness"><span data-cp-part="thumb">${variant === 'custom' ? '<span data-cp-part="thumb-text">C</span>' : ''}</span></div></cp-area>`;
+  const slider = (channel: string, label: string) =>
+    `<cp-slider channel="${channel}"><label class="cp-slider" data-channel="${channel}">${label}<input type="range" min="0" max="${channel === 'h' ? '359' : '100'}"></label></cp-slider>`;
+  return `<cp-provider value="#5268E080" class="picker-parts${variant === 'custom' ? ' custom-picker' : ''}">\n  ${surface}${surface ? '\n  ' + slider(variant === 'wheel' ? 'v' : 'h', variant === 'wheel' ? 'Brightness' : 'Hue') : ''}\n  ${slider('alpha', 'Alpha')}\n  <cp-format-select><label class="cp-format">Format<select>${['hex', 'rgb', 'hsl', 'hsv', 'oklch', 'oklab'].map((f) => `<option value="${f}">${f.toUpperCase()}</option>`).join('')}</select></label></cp-format-select>\n  <cp-input></cp-input>\n  <cp-alpha-input><label class="cp-channel">Alpha %<input type="number" min="0" max="100" step=".1"></label></cp-alpha-input>\n  <cp-mode><button type="button">Switch format</button></cp-mode>\n  <cp-output format="json"><output hidden></output></cp-output>\n</cp-provider>`;
+}
+function baseThemeExample(
+  integration: Integration,
+  variant: ThemeVariant,
+): string {
+  if (variant === 'custom') return customThemeExample(integration);
+  const pkg = packageFor('theme-kit', integration),
+    view = variant === 'rectangle' ? 'area' : 'shared-wheel';
+  const components =
+    variant === 'presets'
+      ? ['ThemeSelect', 'ThemeMode']
+      : [
+          'ThemeName',
+          'ThemePicker',
+          'ThemeHarmony',
+          'ThemeBackground',
+          'ThemeRadius',
+          'ThemeBorderWidth',
+          'ThemeMode',
+          'ThemeExport',
+        ];
+  const modes = ['system', 'light', 'dark']
+    .map(
+      (mode) =>
+        `<ThemeMode value="${mode}">${mode[0].toUpperCase() + mode.slice(1)}</ThemeMode>`,
+    )
+    .join('\n    ');
+  const parts =
+    variant === 'presets'
+      ? `<ThemeSelect themes={themes} />\n    ${modes}`
+      : `<ThemeName />\n    <ThemePicker view="${view}"${variant === 'single' ? " roles={['primary']}" : ''} />\n    <ThemeHarmony /><ThemeBackground />\n    <ThemeRadius target="card" /><ThemeBorderWidth target="card" />\n    ${modes}\n    <ThemeExport${variant === 'single' ? ' format="css" selection={{ roles: [\'primary\'] }}' : ''} />`;
+  const helpers = 'generateTheme, browserModeStorage';
+  const css = `import '${pkg}/styles.css';`;
+  const setup = `const themes = [generateTheme('#5268E0', { name: 'Indigo' }), generateTheme('#277D59', { name: 'Forest' })];`;
+  if (integration === 'React')
+    return `import { ThemeProvider, ${components.join(', ')}, ${helpers} } from '${pkg}';\n${css}\n\n${setup}\nexport function ThemeExample() {\n  return <ThemeProvider theme={themes[0]} mode="system"\n    modeStorage={browserModeStorage('app:mode')}>\n    ${parts}\n    <section className="app-preview">Your application content</section>\n  </ThemeProvider>;\n}\n/* .app-preview { background: hsl(var(--background)); color: hsl(var(--foreground)); } */`;
+  if (integration === 'Svelte')
+    return `<script lang="ts">\n  import { ThemeProvider, ${components.join(', ')}, ${helpers} } from '${pkg}';\n  ${css}\n  ${setup}\n</script>\n\n<ThemeProvider options={{ theme: themes[0], mode: 'system',\n  modeStorage: browserModeStorage('app:mode') }}>\n    ${parts.replace('themes={themes}', '{themes}').replace(/<ThemeMode value="(system|light|dark)">([^<]+)<\/ThemeMode>/g, '<ThemeMode value="$1">{#snippet children()}$2{/snippet}</ThemeMode>')}\n    <section class="app-preview">Your application content</section>\n</ThemeProvider>\n<style>\n  .app-preview { background: hsl(var(--background)); color: hsl(var(--foreground)); }\n</style>`;
+  if (integration === 'Vue')
+    return `<script setup lang="ts">\nimport { ThemeProvider, ${components.join(', ')}, ${helpers} } from '${pkg}';\n${css}\n${setup}\n</script>\n<template>\n  <ThemeProvider :options="{ theme: themes[0], mode: 'system',\n    modeStorage: browserModeStorage('app:mode') }">\n    ${parts.replace('themes={themes}', ':themes="themes"').replace("roles={['primary']}", ':roles="[\'primary\']"').replace("selection={{ roles: ['primary'] }}", ':selection="{ roles: [\'primary\'] }"')}\n    <section class="app-preview">Your application content</section>\n  </ThemeProvider>\n</template>\n<style>\n.app-preview { background: hsl(var(--background)); color: hsl(var(--foreground)); }\n</style>`;
+  const tags: Record<string, string> = {
+    ThemeName: 'tk-name',
+    ThemePicker: 'tk-picker',
+    ThemeHarmony: 'tk-harmony',
+    ThemeBackground: 'tk-background',
+    ThemeRadius: 'tk-radius',
+    ThemeBorderWidth: 'tk-border-width',
+    ThemeMode: 'tk-mode',
+    ThemeExport: 'tk-export',
+    ThemeSelect: 'tk-select',
+  };
+  const angular = parts
+    .replace(/Theme\w+/g, (v) => tags[v] ?? v)
+    .replace('themes={themes}', '[themes]="themes"')
+    .replace("roles={['primary']}", '[roles]="[\'primary\']"')
+    .replace(
+      "selection={{ roles: ['primary'] }}",
+      '[selection]="{ roles: [\'primary\'] }"',
+    );
+  if (integration === 'Angular')
+    return `import { Component } from '@angular/core';\nimport { ThemeProvider, ${components.join(', ')}, ${helpers} } from '${pkg}';\n\n@Component({ selector: 'app-theme', standalone: true,\n  imports: [ThemeProvider, ${components.join(', ')}],\n  template: \`<tk-provider [options]="options">\n    ${angular.replace(/<tk-mode value="(system|light|dark)">([^<]+)<\/tk-mode>/g, '<tk-mode value="$1"><ng-template>$2</ng-template></tk-mode>')}\n    <section class="app-preview">Your application content</section>\n  </tk-provider>\`,\n})\nexport class ThemeExample {\n  readonly themes = [generateTheme('#5268E0'), generateTheme('#277D59')];\n  readonly options = { theme: this.themes[0], mode: 'system' as const,\n    modeStorage: browserModeStorage('app:mode') };\n}\n/* Global stylesheet: */\n@import '${pkg}/styles.css';\n.app-preview { background: hsl(var(--background)); color: hsl(var(--foreground)); }`;
+  if (integration === 'Astro')
+    return `---\nimport { generateTheme } from '${pkg}';\n${['ThemeProvider', ...components].map((c) => `import ${c} from '${pkg}/${c}.astro';`).join('\n')}\n${css}\n${setup}\nconst theme = themes[0];\n---\n<ThemeProvider {theme} mode="system" modeStorageKey="app:mode">\n    ${parts.replace('<ThemeSelect ', '<ThemeSelect {theme} ').replace('<ThemeName />', '<ThemeName {theme} />').replace('<ThemePicker ', '<ThemePicker {theme} ').replace('<ThemeHarmony />', '<ThemeHarmony {theme} />').replace('<ThemeBackground />', '<ThemeBackground {theme} />').replace('<ThemeRadius ', '<ThemeRadius {theme} ').replace('<ThemeBorderWidth ', '<ThemeBorderWidth {theme} ').replace('<ThemeExport', '<ThemeExport {theme}')}\n    <section class="app-preview">Your application content</section>\n</ThemeProvider>\n<style>.app-preview { background: hsl(var(--background)); color: hsl(var(--foreground)); }</style>`;
+  const options = `theme: themes[0], themes, mode: 'system',\n  modeStorage: ${integration === 'PHP' ? 'ThemeKit.' : ''}browserModeStorage('app:mode'),\n  picker: { view: '${view}'${variant === 'single' ? ", roles: ['primary']" : ''} },\n  onChange(config) {\n    document.querySelector('#preview').style.cssText = config.css;\n    console.log(config.theme.name, config.json);\n  }`;
+  const markup = nativeThemeMarkup(variant);
+  const init = `const options = { theme: ThemeKit.generateTheme('#5268E0'), mode: 'system',
+  modeStorage: ThemeKit.browserModeStorage('app:mode') };
+const provider = document.querySelector('tk-provider');
+provider.setStore(ThemeKit.createThemeStore(options), options);
+provider.addEventListener('theme-change', () => {
+  const config = ThemeKit.themeConfiguration(provider.store.getSnapshot());
+  document.querySelector('#preview').style.cssText = config.css;
+  console.log(config.theme.name, config.json);
+});`;
+  if (integration === 'htmx')
+    return `<!-- Load theme-kit.js and both stylesheets once in the outer page. -->
+<!-- Return this declarative fragment from an htmx endpoint. -->
+${markup}
+<!-- configuration-change bubbles with the complete configuration. -->`;
+  return `<link rel="stylesheet" href="/assets/theme-kit.css">
+<link rel="stylesheet" href="/assets/color-picker.css">
+<script src="/assets/theme-kit.js"></script>
+${markup}
+<section id="preview">Your application content</section>
+<script>
+${init}
 </script>
-<!-- Validate submitted theme JSON on your server before storing it. -->`,
-  },
-  htmx: {
-    note: 'Load the bundle once in the outer page. Declarative components connect on insertion and clean up on removal; no htmx reinitialization hook is needed.',
-    color: `<!-- Outer page: load color-picker.js + styles.css once. -->
-<!-- HTML fragment returned by your PHP/HTML endpoint: -->
-<cp-provider value="#6366f180" view="wheel">
-  <cp-wheel><div data-area class="cp-wheel" role="group" tabindex="0"
-    aria-label="Hue and saturation wheel"><span data-cp-part="thumb"></span></div></cp-wheel>
-  <cp-slider channel="alpha"><label class="cp-slider" data-channel="alpha">Alpha
-    <input type="range" min="0" max="100" step="1"></label></cp-slider>
-  <cp-input></cp-input>
-  <cp-output format="json"><output></output></cp-output>
-</cp-provider>
-<!-- color-values bubbles with the color name and all formats. -->`,
-    theme: `<!-- Outer page: load theme-kit.js + both stylesheets once. -->
-<!-- Fragment: no framework or client initializer needed. -->
-<tk-provider data-config='{"mode":"system","storageKey":"my-app:theme","modeStorageKey":"my-app:mode"}'>
-  <button type="button" data-tk-mode="system">🖥 System</button>
-  <button type="button" data-tk-mode="dark">🌙 Dark</button>
-  <label>Theme name<input data-tk-name maxlength="200"></label>
-  <cp-provider data-theme-generator data-role="primary">
-    <cp-input></cp-input>
-  </cp-provider>
-  <tk-export format="json"><pre class="tk-export"></pre></tk-export>
-  <div class="tk-preview">My themed content</div>
-</tk-provider>
-<!-- configuration-change bubbles with the complete theme + CSS + JSON. -->`,
-  },
+<style>
+#preview { background: hsl(var(--background)); color: hsl(var(--foreground)); padding: 24px; }
+</style>`;
+}
+export function loaderExample(integration: Integration) {
+  const pkg = packageFor('theme-kit', integration);
+  const options = `fallbackTheme: generateTheme('#5268E0'),\n  loadTheme: createHttpThemeLoader('/api/theme'),\n  timeoutMs: 10000, modeStorage: false as const`;
+  if (integration === 'React')
+    return `import { ThemeProvider, ThemeLoading, ThemeReady, ThemeError,
+  generateTheme, createHttpThemeLoader } from '${pkg}';
+
+export function RemoteTheme() {
+  return <ThemeProvider fallbackTheme={generateTheme('#5268E0')}
+    loadTheme={createHttpThemeLoader('/api/theme')}
+    timeoutMs={10000} modeStorage={false}>
+    <ThemeLoading><div>Loading theme…</div></ThemeLoading>
+    <ThemeReady><section>Your themed content</section></ThemeReady>
+    <ThemeError>{(error, retry) =>
+      <button onClick={() => void retry()}>Retry</button>
+    }</ThemeError>
+  </ThemeProvider>;
+}`;
+  if (integration === 'Svelte')
+    return `<script lang="ts">\n  import { ThemeProvider, ThemeLoading, ThemeReady, ThemeError,\n    generateTheme, createHttpThemeLoader } from '${pkg}';\n  const options = { ${options} };\n</script>\n<ThemeProvider {options}>\n  <ThemeLoading><div>Loading theme…</div></ThemeLoading>\n  <ThemeReady><section>Your themed content</section></ThemeReady>\n  <ThemeError>{#snippet children(error, retry)}\n    <button onclick={retry}>Retry</button>\n  {/snippet}</ThemeError>\n</ThemeProvider>`;
+  if (integration === 'Vue')
+    return `<script setup lang="ts">\nimport { ThemeProvider, ThemeLoading, ThemeReady, ThemeError,\n  generateTheme, createHttpThemeLoader } from '${pkg}';\nconst options = { ${options} };\n</script>\n<template><ThemeProvider :options="options">\n  <ThemeLoading><div>Loading theme…</div></ThemeLoading>\n  <ThemeReady><section>Your themed content</section></ThemeReady>\n  <ThemeError v-slot="{ error, retry }"><button @click="retry">Retry</button></ThemeError>\n</ThemeProvider></template>`;
+  if (integration === 'Astro')
+    return `---\nimport { generateTheme } from '${pkg}';\n${['ThemeProvider', 'ThemeLoading', 'ThemeReady', 'ThemeError'].map((c) => `import ${c} from '${pkg}/${c}.astro';`).join('\n')}\nconst fallbackTheme = generateTheme('#5268E0');\n---\n<ThemeProvider {fallbackTheme} src="/api/theme" modeStorage={false}>\n  <ThemeLoading><div>Loading theme…</div></ThemeLoading>\n  <ThemeReady><section>Your themed content</section></ThemeReady>\n  <ThemeError><button data-tk-retry>Retry</button></ThemeError>\n</ThemeProvider>`;
+  if (integration === 'Angular')
+    return `import { Component } from '@angular/core';\nimport { ThemeProvider, ThemeLoading, ThemeReady, ThemeError,\n  createThemeStore, generateTheme, createHttpThemeLoader } from '${pkg}';\n@Component({ selector: 'app-remote-theme', standalone: true,\n  imports: [ThemeProvider, ThemeLoading, ThemeReady, ThemeError],\n  template: \`<tk-provider [store]="store" [options]="options">\n    <tk-loading>Loading theme…</tk-loading>\n    <tk-ready>Your themed content</tk-ready>\n    <tk-error><button (click)="store.reload()">Retry</button></tk-error>\n  </tk-provider>\` })\nexport class RemoteTheme {\n  readonly options = { ${options} };\n  readonly store = createThemeStore(this.options);\n}`;
+  const script = `const options = { ${options} };
+const store = ThemeKit.createThemeStore(options);
+const render = () => {
+  const state = store.getSnapshot();
+  document.querySelector('#content').style.cssText = ThemeKit.themeConfiguration(state).css;
+  document.querySelector('#loading').hidden = state.status !== 'loading';
+  document.querySelector('#content').hidden = state.status === 'loading';
+  document.querySelector('#retry').hidden = !state.error;
 };
+const unsubscribe = store.subscribe(render);
+render();
+const unmount = ThemeKit.mountThemeStore(store, undefined, options);
+document.querySelector('#retry').addEventListener('click', () => store.reload());
+// On removal: unsubscribe(); unmount();`
+    .replace('false as const', 'false')
+    .replace(
+      'fallbackTheme: generateTheme(',
+      'fallbackTheme: ThemeKit.generateTheme(',
+    )
+    .replace(
+      'loadTheme: createHttpThemeLoader(',
+      'loadTheme: ThemeKit.createHttpThemeLoader(',
+    );
+  return `<link rel="stylesheet" href="/assets/theme-kit.css">
+<script src="/assets/theme-kit.js"></script>
+<div id="loading">Loading theme…</div>
+<section id="content">Your themed content</section>
+<button id="retry" hidden>Retry</button>
+<script>
+${script}
+</script>
+<style>#content { background: hsl(var(--background)); color: hsl(var(--foreground)); }</style>`;
+}
+export interface CustomSettings {
+  text: string;
+  color: string;
+  size: number;
+  track: number;
+}
+export const defaultCustom: CustomSettings = {
+  text: 'C',
+  color: '#E4002B',
+  size: 22,
+  track: 12,
+};
+export function customStyle(
+  settings: CustomSettings,
+  selector = '.custom-picker',
+) {
+  return `${selector} {\n  --cp-thumb-size: ${settings.size}px;\n  --cp-thumb-radius: 0;\n  --cp-track-height: ${settings.track}px;\n  --cp-track-radius: 0;\n  --cp-controls-color: ${settings.color};\n}\n${selector} [data-cp-part="thumb-text"] { font-size: 10px; color: white; }\n${selector} input[type="range"] { accent-color: var(--cp-controls-color); }\n${selector} button { border-color: var(--cp-controls-color); color: var(--cp-controls-color); }\n${selector} button[aria-pressed="true"] { background: var(--cp-controls-color); color: white; }`;
+}
+export function colorExample(
+  integration: Integration,
+  variant: ColorVariant,
+  settings = defaultCustom,
+) {
+  const source = withColorLayout(
+    baseColorExample(integration, variant),
+    integration,
+  );
+  if (variant !== 'custom') return source;
+  const text = settings.text
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  return source
+    .replaceAll('thumbText="C"', `thumbText="${text}"`)
+    .replaceAll('>C</span>', `>${text}</span>`)
+    .replace(customCss, customStyle(settings))
+    .replace(
+      customCss.replace(
+        '[data-cp-part="thumb-text"]',
+        ':global([data-cp-part="thumb-text"])',
+      ),
+      customStyle(settings)
+        .replace(
+          '[data-cp-part="thumb-text"]',
+          ':global([data-cp-part="thumb-text"])',
+        )
+        .replace('input[type="range"]', ':global(input[type="range"])')
+        .replace(' button', ' :global(button)'),
+    );
+}
+export function customThemeMarkup() {
+  return `<div class="custom-theme">\n  <h3 class="generator-title">Brand color</h3>\n  <label>Theme title<input data-tk-name maxlength="200"></label>\n  <cp-provider data-theme-generator data-role="primary" class="picker-parts">\n    <cp-area><div class="cp-area" data-area data-cp-part="surface" tabindex="0" role="group" aria-label="Brand color"><span data-cp-part="thumb"><span data-cp-part="thumb-text">B</span></span></div></cp-area>\n    <cp-slider channel="h"><label class="cp-slider" data-channel="h">Color tone<input type="range" min="0" max="359"></label></cp-slider>\n    <cp-input></cp-input>\n  </cp-provider>\n  <div class="custom-mode-bar">\n    <button type="button" data-tk-mode="system">Use device</button>\n    <button type="button" data-tk-mode="light">Day</button>\n    <button type="button" data-tk-mode="dark">Night</button>\n  </div>\n</div>`;
+}
+function customThemeExample(i: Integration) {
+  const pkg = packageFor('theme-kit', i),
+    cp = packageFor('color-picker', i),
+    css = `import '${pkg}/styles.css';`;
+  const style = customStyle(
+    { ...defaultCustom, text: 'B', size: 26 },
+    '.custom-theme',
+  );
+  const body = `<ThemeName label="Theme title" />\n    <h3>Brand color</h3>\n    <ThemeGenerator role="primary">\n      <ColorArea thumbText="B" classes={{ root: 'brand-surface', thumb: 'brand-thumb' }} />\n      <ColorSlider channel="h" label="Color tone" /><ColorInput />\n    </ThemeGenerator>\n    <ThemeMode value="system">Use device</ThemeMode>\n    <ThemeMode value="light">Day</ThemeMode>\n    <ThemeMode value="dark">Night</ThemeMode>`;
+  const imports = `ThemeProvider, ThemeGenerator, ThemeName, ThemeMode, generateTheme`;
+  const cpImports = `ColorArea, ColorSlider, ColorInput`;
+  if (i === 'React')
+    return `import { ${imports} } from '${pkg}';\nimport { ${cpImports} } from '${cp}';\n${css}\n\nexport function CustomGenerator() {\n  return <ThemeProvider theme={generateTheme('#5268E0')} modeStorage={false}>\n  <div className="custom-theme">\n    ${body}\n  </div>\n  </ThemeProvider>;\n}\n/* Global stylesheet */\n${style}`;
+  if (i === 'Svelte')
+    return `<script lang="ts">\n  import { ${imports} } from '${pkg}';\n  import { ${cpImports} } from '${cp}';\n  ${css}\n</script>\n<ThemeProvider options={{ theme: generateTheme('#5268E0'), modeStorage: false }}>\n  <div class="custom-theme">\n    ${body.replace(/<ThemeMode value="(system|light|dark)">([^<]+)<\/ThemeMode>/g, '<ThemeMode value="$1">{#snippet children()}$2{/snippet}</ThemeMode>')}\n  </div>\n</ThemeProvider>\n<!-- Add this CSS globally (or use :global for internal selectors). -->\n<style is:global>\n${style}\n</style>`.replace(
+      '<style is:global>',
+      '<style>',
+    );
+  if (i === 'Vue')
+    return `<script setup lang="ts">\nimport { ${imports} } from '${pkg}';\nimport { ${cpImports} } from '${cp}';\n${css}\n</script>\n<template>\n<ThemeProvider :options="{ theme: generateTheme('#5268E0'), modeStorage: false }">\n  <div class="custom-theme">\n    ${body.replace("classes={{ root: 'brand-surface', thumb: 'brand-thumb' }}", ":classes=\"{ root: 'brand-surface', thumb: 'brand-thumb' }\"")}\n  </div>\n</ThemeProvider>\n</template>\n<style>\n${style}\n</style>`;
+  if (i === 'Angular')
+    return `import { Component } from '@angular/core';\nimport { ${imports} } from '${pkg}';\nimport { ${cpImports} } from '${cp}';\n@Component({ selector: 'app-custom-theme', standalone: true,\n  imports: [ThemeProvider, ThemeGenerator, ThemeName, ThemeMode, ${cpImports}],\n  template: \`<tk-provider [options]="options"><div class="custom-theme">\n    <tk-name label="Theme title" /><h3>Brand color</h3>\n    <tk-generator role="primary" [custom]="true">\n      <cp-area thumbText="B" [classes]="{ root: 'brand-surface', thumb: 'brand-thumb' }" />\n      <cp-slider channel="h" label="Color tone" /><cp-input />\n    </tk-generator>\n    <tk-mode value="system"><ng-template>Use device</ng-template></tk-mode>\n    <tk-mode value="light"><ng-template>Day</ng-template></tk-mode>\n    <tk-mode value="dark"><ng-template>Night</ng-template></tk-mode>\n  </div></tk-provider>\` })\nexport class CustomGenerator {\n readonly options = {theme: generateTheme('#5268E0'), modeStorage: false as const};\n}\n/* Global stylesheet */\n@import '${pkg}/styles.css';\n${style}`;
+  if (i === 'Astro')
+    return `---\nimport { generateTheme } from '${pkg}';\n${['ThemeProvider', 'ThemeGenerator', 'ThemeName', 'ThemeMode'].map((c) => `import ${c} from '${pkg}/${c}.astro';`).join('\n')}\n${['ColorArea', 'ColorSlider', 'ColorInput'].map((c) => `import ${c} from '${cp}/${c}.astro';`).join('\n')}\n${css}\nconst theme=generateTheme('#5268E0');\n---\n<ThemeProvider {theme} modeStorage={false}>\n <div class="custom-theme">\n  <ThemeName {theme} label="Theme title" /><h3>Brand color</h3>\n  <ThemeGenerator {theme} role="primary">\n   <ColorArea value="#5268E0" thumbText="B" />\n   <ColorSlider channel="h" label="Color tone" /><ColorInput value="#5268E0" />\n  </ThemeGenerator>\n  <ThemeMode value="system">Use device</ThemeMode>\n  <ThemeMode value="light">Day</ThemeMode>\n  <ThemeMode value="dark">Night</ThemeMode>\n </div>\n</ThemeProvider>\n<style is:global>\n${style}\n</style>`;
+  const markup = `<tk-provider class="tk-scope" data-config='{"mode":"system","modeStorage":false}'>\n${customThemeMarkup()}\n</tk-provider>`;
+  if (i === 'htmx')
+    return `<!-- Load theme-kit.js, theme-kit.css and color-picker.css once. -->\n<!-- Return this fragment from your htmx endpoint. -->\n${markup}\n<style>\n${style}\n</style>`;
+  return `<link rel="stylesheet" href="/assets/theme-kit.css">
+<link rel="stylesheet" href="/assets/color-picker.css">
+<script src="/assets/theme-kit.js"></script>
+${markup}
+<script>
+const provider = document.querySelector('tk-provider');
+const options = { theme: ThemeKit.generateTheme('#5268E0'), modeStorage: false };
+provider.setStore(ThemeKit.createThemeStore(options), options);
+</script>
+<style>
+${style}
+</style>`;
+}
+
+export function themeExample(
+  integration: Integration,
+  variant: ThemeVariant,
+  settings: CustomSettings = { ...defaultCustom, text: 'B', size: 26 },
+) {
+  const source = baseThemeExample(integration, variant);
+  if (variant !== 'custom') return source;
+  const text = settings.text
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  return source
+    .replaceAll('thumbText="B"', `thumbText="${text}"`)
+    .replaceAll('>B</span>', `>${text}</span>`)
+    .replace(
+      customStyle({ ...defaultCustom, text: 'B', size: 26 }, '.custom-theme'),
+      customStyle(settings, '.custom-theme'),
+    )
+    .replaceAll(
+      integration === 'Svelte'
+        ? '.custom-theme [data-cp-part="thumb-text"]'
+        : '__unused__',
+      '.custom-theme :global([data-cp-part="thumb-text"])',
+    )
+    .replaceAll(
+      integration === 'Svelte'
+        ? '.custom-theme input[type="range"]'
+        : '__unused__',
+      '.custom-theme :global(input[type="range"])',
+    )
+    .replaceAll(
+      integration === 'Svelte' ? '.custom-theme button' : '__unused__',
+      '.custom-theme :global(button)',
+    )
+    .replace(
+      ' :global(button)[aria-pressed="true"]',
+      ' :global(button[aria-pressed="true"])',
+    );
+}
+function nativeThemeMarkup(variant: ThemeVariant) {
+  const options = {
+    view: variant === 'rectangle' ? 'area' : 'shared-wheel',
+    ...(variant === 'single' ? { roles: ['primary'] } : {}),
+  };
+  const picker = themePickerMarkup.replace(
+    '<tk-picker>',
+    `<tk-picker data-options='${JSON.stringify(options)}'>`,
+  );
+  const themes = [
+    generateTheme('#5268E0', { name: 'Indigo' }),
+    generateTheme('#277D59', { name: 'Forest' }),
+  ];
+  const presets = `<tk-select data-themes='${JSON.stringify(themes)}'><label class="cp-format">Theme<select><option value="" disabled>Custom theme</option>${themes.map((t) => `<option value="${t.id}">${t.name}</option>`).join('')}</select></label></tk-select>`;
+  return `<tk-provider class="tk-scope" data-config='{"mode":"system","modeStorage":false}'>\n  <div class="mode-buttons"><button data-tk-mode="system">System</button><button data-tk-mode="light">Light</button><button data-tk-mode="dark">Dark</button></div>\n  ${variant === 'presets' ? presets : `<label>Theme name<input data-tk-name maxlength="200"></label>\n  ${picker}\n  <label>Harmony<select data-tk-harmony><option value="analogous">Analogous</option><option value="triadic">Triadic</option><option value="split-complementary">Split complementary</option></select></label><button data-tk-generate-harmony>Generate accent &amp; secondary</button>\n  <label>Card radius (rem)<input type="number" min="0" step=".125" data-tk-border="radius" data-target="card"></label>\n  <label>Card border (px)<input type="number" min="0" step="1" data-tk-border="width" data-target="card"></label>\n  <label><input type="checkbox" data-tk-background>Tint background with primary</label>`}\n  <tk-export${variant === 'single' ? ` data-selection='{"roles":["primary"]}'` : ''} format="${variant === 'single' ? 'css' : 'json'}"><pre></pre></tk-export>\n</tk-provider>`;
+}
+export function modeExample(integration: Integration) {
+  const pkg = packageFor('theme-kit', integration);
+  if (integration === 'React')
+    return `import { useThemeMode } from '${pkg}';\n\n// Render this component inside ThemeProvider.\nexport function AppearanceControls() {\n const mode = useThemeMode();\n return <div className="appearance-controls">\n   <button aria-pressed={mode.preference === 'system'} onClick={() => mode.setMode('system')}>Use device</button>\n   <button aria-pressed={mode.preference === 'light'} onClick={() => mode.setMode('light')}>Day</button>\n   <button aria-pressed={mode.preference === 'dark'} onClick={() => mode.setMode('dark')}>Night</button>\n </div>;\n}`;
+  if (integration === 'Svelte')
+    return `<script lang="ts">\n import { useThemeMode } from '${pkg}';\n // Render this child component inside ThemeProvider.\n const mode = useThemeMode();\n</script>\n<div class="appearance-controls">\n <button aria-pressed={$mode.preference === 'system'} onclick={() => mode.setMode('system')}>Use device</button>\n <button aria-pressed={$mode.preference === 'light'} onclick={() => mode.setMode('light')}>Day</button>\n <button aria-pressed={$mode.preference === 'dark'} onclick={() => mode.setMode('dark')}>Night</button>\n</div>`;
+  if (integration === 'Vue')
+    return `<script setup lang="ts">\nimport { useThemeMode } from '${pkg}';\n// Render this child component inside ThemeProvider.\nconst mode = useThemeMode();\n</script>\n<template><div class="appearance-controls">\n <button :aria-pressed="mode.preference.value === 'system'" @click="mode.setMode('system')">Use device</button>\n <button :aria-pressed="mode.preference.value === 'light'" @click="mode.setMode('light')">Day</button>\n <button :aria-pressed="mode.preference.value === 'dark'" @click="mode.setMode('dark')">Night</button>\n</div></template>`;
+  if (integration === 'Angular')
+    return `import { Component } from '@angular/core';\nimport { useThemeMode } from '${pkg}';\n// Render this child component inside tk-provider.\n@Component({selector:'app-appearance',standalone:true,\n template:\`<div class="appearance-controls">\n  <button [attr.aria-pressed]="mode.preference() === 'system'" (click)="mode.setMode('system')">Use device</button>\n  <button [attr.aria-pressed]="mode.preference() === 'light'" (click)="mode.setMode('light')">Day</button>\n  <button [attr.aria-pressed]="mode.preference() === 'dark'" (click)="mode.setMode('dark')">Night</button>\n </div>\`})\nexport class AppearanceControls {readonly mode=useThemeMode();}`;
+  return `<!-- Place these controls inside ThemeProvider / tk-provider. -->\n<!-- Astro: ThemeProvider registers the native client automatically.\n     HTML/PHP/htmx: load theme-kit.js once in the outer page. -->\n<div class="appearance-controls">\n <button type="button" data-tk-mode="system">Use device</button>\n <button type="button" data-tk-mode="light">Day</button>\n <button type="button" data-tk-mode="dark">Night</button>\n</div>\n<!-- ThemeKit.themeModeActions(provider.store).cycle() is also available\n     for a custom cycle button. -->`;
+}
+
+function withColorLayout(source: string, integration: Integration) {
+  const layout =
+    '.picker-parts { display: grid; gap: 14px; width: 100%; max-width: 360px; }\n.picker-parts cp-provider { display: contents; }';
+  const globalLayout =
+    integration === 'Svelte'
+      ? layout.replace(' cp-provider', ' :global(cp-provider)')
+      : layout;
+  if (integration === 'React') {
+    const marker = '/* Add to your stylesheet: */';
+    return source.includes(marker)
+      ? source.replace(marker, marker + '\n' + layout)
+      : source + '\n\n' + marker + '\n' + layout;
+  }
+  if (integration === 'Angular') return source + '\n' + layout;
+  if (source.includes('</style>'))
+    return source.replace('</style>', globalLayout + '\n</style>');
+  return (
+    source +
+    `\n<style${integration === 'Astro' ? ' is:global' : ''}>\n${globalLayout}\n</style>`
+  );
+}

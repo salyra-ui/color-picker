@@ -1,74 +1,188 @@
 /// <reference types="vite/client" />
-import { mountColorPicker } from '@sebytza23/color-picker-vanilla';
-import { mountThemeKit, generateTheme, themeModeActions, themeConfiguration, browserStorage, browserModeStorage } from '@sebytza23/theme-kit-vanilla';
 import '@sebytza23/color-picker/styles.css';
 import '@sebytza23/theme-kit/styles.css';
 import './site.css';
-import { examples, integrations, type Integration } from './snippets';
+import {
+  createColorStore,
+  type ColorProviderElement,
+} from '@sebytza23/color-picker-vanilla';
+import {
+  integrations,
+  colorMarkup,
+  modeExample,
+  packageFor,
+  type Kit,
+} from './snippets';
+import { mountExplorer, mountRenderingLab, codePanel, escape } from './gallery';
 const app = document.querySelector<HTMLDivElement>('#app')!;
 const page = document.body.dataset.page ?? 'docs';
 const base = import.meta.env.BASE_URL;
 const link = (file: string) => `${base}${file}`;
-const logo = `<a class="brand" href="${link('site.html')}">theme<span>/</span>kit<i></i></a>`;
-const nav = `<header class="site-nav">${logo}<nav><a href="${link('docs.html')}">Docs</a><a href="${link('color.html')}">Color picker</a><a href="${link('generator.html')}">Theme studio ↗</a><a href="https://github.com/sebytza23/theme-kit">GitHub</a></nav></header>`;
-const footer = `<footer>${logo}<p>Made to fit your stack. Built to feel like yours.</p><a href="https://github.com/sebytza23/color-picker">color-picker ↗</a><a href="https://github.com/sebytza23/theme-kit">theme-kit ↗</a></footer>`;
-const themes = [generateTheme('#6366f1', { name: 'Indigo' }), generateTheme('#ef6b52', { name: 'Coral' }), generateTheme('#277d59', { name: 'Forest' })];
+const brand = `<a class="brand" href="${link('site.html')}" aria-label="Theme kit home">theme<span>/</span>kit<span class="brand-dot" aria-hidden="true"></span></a>`;
+const nav = `<a class="skip-link" href="#main">Skip to content</a><header class="site-nav">${brand}<nav aria-label="Main navigation"><a ${page === 'color' ? 'aria-current="page"' : ''} href="${link('color.html')}">Color picker</a><a ${page === 'generator' ? 'aria-current="page"' : ''} href="${link('generator.html')}">Theme kit</a><a ${page === 'docs' ? 'aria-current="page"' : ''} href="${link('docs.html')}">Documentation</a><a href="https://github.com/sebytza23/theme-kit">GitHub</a></nav></header>`;
+const footer = `<footer>${brand}<span>Color picker & theme kit</span><div><a href="https://github.com/sebytza23/color-picker">Color picker source</a><a href="https://github.com/sebytza23/theme-kit">Theme kit source</a></div></footer>`;
+const cleanup: (() => void)[] = [];
+window.addEventListener('pagehide', (event) => {
+  if (!event.persisted) cleanup.forEach((fn) => fn());
+});
 if (page === 'landing') {
- app.innerHTML = `${nav}<main>
- <section class="hero"><div class="hero-copy"><span class="eyebrow"><b></b> TWO TOOLS. YOUR ENTIRE PALETTE.</span><h1>Give your app<br>a little <em>character.</em></h1><p>Pick a color. Build a theme. Make every surface feel like it belongs — in whatever framework feels like home.</p><div class="actions"><a class="button primary" href="${link('generator.html')}">Open theme studio <span>↗</span></a><a class="button" href="${link('docs.html')}">Explore the docs</a></div><div class="hero-note">Composable by design. Yours by default.</div></div>
- <div class="hero-art"><div class="art-top"><span>THEME / PLAYGROUND</span><span class="live-indicator">LIVE</span></div><div id="hero-color"></div><div id="hero-preview" class="art-preview"><div class="avatar-stack"><span>S</span><span>V</span><span>R</span></div><h3>A palette that<br>plays well together.</h3><p>The details make the difference.</p><button>Make it yours ↗</button><div class="art-chips"><i></i><i></i><i></i><i></i><i></i></div></div><div class="floating-label">your color, everywhere.</div></div></section>
- <div class="stack-strip"><span>AT HOME IN</span>${integrations.map(f => `<span>${f}</span>`).join('')}</div>
- <section class="section-intro"><span class="eyebrow">SMALL PIECES. BIG POSSIBILITIES.</span><h2>Start with a color.<br>Go as far as you want.</h2><p>Two focused kits, one shared language. Use the picker on its own, or let the theme kit turn your palette into a complete design system.</p></section>
- <section class="kit-cards"><article class="kit-card"><div class="kit-number">01 / COLOR PICKER</div><div class="spectrum-ribbon"></div><h3>Every color.<br>Every way.</h3><p>Rectangle or wheel. HEX, RGB, HSL, HSV, OKLCH and OKLab. Alpha, individual channel fields, color names and controls you can style down to the dot.</p><a href="${link('color.html')}">Meet color<span>/</span>picker ↗</a></article><article class="kit-card dark-card"><div class="kit-number">02 / THEME KIT</div><div class="palette-stack"><i></i><i></i><i></i></div><h3>A whole theme.<br>Your kind of theme.</h3><p>Three colors in harmony. Tinted surfaces. Borders and radii. System, light and dark. Share a context, choose a preset, or export your own.</p><a href="${link('generator.html')}">Build with theme<span>/</span>kit ↗</a></article></section>
- <section class="details-grid"><article><span>01</span><h3>Your markup. Your rules.</h3><p>Use our layout, compose the primitives, or build your own UI with stores and hooks.</p></article><article><span>02</span><h3>Only what you need.</h3><p>Independent framework adapters. A Svelte app installs the Svelte package and its core dependencies.</p></article><article><span>03</span><h3>Ready for the real app.</h3><p>SSR seeds, client loaders, custom loading content, fallback themes and cache revalidation.</p></article></section>
- <section class="final-cta"><span class="eyebrow">LESS SETUP. MORE MAKING.</span><h2>Your next theme<br>starts <em>here.</em></h2><a class="button primary" href="${link('generator.html')}">Let's make something ↗</a></section>
- </main>${footer}`;
- document.querySelector('.art-preview button')!.addEventListener('click', () => { window.location.href = link('generator.html'); });
- const preview = document.querySelector<HTMLElement>('#hero-preview')!;
- mountColorPicker(document.querySelector('#hero-color')!, { value: '#6366f1', view: 'wheel', onChange(color) {
-   preview.style.setProperty('--hero-primary', color.hex); preview.style.setProperty('--hero-hue', String(color.hsl.h));
- }});
-} else if (page === 'generator' || page === 'color') {
- const color = page === 'color';
- app.innerHTML = `${nav}<main class="studio"><div class="studio-heading"><span class="eyebrow">${color ? 'COLOR / PLAYGROUND' : 'THEME / STUDIO'}</span><h1>${color ? 'Find your color.' : 'Make it your theme.'}</h1><p>${color ? 'Every channel, every format, every shade of you.' : 'A palette, a shape, a mood. Build it here. Take it anywhere.'}</p></div><div class="studio-grid"><section class="studio-controls"><div id="studio-mount"></div></section><section class="studio-preview"><div class="preview-toolbar"><span>LIVE PREVIEW</span><span id="preview-name"></span></div><div id="preview-scope"><article class="sample-card"><div class="sample-tag">YOUR NEXT PROJECT</div><h2>Good things<br>have a good theme.</h2><p>Make room for a little personality.</p><div class="sample-buttons"><button class="sample-primary">Get started ↗</button><button class="sample-secondary">Explore</button></div><label class="sample-input">A little detail<input placeholder="Your next idea…" /></label><div class="sample-alert">✦ Made with your palette</div><div class="sample-swatches"><span></span><span></span><span></span></div></article></div><details open class="value-panel"><summary>${color ? 'Color name & values' : 'Your configuration'}</summary><pre id="studio-output"></pre></details><button class="button" id="download">Download ${color ? 'color' : 'theme'} JSON ↓</button></section></div></main>${footer}`;
- let json = '';
- const output = document.querySelector<HTMLElement>('#studio-output')!, scope = document.querySelector<HTMLElement>('#preview-scope')!, name = document.querySelector('#preview-name')!;
- if (color) mountColorPicker(document.querySelector('#studio-mount')!, { value: '#ef6b5280', view: 'wheel', onChange(c) {
-   const t = generateTheme(c.hex.slice(0, 7)); scope.style.cssText = themeConfiguration({ ...createSnapshot(t) }).css;
-   name.textContent = c.name; json = JSON.stringify(c, null, 2); output.textContent = json;
- }});
- else mountThemeKit(document.querySelector('#studio-mount')!, { fallbackTheme: themes[0], themes, storage: browserStorage('studio:theme'), modeStorage: browserModeStorage('studio:mode'), picker: { view: 'shared-wheel' }, onChange(config) {
-   scope.style.cssText = config.css; name.textContent = config.theme.name; json = config.json; output.textContent = json;
- }});
- document.querySelector('#download')!.addEventListener('click', () => {
-   const url = URL.createObjectURL(new Blob([json], { type: 'application/json' })), a = document.createElement('a'); a.href = url; a.download = color ? 'color.json' : 'theme.json'; a.click(); URL.revokeObjectURL(url);
- });
+  app.innerHTML = `${nav}<main id="main"><section class="landing-hero"><div class="hero-copy"><p class="product-label">Composable UI for color & themes</p><h1>Color.<br>With controls.</h1><p class="lead">A standalone color picker. A theme editor built on top. Use native components, compose the parts, or connect the stores to your own interface.</p><div class="actions"><a class="button solid" href="${link('color.html')}">Explore color picker</a><a class="button" href="${link('generator.html')}">Explore theme kit</a></div></div><div class="hero-component"><div class="preview-label">Color picker <span>Interactive</span></div><div id="hero-picker"></div><div class="hero-color-result"><span id="hero-swatch"></span><div><strong id="hero-name"></strong><code id="hero-value"></code></div></div></div></section><div class="framework-strip"><span>Native adapters</span>${integrations.map((i) => `<span>${i}</span>`).join('')}</div><section class="product-section"><div class="section-number">01</div><div><h2>Pick a color.</h2><p>Rectangle or wheel. Separate channels in six formats. Alpha, color names and controls you can customize independently.</p><a class="text-link" href="${link('color.html')}">View color picker examples</a></div><div class="format-index"><span>HEX</span><span>RGB</span><span>HSL</span><span>HSV</span><span>OKLCH</span><span>OKLab</span></div></section><section class="product-section"><div class="section-number">02</div><div><h2>Build a theme.</h2><p>Primary, secondary and accent. Generate a harmony or edit each role. Add tinted surfaces, radii and border widths only when you need them.</p><a class="text-link" href="${link('generator.html')}">View theme kit examples</a></div><div class="role-index"><span>Primary</span><span>Secondary</span><span>Accent</span></div></section><section class="landing-examples"><div class="section-heading"><h2>See the component.<br>Use the code.</h2><p>Each variation includes a working preview and an implementation for your framework.</p></div><div id="landing-explorer"></div></section><section class="feature-grid"><article><h3>Independent packages</h3><p>Install the adapter for your framework. The color picker has no theme-kit dependency.</p></article><article><h3>Shared context</h3><p>Place a provider above your components. Pickers, presets and output read the same store.</p></article><article><h3>Predictable rendering</h3><p>Supply a theme for an immediate render, or load one with custom loading content and a fallback.</p><a class="text-link" href="${link('generator.html#rendering')}">Try the rendering examples</a></article></section></main>${footer}`;
+  const host = document.querySelector('#hero-picker')!;
+  host.innerHTML = colorMarkup('rectangle');
+  const store = createColorStore('#5268E0');
+  const provider = host.querySelector<ColorProviderElement>('cp-provider')!;
+  provider.setStore(store);
+  // A deliberately small composition: surface, hue and channel fields only.
+  provider.querySelector('cp-slider[channel="alpha"]')!.remove();
+  provider.querySelector('cp-alpha-input')!.remove();
+  provider.querySelector('cp-mode')!.remove();
+  const update = () => {
+    const color = store.getColor();
+    document.querySelector<HTMLElement>('#hero-swatch')!.style.background =
+      color.hex;
+    document.querySelector('#hero-name')!.textContent = color.name;
+    document.querySelector('#hero-value')!.textContent = color.hex;
+  };
+  provider.addEventListener('color-change', update);
+  update();
+  cleanup.push(
+    mountExplorer(
+      document.querySelector('#landing-explorer')!,
+      'color-picker',
+      'wheel',
+    ),
+  );
+} else if (page === 'color' || page === 'generator') {
+  const color = page === 'color',
+    kit: Kit = color ? 'color-picker' : 'theme-kit';
+  app.innerHTML = `${nav}<main id="main" class="catalog-page"><header class="page-heading"><div><p class="product-label">${color ? 'Standalone color components' : 'Theme components & generator'}</p><h1>${color ? 'color<span>/</span>picker' : 'theme<span>/</span>kit'}</h1></div><div class="page-intro"><p>${color ? 'One color, every format. Choose a surface, compose the controls and read the name, channels and alpha from the same store.' : 'Generate a palette, apply it to a context and edit only the tokens you need. Every example below has an independent store.'}</p><a class="text-link" href="${link('docs.html?kit=' + kit)}">${color ? 'Color picker' : 'Theme kit'} API & installation</a></div></header><section class="examples-section" aria-labelledby="examples-title"><div class="section-heading"><h2 id="examples-title">Component examples</h2><p>Choose a variation. Switch between preview and code, select your framework, then copy the implementation.</p></div><div id="kit-explorer"></div></section>${color ? `<section class="reference-band"><article><h3>One color, six formats</h3><p>HEX, RGB, HSL, HSV, OKLCH and OKLab. Each numeric channel has its own input. Changing a channel keeps the other values synchronized.</p></article><article><h3>Names & alpha</h3><p>The output includes a nearest color name and an exact-match flag. Alpha is available in the store, numeric input, slider and formatted values.</p></article><article><h3>Compose your controls</h3><p>Surface, sliders, inputs and format controls are independent. Use classes, CSS variables and custom thumb content to change their appearance.</p></article></section>` : `<section id="rendering" class="examples-section"><div class="section-heading"><h2>Loading & fallback</h2><p>Run the same context through an immediate render, a successful request, a failed request or a timeout.</p></div><div id="rendering-lab"></div></section><section class="reference-band"><article><h3>Custom theme names</h3><p>A name is suggested from the primary color. A custom name is preserved while colors and geometry change.</p></article><article><h3>Only the tokens you need</h3><p>Choose roles and geometry targets with selectThemeTokens(), or pass a selection to ThemeExport. The complete theme remains available for saving.</p></article><article><h3>System, light & dark</h3><p>Persist the preference and resolve system changes after mount. Use the mode hook for your own buttons, toggle or dropdown.</p></article></section>`}<section class="install-section"><div><h2>Install ${color ? 'color picker' : 'theme kit'}</h2><p>Choose your framework adapter. The published adapter includes its core dependencies and its own stylesheet.</p><p class="release-note">npm publication is pending. You can use repository builds or the vanilla downloads today.</p></div><div id="installation"></div></section></main>${footer}`;
+  cleanup.push(mountExplorer(document.querySelector('#kit-explorer')!, kit));
+  if (!color)
+    cleanup.push(mountRenderingLab(document.querySelector('#rendering-lab')!));
+  installation(document.querySelector('#installation')!, kit);
 } else {
- app.innerHTML = `${nav}<div class="docs-layout"><aside><span class="eyebrow">DOCUMENTATION</span><a href="#getting-started">Getting started</a><a href="#color-picker">Color picker</a><a href="#theme-kit">Theme kit</a><a href="#rendering">Rendering & fallback</a><a href="#composition">Context & custom UI</a><a href="#persistence">Persistence & cache</a><a href="#examples">Framework examples</a><a href="#previews">Live implementations</a></aside><main class="docs-content">
- <section id="getting-started"><span class="eyebrow">BUILD SOMETHING THAT FEELS LIKE YOU.</span><h1>Two kits.<br>One good starting point.</h1><p class="lead">A framework independent core, native adapters, and all the pieces to make the UI your own.</p><div class="notice">Packages are prepared for publication under @sebytza23. Until the first npm release, use the local tarballs or clone the repositories and build them.</div><div class="framework-links"><a class="button" href="${link('downloads/color-picker.js')}" download>Color picker JS ↓</a><a class="button" href="${link('downloads/theme-kit.js')}" download>Theme kit JS ↓</a></div><p><a class="inline-link" href="${link('downloads/color-picker.css')}" download>Color picker CSS ↓</a> · <a class="inline-link" href="${link('downloads/theme-kit.css')}" download>Theme kit CSS ↓</a></p><h3>Choose your stack</h3><div id="install-tabs" class="tab-row"></div><pre id="install-code"></pre><p id="install-note"></p><p>Theme adapters depend on the matching color-picker adapter and both cores. React does not download Vue, Svelte or Angular. Framework peers come from your existing app.</p></section>
- <section id="color-picker"><span class="eyebrow">01 / COLOR PICKER</span><h2>Color in. Everything out.</h2><p>Use a rectangle or hue/saturation wheel, separate channel fields, alpha slider/input, format selection and a format cycle button. Formats: HEX, RGB, HSL, HSV, OKLCH, OKLab.</p><pre>const color = store.getColor();\ncolor.name;        // nearest name from the bundled color list\ncolor.exact;       // whether the named color is an exact match\ncolor.hex;         // #RRGGBB or #RRGGBBAA\ncolor.hsl;         // { h, s, l, alpha }\ncolor.oklch;       // { l, c, h, alpha }\ncolor.formats;     // strings for every supported format\nstore.getValue('hex'); // request just one format</pre><p>Color names are descriptive matches, not names supplied by users. Theme names can be overridden independently.</p><a class="inline-link" href="${link('color.html')}">Try the standalone color picker ↗</a></section>
- <section id="theme-kit"><span class="eyebrow">02 / THEME KIT</span><h2>A palette with a point of view.</h2><p>Generate primary, secondary and accent, choose analogous/triadic/split complementary harmony, or edit each color yourself. Share all three markers on one wheel, or show one anonymous dot.</p><p>Opt into tinted backgrounds. Edit border widths in pixels and radii in rem. Export only the roles and geometry tokens your UI actually uses.</p><pre>const theme = generateTheme('#6366f1', { name: 'Midnight', background: 'tinted' });\nstore.setName('My own theme'); // persists through color edits\nstore.setName(); // return to the suggested name\nconst config = themeConfiguration(store.getSnapshot());\n// { theme, mode, modePreference, systemMode, tokens, css, json }\nselectThemeTokens(config.theme, { roles: ['primary'], radius: ['card'] });</pre><a class="inline-link" href="${link('generator.html')}">Open the full theme studio ↗</a></section>
- <section id="rendering"><h2>Ready on the server.<br>Flexible in the browser.</h2><table><thead><tr><th>Mode</th><th>Initial render</th><th>After mount</th></tr></thead><tbody><tr><td>Standalone / SSR</td><td>Supply a resolved theme; tokens render immediately.</td><td>Interactive controls use the same context.</td></tr><tr><td>Client fetch</td><td>Fallback theme + your loading content.</td><td>Validated remote theme replaces fallback.</td></tr><tr><td>Fetch failure</td><td>Keep the configured loading view while pending.</td><td>Fallback theme, error state and optional retry.</td></tr><tr><td>System preference</td><td>Pass systemMode as a deterministic SSR seed.</td><td>Resolve matchMedia and follow OS changes.</td></tr></tbody></table><p>Each SSR request needs its own store. Keep the server theme/mode seed identical for hydration. The stored mode is restored after mount; supply a matching server seed when you want the initial render to match a saved preference.</p><pre>const options = {\n  fallbackTheme: generateTheme('#6366f1'),\n  mode: 'system', systemMode: 'light',\n  loadTheme: createHttpThemeLoader('/api/theme'),\n  timeoutMs: 10000,\n};\n// Compose ThemeLoading, ThemeReady and ThemeError around your own content.</pre></section>
- <section id="composition"><h2>Context at the top.<br>Creativity everywhere.</h2><p>Place ThemeProvider above your app. Every ThemePicker, ThemeSelect, ThemeName and ThemeExport inside that context reads or edits the same store. A nested provider creates an independent theme. Portals outside the CSS scope need explicit style/context wiring.</p><p>ThemeMode accepts a target value and custom children/snippets/slots/templates. Or use useThemeMode() to make buttons, a dropdown or a cycle control. It exposes preference, resolvedMode, setMode and cycle.</p><pre>// React: inside a descendant of ThemeProvider\nconst { preference, resolvedMode, setMode, cycle } = useThemeMode();\n// Svelte: const mode = useThemeMode(); $mode.preference\n// Vue: mode.preference.value; Angular: mode.preference()\n// Vanilla: themeModeActions(kit.store).setMode('system')</pre><p>Style classes and data-cp-part selectors control surfaces, markers, thumb text, input labels and tracks. CSS variables customize thumb size, radius, border, shadows and text. ColorPicker remains independent; connect onChange to store.setColor(role, color.hex) when composing your own theme editor.</p></section>
- <section id="persistence"><h2>A preference that stays.<br>A cache that can change.</h2><p>Mode persistence is enabled by default under theme-kit:mode. Use browserModeStorage('my-app:mode') for separate applications or modeStorage: false for isolated simulations. System follows the OS without replacing the saved system preference.</p><p>browserStorage persists the theme. On refresh, cached themes can paint while the loader revalidates; an explicit supplied theme takes priority. Same-origin storage events synchronize tabs. ETags, focus/polling checks and watchThemeUpdates notification hooks support external changes.</p><p>Your backend must provide ETags/revisions and optionally SSE/WebSocket notifications. Redis is optional; it does not notify the browser by itself.</p></section>
- <section id="examples"><h2>Pick your language.<br>Keep your freedom.</h2><div id="example-tabs" class="tab-row"></div><p id="example-note"></p><h3>Color picker</h3><pre id="color-code"></pre><h3>Theme kit</h3><pre id="theme-code"></pre></section>
- <section id="previews"><h2>Native implementations.</h2><p>Open each complete implementation. The studio above uses the vanilla adapter; the demos below use native framework components.</p><div class="framework-links">${['React','Svelte','Vue','Angular','Astro'].map(f => `<a class="button" href="${link(f === 'React' ? 'react.html' : f === 'Astro' ? 'demos/astro/index.html' : f.toLowerCase()+'.html')}">${f} demo ↗</a>`).join('')}</div></section>
- </main></div>${footer}`;
- const choose = (integration: Integration) => {
-   const browserOnly = ['Vanilla','PHP','htmx'].includes(integration), suffix = browserOnly ? 'vanilla' : integration.toLowerCase();
-   document.querySelector('#install-code')!.textContent = `npm install @sebytza23/color-picker-${suffix}\n# or the full theme editor for your stack\nnpm install @sebytza23/theme-kit-${suffix}`;
-   document.querySelector('#install-note')!.textContent = browserOnly ? 'For plain HTML/PHP, copy browser/*.js and styles.css from the built vanilla packages. No npm process is needed on your PHP server.' : 'Import the adapter package in your existing framework app. Add both stylesheets for theme-kit.';
-   document.querySelector('#example-note')!.textContent = examples[integration].note;
-   document.querySelector('#color-code')!.textContent = examples[integration].color.replace(/@sebytza23\/color-picker(?=['"])/g, `@sebytza23/color-picker-${suffix}`).replace('@sebytza23/color-picker/styles.css', `@sebytza23/color-picker-${suffix}/styles.css`);
-   document.querySelector('#theme-code')!.textContent = examples[integration].theme.replace(/@sebytza23\/theme-kit(?=['"])/g, `@sebytza23/theme-kit-${suffix}`).replace(/import '@sebytza23\/color-picker\/styles.css';\n/g, '').replace('@sebytza23/theme-kit/styles.css', `@sebytza23/theme-kit-${suffix}/styles.css`);
-   document.querySelectorAll<HTMLButtonElement>('[data-integration]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.integration === integration)));
- };
- for (const id of ['install-tabs','example-tabs']) for (const integration of integrations) {
-   const button = document.createElement('button'); button.type = 'button'; button.dataset.integration = integration; button.textContent = integration; button.addEventListener('click', () => choose(integration)); document.querySelector('#'+id)!.append(button);
- }
- choose('Svelte');
+  const kit: Kit =
+    new URLSearchParams(location.search).get('kit') === 'theme-kit'
+      ? 'theme-kit'
+      : 'color-picker';
+  const color = kit === 'color-picker';
+  app.innerHTML = `${nav}<div class="docs-layout"><aside class="docs-sidebar"><div class="docs-kit-tabs"><a ${color ? 'aria-current="page"' : ''} href="${link('docs.html?kit=color-picker')}">Color picker</a><a ${!color ? 'aria-current="page"' : ''} href="${link('docs.html?kit=theme-kit')}">Theme kit</a></div><nav aria-label="Documentation sections"><a href="#overview">Overview</a><a href="#installation">Installation</a><a href="#examples">Examples</a><a href="#composition">Composition</a><a href="#output">Output</a><a href="#customization">Customization</a>${color ? '' : `<a href="#rendering">Rendering & fallback</a><a href="#persistence">Persistence & freshness</a>`}<a href="#reference">API reference</a></nav></aside><main id="main" class="docs-content"><section id="overview"><p class="product-label">${color ? 'Color picker' : 'Theme kit'} documentation</p><h1>${color ? 'Color picker' : 'Theme kit'}</h1><p class="lead">${color ? 'Compose a single-color editor from a surface, sliders and channel inputs. Read every supported format from one store.' : 'Compose a theme editor around a shared context. Supply a theme directly, select a preset, or load a theme with a fallback.'}</p><div class="docs-callout">${color ? 'ColorProvider shares one selected color across its surfaces, sliders and inputs.' : 'Theme kit uses color picker for its color controls. Primary, secondary and accent belong to the theme context.'}</div></section><section id="installation"><h2>Installation</h2><p>Install only the adapter that matches your application.</p><div class="release-note">The packages are prepared under @sebytza23; the first npm release is pending. The command below applies once they are published.</div><div id="docs-installation"></div><p>Frameworks are peer dependencies. A Svelte installation does not include React, Vue or Angular. ${color ? 'The core can also be used without a UI adapter.' : 'Theme adapters include the matching color picker adapter. Their stylesheet includes color picker styles.'}</p><div class="asset-downloads"><a class="button" href="${link('downloads/' + kit + '.js')}" download>Download vanilla JS</a><a class="button" href="${link('downloads/' + kit + '.css')}" download>Download CSS</a>${color ? '' : `<a class="button" href="${link('downloads/color-picker.css')}" download>Download color picker CSS</a>`}</div><p class="muted">Vanilla downloads work in HTML, PHP and htmx. Copy them to your application’s public assets directory.</p></section><section id="examples"><h2>Working examples</h2><p>Interact with the component here. The preview uses the native DOM adapter; source tabs show the equivalent framework composition.</p><div id="docs-explorer"></div></section><section id="composition"><h2>Composition</h2>${color ? `<p>Put ColorProvider above the controls that should share a color. Surfaces, sliders, inputs and format controls use the closest provider. A second provider creates a separate picker.</p><div class="docs-diagram"><strong>ColorProvider</strong><div><span>ColorArea / ColorWheel</span><span>ColorSlider</span><span>ColorInput</span><span>ColorFormatSelect / ColorMode</span></div></div><p>Use createColorStore() outside the UI for programmatic updates. Inside a provider, useColorStore() exposes the store and useColor() exposes the reactive snapshot.</p>` : `<p>Put ThemeProvider above your application. ThemePicker, ThemeSelect, ThemeName, ThemeMode and ThemeExport inside it read or update the same context. Nested providers create independent themes.</p><div class="docs-diagram"><strong>ThemeProvider</strong><div><span>ThemePicker</span><span>ThemeSelect</span><span>ThemeMode / useThemeMode()</span><span>ThemeExport</span><span>Application content</span></div></div><p>The provider scopes CSS variables to its subtree. Portalled content needs to stay in that scope or receive the theme variables explicitly.</p>`}<div id="composition-code"></div></section><section id="output"><h2>${color ? 'Names, formats & values' : 'Theme configuration & tokens'}</h2><p>${color ? 'getColor() returns a color name, the exact-match flag, numeric channels and strings for all six formats. getValue(format) returns the typed value for that format; use color.formats for formatted strings. Naming uses the bundled color list; a nearest match is not an exact color identity.' : 'themeConfiguration() returns the full theme, resolved mode, saved preference, tokens, CSS and round-trippable JSON. A token selection filters CSS output; JSON preserves the complete theme.'}</p><div id="output-code"></div></section><section id="customization"><h2>Customization</h2><p>${color ? 'Use classes on the surface and controls. The classes prop can target root, thumb, marker and text. Use thumbText for a label, or a render hook for custom thumb content.' : 'Compose only the controls you want. Mode buttons accept your own content; useThemeMode() lets you build a toggle, three buttons or a dropdown. ThemeName allows custom content and a user-supplied name.'}</p><div id="custom-code"></div>${color ? `<table><thead><tr><th>CSS variable / selector</th><th>Controls</th></tr></thead><tbody><tr><td>--cp-thumb-size / --cp-thumb-radius</td><td>Single color dot size and shape</td></tr><tr><td>--cp-track-height / --cp-track-radius</td><td>Hue and alpha track geometry</td></tr><tr><td>--cp-hue-gradient</td><td>Hue bar background</td></tr><tr><td>[data-cp-part="surface"]</td><td>Picking surface</td></tr><tr><td>[data-cp-part="thumb-text"]</td><td>Thumb content</td></tr></tbody></table>` : ''}</section>${color ? '' : `<section id="rendering"><h2>Rendering & fallback</h2><p>A supplied theme renders immediately. With loadTheme(), the context exposes loading until the request settles. A rejected, invalid or timed-out response applies fallbackTheme. ThemeLoading and ThemeError render your own content.</p><div id="docs-rendering"></div><h3>Server rendering</h3><p>Create one store per request and supply the resolved theme and mode. Use the same seed for client hydration. Browser storage and the OS preference are read after mount; supply a matching server seed to make the first render match a saved preference.</p><div id="ssr-code"></div></section><section id="persistence"><h2>Persistence & freshness</h2><p>browserStorage() saves the theme; browserModeStorage() saves the system/light/dark preference. An explicitly supplied theme takes priority over cached theme data. To restore a stored theme, supply a fallbackTheme and storage.</p><p>Cached data can render while the HTTP loader revalidates. ETag/304 responses avoid unnecessary replacement. Same-origin storage events synchronize browser tabs; focus, polling or watchThemeUpdates() can trigger revalidation after remote changes.</p><div id="cache-code"></div><p>Redis is optional server infrastructure. The browser still needs an HTTP revision/ETag or a notification through SSE/WebSocket to know that a theme changed.</p></section>`}<section id="reference"><h2>API reference</h2>${referenceTable(kit)}<p>All adapters re-export core helpers. For framework-specific content, React uses render props, Svelte uses snippets, Vue uses slots, Angular uses templates, and Astro uses slots with native DOM events.</p></section></main></div>${footer}`;
+  installation(document.querySelector('#docs-installation')!, kit);
+  cleanup.push(mountExplorer(document.querySelector('#docs-explorer')!, kit));
+  const pkg = (i: (typeof integrations)[number]) => packageFor(kit, i);
+  codePanel(document.querySelector('#composition-code')!, (i) =>
+    color
+      ? `import { createColorStore } from '${pkg(i)}';\n\nconst store = createColorStore('#5268E080', 'rgb');\nstore.setHex('#277D59');\nstore.setHSV({ h: 140 });\nstore.setAlpha(0.5);\nconst unsubscribe = store.subscribe(() => console.log(store.getColor()));\n// unsubscribe() when the consumer is removed.`
+      : `import { createThemeStore, generateTheme } from '${pkg(i)}';\n\nconst store = createThemeStore({\n  theme: generateTheme('#5268E0'),\n  mode: 'system', systemMode: 'light',\n});\nstore.setColor('primary', '#277D59');\nstore.setName('Project theme');\nstore.setBorder('radius', 'card', 0.75);\nstore.setMode('dark');`,
+  );
+  codePanel(document.querySelector('#output-code')!, (i) =>
+    color
+      ? `import { createColorStore } from '${pkg(i)}';\nconst store = createColorStore('#5268E080');\nconst color = store.getColor();\n\ncolor.name;        // nearest name from the bundled list\ncolor.exact;       // true only for an exact named match\ncolor.hex;         // #RRGGBB or #RRGGBBAA\ncolor.rgb;         // { r, g, b, alpha }\ncolor.hsl;         // { h, s, l, alpha }\ncolor.hsv;         // { h, s, v, alpha }\ncolor.oklch;       // { l, c, h, alpha }\ncolor.oklab;       // { l, a, b, alpha }\ncolor.formats;     // strings for all supported formats\nstore.getValue('hsl');`
+      : `import { themeConfiguration, selectThemeTokens } from '${pkg(i)}';\n\nconst config = themeConfiguration(store.getSnapshot(), {\n  roles: ['primary'], radius: ['card'], width: ['card'],\n});\nconfig.theme;         // full validated theme\nconfig.mode;          // resolved light/dark\nconfig.modePreference;// saved system/light/dark preference\nconfig.css;           // selected tokens as CSS declarations\nconfig.json;          // complete theme and mode for persistence\n\nconst tokens = selectThemeTokens(config.theme, { roles: ['primary'] });`,
+  );
+  codePanel(
+    document.querySelector('#custom-code')!,
+    (i) =>
+      color
+        ? `.custom-picker {\n  --cp-thumb-size: 22px;\n  --cp-thumb-radius: 0;\n  --cp-thumb-border: 2px solid white;\n  --cp-track-height: 12px;\n  --cp-track-radius: 0;\n}\n.custom-picker [data-cp-part="thumb-text"] { font-size: 10px; }`
+        : modeExample(i),
+    color
+      ? { label: 'Styles', file: 'styles.css' }
+      : { label: 'Appearance controls' },
+  );
+  if (!color) {
+    cleanup.push(mountRenderingLab(document.querySelector('#docs-rendering')!));
+    codePanel(
+      document.querySelector('#ssr-code')!,
+      (i) =>
+        `import { createThemeStore, generateTheme } from '${['Vanilla', 'PHP', 'htmx'].includes(i) ? '@sebytza23/theme-kit' : pkg(i)}';\n\n// Run this inside the request, not at module scope.\nconst store = createThemeStore({\n  theme: generateTheme('#5268E0'),\n  mode: 'dark', systemMode: 'dark',\n});\nconst seed = store.getServerSnapshot();\n// Render ThemeProvider with this store on the server.\n// Hydrate with the same theme and mode seed in the browser.`,
+    );
+    codePanel(
+      document.querySelector('#cache-code')!,
+      (i) =>
+        `import { createThemeStore, browserStorage, browserModeStorage,\n  generateTheme, createHttpThemeLoader } from '${pkg(i)}';\n\nconst options = {\n  fallbackTheme: generateTheme('#5268E0'),\n  storage: browserStorage('app:theme'),\n  modeStorage: browserModeStorage('app:mode'),\n  loadTheme: createHttpThemeLoader('/api/theme'),\n  revalidateOnFocus: true,\n  revalidateIntervalMs: 60000,\n};\nconst store = createThemeStore(options);\n// Pass options/store to the framework provider.\n// Native DOM consumers call mountThemeStore(store, options.storage, options).`,
+    );
+  }
 }
-function createSnapshot(theme: ReturnType<typeof generateTheme>): import('@sebytza23/theme-kit').ThemeSnapshot {
- // Core construction is request-local; this static preview deliberately has no browser persistence.
- return { theme, mode: 'light' as const, modePreference: 'light' as const, systemMode: 'light' as const, background: theme.backgroundMode ?? 'preserve', status: 'ready' as const, pending: false, error: null, style: '' };
+function installation(host: HTMLElement, kit: Kit) {
+  codePanel(
+    host,
+    (i) =>
+      ['PHP', 'htmx'].includes(i)
+        ? `<!-- Copy the downloaded JS/CSS files into your public assets. -->\n<link rel="stylesheet" href="/assets/${kit}.css">${kit === 'theme-kit' ? '\n<link rel="stylesheet" href="/assets/color-picker.css">' : ''}\n<script src="/assets/${kit}.js"></script>\n<!-- Browser API: ${kit === 'color-picker' ? 'ColorPicker' : 'ThemeKit'} -->`
+        : `npm install ${packageFor(kit, i)}\n\n// Import once in your application’s global entry.\nimport '${packageFor(kit, i)}/styles.css';`,
+    { label: 'Install' },
+  );
+}
+function referenceTable(kit: Kit) {
+  const rows =
+    kit === 'color-picker'
+      ? [
+          ['ColorProvider', 'Context for one color. Accepts value or a store.'],
+          [
+            'ColorArea / ColorWheel',
+            'Two-axis rectangle or hue/saturation wheel; pointer and keyboard controls.',
+          ],
+          ['ColorSlider', 'Hue, saturation, brightness or alpha channel.'],
+          [
+            'ColorInput / ColorChannelInput',
+            'Format-aware separate channel fields or one numeric channel.',
+          ],
+          ['ColorAlphaInput', 'Independent alpha percentage input.'],
+          [
+            'ColorFormatSelect / ColorMode',
+            'Select a format or cycle to the next format.',
+          ],
+          [
+            'createColorStore()',
+            'Immutable snapshots, subscription, setters and all color values.',
+          ],
+          [
+            'mountColorPicker()',
+            'Vanilla ready layout; returns store, getColor(), getValue() and destroy().',
+          ],
+        ]
+      : [
+          [
+            'ThemeProvider',
+            'Immediate theme or asynchronous loading; context and scoped CSS.',
+          ],
+          [
+            'ThemePicker',
+            'Rectangle, wheel or shared wheel. Configurable roles and active role.',
+          ],
+          [
+            'ThemeHarmony / ThemeBackground',
+            'Generate secondary/accent and opt into tinted backgrounds.',
+          ],
+          [
+            'ThemeRadius / ThemeBorderWidth',
+            'Independent geometry for each supported target.',
+          ],
+          [
+            'ThemeMode / useThemeMode()',
+            'System/light/dark preference and customizable controls.',
+          ],
+          [
+            'ThemeName / ThemeSelect',
+            'Suggested/custom name and preset list selection.',
+          ],
+          [
+            'ThemeLoading / ThemeReady / ThemeError',
+            'Custom content for loading, rendered theme and request failure.',
+          ],
+          [
+            'ThemeExport / themeConfiguration()',
+            'JSON, CSS and typed output; optional token selection.',
+          ],
+          [
+            'createThemeStore()',
+            'Core state, setters, loader lifecycle, cancellation and revalidation.',
+          ],
+          [
+            'mountThemeKit()',
+            'Vanilla layout; returns store, getConfiguration() and destroy().',
+          ],
+        ];
+  return `<table><thead><tr><th>Component / helper</th><th>Purpose</th></tr></thead><tbody>${rows.map(([name, desc]) => `<tr><td><code>${escape(name)}</code></td><td>${escape(desc)}</td></tr>`).join('')}</tbody></table>`;
 }

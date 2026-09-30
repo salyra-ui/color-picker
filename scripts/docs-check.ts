@@ -1,0 +1,144 @@
+import { JSDOM } from 'jsdom';
+import ts from 'typescript';
+import { compile } from 'svelte/compiler';
+import { parse, compileTemplate } from '@vue/compiler-sfc';
+import { transform } from '@astrojs/compiler';
+import { parseTemplate } from '@angular/compiler';
+import { sourceFiles } from '../examples/docs/code-files';
+const dom = new JSDOM('<!doctype html><body></body>', {
+  url: 'http://localhost',
+});
+Object.assign(globalThis, {
+  window: dom.window,
+  document: dom.window.document,
+  HTMLElement: dom.window.HTMLElement,
+  customElements: dom.window.customElements,
+  CustomEvent: dom.window.CustomEvent,
+});
+const {
+  integrations,
+  colorVariants,
+  themeVariants,
+  colorExample,
+  themeExample,
+  loaderExample,
+  modeExample,
+} = await import('../examples/docs/snippets');
+let count = 0;
+const typedSources = new Map<string, string>();
+for (const integration of integrations) {
+  const samples = [
+    ...colorVariants.map((v) => colorExample(integration, v.id)),
+    ...themeVariants.map((v) => themeExample(integration, v.id)),
+    loaderExample(integration),
+    modeExample(integration),
+  ];
+  for (const [index, sample] of samples.entries()) {
+    const files = sourceFiles(sample, integration);
+    for (const file of files) {
+      if (file.name.endsWith('.css')) continue;
+      try {
+        if (integration === 'React' || integration === 'Angular') {
+          typedSources.set(
+            process.cwd() +
+              `/examples/docs/check-${integration}-${index}.${integration === 'React' ? 'tsx' : 'ts'}`,
+            file.code,
+          );
+          const result = ts.transpileModule(file.code, {
+            fileName: file.name,
+            reportDiagnostics: true,
+            compilerOptions: {
+              target: ts.ScriptTarget.ES2022,
+              module: ts.ModuleKind.ESNext,
+              jsx: ts.JsxEmit.ReactJSX,
+              experimentalDecorators: true,
+            },
+          });
+          const errors = result.diagnostics?.filter(
+            (d) => d.category === ts.DiagnosticCategory.Error,
+          );
+          if (errors?.length)
+            throw new Error(
+              ts.formatDiagnosticsWithColorAndContext(errors, {
+                getCurrentDirectory: () => process.cwd(),
+                getCanonicalFileName: (f) => f,
+                getNewLine: () => '\n',
+              }),
+            );
+          if (integration === 'Angular') {
+            const template = file.code.match(/template:\s*`([\s\S]*?)`/);
+            if (template) {
+              const parsed = parseTemplate(template[1], file.name);
+              if (parsed.errors?.length)
+                throw new Error(
+                  parsed.errors.map((e) => e.toString()).join('\n'),
+                );
+            }
+          }
+        } else if (integration === 'Svelte')
+          compile(file.code, { filename: file.name, generate: 'server' });
+        else if (integration === 'Vue') {
+          const parsed = parse(file.code, { filename: file.name });
+          if (parsed.errors.length) throw new Error(String(parsed.errors));
+          const result = compileTemplate({
+            source: parsed.descriptor.template?.content ?? '',
+            filename: file.name,
+            id: 'docs-preview',
+          });
+          if (result.errors.length) throw new Error(String(result.errors));
+        } else if (integration === 'Astro')
+          await transform(file.code, { filename: file.name });
+        else {
+          const doc = new JSDOM(file.code);
+          for (const script of doc.window.document.querySelectorAll(
+            'script:not([src])',
+          )) {
+            if (integration === 'PHP' && script.textContent?.includes('<?'))
+              continue;
+            new Function(script.textContent ?? '');
+          }
+          doc.window.close();
+        }
+      } catch (error) {
+        throw new Error(
+          `${integration} example ${index + 1} (${file.name}): ${String(error)}`,
+        );
+      }
+    }
+    count++;
+  }
+}
+const config = ts.readConfigFile('tsconfig.json', ts.sys.readFile);
+const parsed = ts.parseJsonConfigFileContent(
+  config.config,
+  ts.sys,
+  process.cwd(),
+);
+const host = ts.createCompilerHost(parsed.options);
+const fallbackSource = host.getSourceFile.bind(host);
+const fallbackExists = host.fileExists.bind(host);
+host.fileExists = (file) => typedSources.has(file) || fallbackExists(file);
+host.getSourceFile = (file, language, onError, shouldCreateNewSourceFile) =>
+  typedSources.has(file)
+    ? ts.createSourceFile(file, typedSources.get(file)!, language, true)
+    : fallbackSource(file, language, onError, shouldCreateNewSourceFile);
+const program = ts.createProgram(
+  [...typedSources.keys()],
+  parsed.options,
+  host,
+);
+const errors = ts
+  .getPreEmitDiagnostics(program)
+  .filter((d) => d.category === ts.DiagnosticCategory.Error);
+if (errors.length)
+  throw new Error(
+    ts.formatDiagnosticsWithColorAndContext(errors, {
+      getCurrentDirectory: () => process.cwd(),
+      getCanonicalFileName: (f) => f,
+      getNewLine: () => '\n',
+    }),
+  );
+dom.window.close();
+console.log(
+  `Validated syntax for ${count} color/theme/loading examples across ${integrations.length} integrations.`,
+);
