@@ -556,7 +556,11 @@ main {
   border-radius: 0;
   padding-inline: 8px;
 }
+/* The wrapper owns the border, focus ring and invalid state. */
 .cp-channel-field input {
+  border: 0;
+  border-radius: 0;
+  outline: 0;
   font-family: inherit;
   font-size: 13px;
   padding: 10px 0;
