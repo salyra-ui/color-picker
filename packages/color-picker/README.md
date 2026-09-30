@@ -2,7 +2,7 @@
 
 Standalone, framework independent color math and composable color controls. No dependency on theme-kit. Runtime core has zero dependencies.
 
-Entry points: `color-picker`, `/react`, `/svelte`, `/vue`, `/angular`, `/astro/*.astro`, `/styles.css`.
+Core package: `@sebytza23/color-picker`. Independent adapters: `@sebytza23/color-picker-react`, `-svelte`, `-vue`, `-angular`, `-astro`, `-vanilla`. Each adapter exports core helpers and its own `/styles.css`. Astro components use `@sebytza23/color-picker-astro/*.astro`.
 
 Primitives: ColorProvider, ColorArea, ColorSlider (h/s/v/alpha), ColorInput (separate RGB/HSL/HSV/OKLCH/OKLab channel fields or a single HEX field), ColorChannelInput, ColorFormatSelect, ColorMode, ColorSwatch, ColorPreview (all five adapters). All optional CSS can be replaced. The native sliders provide single-axis accessible controls; the two-dimensional area accepts arrows, Shift+arrows, Home/End and pointer/touch/pen input.
 
