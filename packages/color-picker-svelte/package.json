@@ -1,11 +1,12 @@
 {
   "name": "@sebytza23/color-picker-svelte",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "private": true,
   "exports": {
     ".": "./index.ts",
     "./styles.css": "./styles.css"
   },
-  "sideEffects": false
+  "sideEffects": false,
+  "homepage": "https://sebytza23.github.io/color-picker/docs.html?kit=color-picker"
 }

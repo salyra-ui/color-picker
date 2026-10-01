@@ -1,6 +1,6 @@
 {
   "name": "sebytza23-color-picker-workspace",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "description": "Copy-first theme engine and composable framework components",
@@ -17,7 +17,8 @@
     "build:packages": "node scripts/build.mjs && node scripts/split-packages.mjs",
     "build:site": "npm run build:packages && vite build && node scripts/site-build.mjs",
     "pack:all": "npm run build:packages && node scripts/pack-all.mjs",
-    "check:docs": "tsx scripts/docs-check.ts"
+    "check:docs": "tsx scripts/docs-check.ts",
+    "test:consumer": "node scripts/consumer-check.mjs --registry"
   },
   "devDependencies": {
     "@angular/common": "~19.2.0",
@@ -64,12 +65,12 @@
     "node": ">=22.19.0"
   },
   "dependencies": {
-    "@sebytza23/theme-kit": "file:vendor/sebytza23-theme-kit-0.1.0.tgz",
-    "@sebytza23/theme-kit-react": "file:vendor/sebytza23-theme-kit-react-0.1.0.tgz",
-    "@sebytza23/theme-kit-svelte": "file:vendor/sebytza23-theme-kit-svelte-0.1.0.tgz",
-    "@sebytza23/theme-kit-vue": "file:vendor/sebytza23-theme-kit-vue-0.1.0.tgz",
-    "@sebytza23/theme-kit-angular": "file:vendor/sebytza23-theme-kit-angular-0.1.0.tgz",
-    "@sebytza23/theme-kit-astro": "file:vendor/sebytza23-theme-kit-astro-0.1.0.tgz",
-    "@sebytza23/theme-kit-vanilla": "file:vendor/sebytza23-theme-kit-vanilla-0.1.0.tgz"
+    "@sebytza23/theme-kit": "0.1.1",
+    "@sebytza23/theme-kit-react": "0.1.1",
+    "@sebytza23/theme-kit-svelte": "0.1.1",
+    "@sebytza23/theme-kit-vue": "0.1.1",
+    "@sebytza23/theme-kit-angular": "0.1.1",
+    "@sebytza23/theme-kit-astro": "0.1.1",
+    "@sebytza23/theme-kit-vanilla": "0.1.1"
   }
 }

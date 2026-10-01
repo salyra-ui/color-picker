@@ -24,6 +24,7 @@ jobs:
       - run: npm run check
       - run: npm run check:docs
       - run: npm run test:ssr
+      - run: npm run pack:all
       - run: npm run build:site
         env:
           PAGES_BASE: ${{ steps.pages.outputs.base_path }}/

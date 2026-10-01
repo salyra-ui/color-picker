@@ -2,6 +2,10 @@
 
 Color conversions, named colors and picker state without a UI framework.
 
+![Color picker with hue, alpha and named color](https://sebytza23.github.io/color-picker/npm/color-picker-controls.jpg)
+
+![Separate RGB channel inputs](https://sebytza23.github.io/color-picker/npm/color-picker-channels.jpg)
+
 ```bash
 npm install @sebytza23/color-picker
 ```

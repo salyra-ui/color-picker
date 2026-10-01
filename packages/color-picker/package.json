@@ -1,6 +1,6 @@
 {
   "name": "@sebytza23/color-picker",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "private": true,
   "sideEffects": [
@@ -54,5 +54,6 @@
       "optional": true
     }
   },
-  "dependencies": {}
+  "dependencies": {},
+  "homepage": "https://sebytza23.github.io/color-picker/docs.html?kit=color-picker"
 }

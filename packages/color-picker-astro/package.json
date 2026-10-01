@@ -1,6 +1,6 @@
 {
   "name": "@sebytza23/color-picker-astro",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "private": true,
   "exports": {
@@ -9,5 +9,6 @@
     "./client": "./src/client.ts",
     "./styles.css": "./styles.css"
   },
-  "sideEffects": true
+  "sideEffects": true,
+  "homepage": "https://sebytza23.github.io/color-picker/docs.html?kit=color-picker"
 }
