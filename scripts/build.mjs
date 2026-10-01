@@ -1,5 +1,5 @@
 import { build } from 'esbuild';
-import { mkdir, cp, readFile, writeFile, readdir } from 'node:fs/promises';
+import { mkdir, cp, readFile, writeFile, readdir, rm } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 execFileSync(
   process.execPath,
@@ -19,6 +19,7 @@ const availableKits = await readdir('packages');
 for (const name of ['color-picker', 'theme-kit'].filter(name => availableKits.includes(name))) {
   const root = `packages/${name}`,
     out = `${root}/dist`;
+  await rm(out, { recursive: true, force: true });
   await mkdir(out, { recursive: true });
   await build({
     entryPoints: [`${root}/core/index.ts`],
@@ -28,7 +29,7 @@ for (const name of ['color-picker', 'theme-kit'].filter(name => availableKits.in
     platform: 'neutral',
     target: 'es2022',
     packages: 'external',
-    sourcemap: true,
+    sourcemap: false,
   });
   await build({
     entryPoints: [`${root}/react/index.tsx`],
@@ -41,11 +42,11 @@ for (const name of ['color-picker', 'theme-kit'].filter(name => availableKits.in
     external: ['../core'],
     jsx: 'automatic',
     banner: { js: '"use client";' },
-    sourcemap: true,
+    sourcemap: false,
   });
   await mkdir(`${out}/browser`, { recursive: true });
   await build({ entryPoints: [`${root}/vanilla/index.ts`], outfile: `${out}/vanilla/index.js`, bundle: true,
-    format: 'esm', platform: 'browser', target: 'es2022', packages: 'external', external: ['../core'], sourcemap: true });
+    format: 'esm', platform: 'browser', target: 'es2022', packages: 'external', external: ['../core'], sourcemap: false });
   await build({ entryPoints: [`${root}/vanilla/index.ts`], outfile: `${out}/browser/${name}.js`, bundle: true,
     format: 'iife', globalName: name === 'color-picker' ? 'ColorPicker' : 'ThemeKit', platform: 'browser', target: 'es2022', minify: true });
   await cp(`.types-build/${name}/vanilla`, `${out}/vanilla`, { recursive: true });
