@@ -1662,20 +1662,6 @@ td code {
 .code-panel [hidden] {
   display: none;
 }
-.api-table td {
-  vertical-align: top;
-}
-.api-table td:first-child {
-  width: 30%;
-}
-.api-table td p {
-  margin: 0 0 6px;
-}
-.api-table small {
-  color: var(--muted);
-  font-size: 12px;
-  display: block;
-}
 .docs-content h3 {
   margin-top: 28px;
 }
@@ -1697,9 +1683,6 @@ td code {
     margin: 8px 6px;
     padding: 7px 8px;
     font-size: 10px;
-  }
-  .api-table td:first-child {
-    width: 35%;
   }
 }
 
@@ -1729,3 +1712,56 @@ td code {
 .lab-grid[data-lab-display="preview"], .lab-grid[data-lab-display="code"] { grid-template-columns: minmax(0, 1fr); }
 .lab-grid[data-lab-display="preview"] > .code-panel { display: none; }
 .lab-grid[data-lab-display="code"] > .lab-preview { display: none; }
+
+/* API glossary shares the documentation grid and keeps each property readable. */
+.api-reference-intro { display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 0.7fr); gap: 28px; align-items: start; margin: 20px 0; }
+.api-reference-intro > p { margin: 0; }
+.api-search { display: grid; gap: 8px; font-size: 12px; }
+.api-search input { min-width: 0; width: 100%; padding: 11px 12px; border: 1px solid var(--line); background: white; font: inherit; font-size: 13px; color: var(--ink); border-radius: 0; }
+.api-search input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.docs-content .api-conventions { font-size: 12px; color: var(--muted); line-height: 1.65; margin: 0 0 24px; }
+.api-index { display: flex; flex-wrap: wrap; gap: 0; border-top: 1px solid var(--line); border-left: 1px solid var(--line); margin: 24px 0 40px; }
+.api-index a { padding: 9px 12px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); font-size: 11px; color: var(--ink); }
+.api-index a:hover, .api-index a:focus-visible { color: var(--accent); background: var(--surface); }
+.api-entry { margin-bottom: 48px; scroll-margin-top: 28px; }
+.api-entry-heading { display: flex; justify-content: space-between; gap: 16px; border-top: 2px solid var(--ink); padding-top: 16px; }
+.docs-content .api-entry-heading h3 { margin: 4px 0 12px; font-size: 24px; line-height: 1.2; letter-spacing: -0.6px; overflow-wrap: anywhere; }
+.docs-content .api-kind { margin: 0; font-size: 11px; color: var(--muted); }
+.api-entry-heading > a { color: var(--muted); font-size: 18px; }
+.api-entry-heading > a:hover { color: var(--accent); }
+.docs-content .api-purpose { margin: 0 0 12px; line-height: 1.65; }
+.docs-content .api-note { margin: 12px 0 20px; color: var(--muted); font-size: 12px; line-height: 1.65; }
+.api-properties { width: 100%; table-layout: fixed; border-collapse: collapse; margin: 20px 0 0; }
+.api-properties caption { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.api-properties thead th { font-size: 11px; font-weight: 500; text-align: left; background: var(--surface); padding: 12px; border-top: 1px solid var(--line); }
+.api-properties thead th:nth-child(1) { width: 19%; }
+.api-properties thead th:nth-child(2) { width: 23%; }
+.api-properties thead th:nth-child(3) { width: 17%; }
+.api-properties thead th:nth-child(4) { width: 41%; }
+.api-properties tbody th, .api-properties tbody td { vertical-align: top; text-align: left; padding: 16px 12px; border-bottom: 1px solid var(--line); font-size: 12px; font-weight: 400; overflow-wrap: anywhere; }
+.api-properties code { font-size: 11px; line-height: 1.7; white-space: normal; }
+.api-properties tbody th { background: white; }
+.api-properties tbody th > code { color: var(--ink); font-weight: 600; }
+.api-requirement { display: block; color: var(--muted); font-size: 10px; margin-top: 5px; }
+.docs-content .api-properties p { margin: 0 0 10px; font-size: 12px; line-height: 1.65; }
+.api-inline-example { display: block; background: var(--surface); padding: 7px 9px; border-left: 2px solid var(--line); }
+.api-usage { border-bottom: 1px solid var(--line); }
+.api-usage > summary { padding: 14px 12px; font-size: 12px; cursor: pointer; }
+.api-usage > summary span { color: var(--muted); margin-left: 12px; font-size: 11px; }
+.api-usage[open] > summary { color: var(--accent); }
+.docs-content .api-usage .code-panel { margin: 0 0 16px; }
+.api-search-status { color: var(--muted); font-size: 12px; }
+.api-reference [hidden] { display: none !important; }
+@media (max-width: 1000px) {
+  .api-reference-intro { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .api-properties { display: block; }
+  .api-properties thead { display: none; }
+  .api-properties tbody { display: block; }
+  .api-properties tr { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); border-top: 1px solid var(--line); padding: 14px 0; }
+  .api-properties tbody th, .api-properties tbody td { display: block; padding: 7px 12px; border: 0; }
+  .api-properties tbody th { grid-column: 1 / -1; }
+  .api-properties td:last-child { grid-column: 1 / -1; }
+  .api-properties td::before { content: attr(data-label); display: block; font-size: 10px; color: var(--muted); margin-bottom: 4px; }
+  .api-requirement { display: inline; margin-left: 12px; }
+}
+.api-type a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }

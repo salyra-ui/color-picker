@@ -168,6 +168,14 @@ for (const integration of integrations) {
     count++;
   }
 }
+const { referenceEntries } = await import('../examples/docs/reference-data');
+let referenceCount = 0;
+for (const kit of ['color-picker', 'theme-kit'] as const) {
+  for (const entry of referenceEntries(kit)) {
+    typedSources.set(`${process.cwd()}/examples/docs/check-api-${kit}-${entry.id}.${entry.example.file.endsWith('tsx') ? 'tsx' : 'ts'}`, entry.example.code);
+    referenceCount++;
+  }
+}
 const config = ts.readConfigFile('tsconfig.json', ts.sys.readFile);
 const parsed = ts.parseJsonConfigFileContent(
   config.config,
@@ -206,3 +214,5 @@ console.log(
 console.log(
   `Executed ${nativeCount} supplied-store Vanilla examples against the native adapters.`,
 );
+
+console.log(`Type-checked ${referenceCount} copyable API reference examples against the actual package exports.`);

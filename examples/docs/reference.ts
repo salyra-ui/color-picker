@@ -1,149 +1,79 @@
 import type { Kit } from './snippets';
-const code = (s: string) => `<code>${s}</code>`;
+import { codePanel, escape } from './gallery';
+import { referenceEntries, type ApiEntry } from './reference-data';
+
+const idFor = (entry: ApiEntry) => `api-${entry.id}`;
+const qualifier = (entry: ApiEntry, key: string, required?: boolean) => {
+  if (key.includes('return value')) return 'Returned';
+  if (key.includes('range') || key === 'harmony values') return 'Input constraint';
+  if (/\w+\(/.test(key)) return 'Method';
+  if (entry.kind === 'Return value' || key === 'activeColor') return 'Read only';
+  return required ? 'Required' : 'Optional';
+};
+const typeLinks: Record<string, string> = {
+  Theme: 'Theme', ThemeStore: 'ThemeStore', ThemeSnapshot: 'ThemeSnapshot',
+  ThemePickerStore: 'createThemePickerStore / ThemePickerStore',
+  TokenSelection: 'TokenSelection', ThemeConfiguration: 'ThemeConfiguration',
+  SelectedTheme: 'ThemeConfiguration', Palette: 'Theme',
+  PaletteClasses: 'Palette styling', ThemeStorage: 'ThemeStorage / ModeStorage', ModeStorage: 'ThemeStorage / ModeStorage',
+  ColorStore: 'ColorStore', ColorSnapshot: 'ColorSnapshot', ColorInfo: 'ColorInfo',
+  ColorMarker: 'ColorMarker', ColorPartClasses: 'ColorPartClasses',
+};
+const typeMarkup = (value: string, entries: ApiEntry[]) => value.split(/(\b[A-Z][A-Za-z]+\b)/).map(part => {
+  const target = entries.find(entry => entry.name === typeLinks[part]);
+  return target ? `<a href="#${idFor(target)}">${escape(part)}</a>` : escape(part);
+}).join('');
 export function referenceTable(kit: Kit) {
-  const rows: string[][] =
-    kit === 'color-picker'
-      ? [
-          [
-            'ColorProvider',
-            'Shares one color store with its children.',
-            'value: HEX string · store: ColorStore · view: area | wheel · disabled',
-            'Create separate providers for independent colors. Provide a store to choose the initial format.',
-          ],
-          [
-            'ColorArea / ColorWheel',
-            'The rectangle edits saturation and brightness. The wheel edits hue and saturation.',
-            'classes · thumbText · label',
-            'Use a hue slider with the area and a brightness slider with the wheel. Both support pointer and keyboard input.',
-          ],
-          [
-            'ColorSlider',
-            'Edits one channel without replacing the other channels.',
-            'channel: h | s | v | alpha · label',
-            'Hue uses degrees. Saturation, brightness and the alpha control use percentages.',
-          ],
-          [
-            'ColorInput',
-            'Shows the fields for the currently selected format.',
-            'className / class · classes',
-            'HEX has one text input. RGB, HSL, HSV, OKLCH and OKLab have separate numeric fields.',
-          ],
-          [
-            'ColorChannelInput',
-            'Renders one specific numeric field.',
-            'format: rgb | hsl | hsv | oklch | oklab · index: 0 | 1 | 2',
-            'Useful for a fixed-format layout that does not follow the format selector.',
-          ],
-          [
-            'ColorAlphaInput',
-            'Edits transparency as a percentage.',
-            'label · classes',
-            'The store uses alpha from 0 to 1. The UI displays 0 to 100.',
-          ],
-          [
-            'ColorFormatSelect / ColorMode',
-            'Selects a format or cycles through the six formats.',
-            'ColorFormatSelect: label · ColorMode: custom children',
-            'Changing format keeps the same color. ColorMode accepts your own text or markup and exposes the current format to its content.',
-          ],
-          [
-            'ColorViewSelect / ColorSurface',
-            'Switches between area and wheel in one composition.',
-            'Provider view: area | wheel',
-            'ColorSurface follows the store view. Include the appropriate channel sliders in your composition.',
-          ],
-          [
-            'createColorStore(value, format, view)',
-            'Creates the framework-independent color state.',
-            'Defaults: #6366F1, hex, area',
-            'setDisabled(boolean) blocks user interaction while allowing programmatic updates. getColor() returns names and all formats. getValue(format) returns typed channel data. subscribe(listener) returns an unsubscribe function.',
-          ],
-          [
-            'mountColorPicker(element, options)',
-            'Mounts a complete Vanilla layout.',
-            'value · format · view · disabled · className · onChange',
-            'Returns store, getColor(), getValue(format) and destroy(). Call destroy() when removing the picker.',
-          ],
-        ]
-      : [
-          [
-            'ThemeProvider',
-            'Scopes the theme store and CSS variables to its children.',
-            'theme · fallbackTheme · loadTheme · mode · systemMode · storage · modeStorage · selection · disabled',
-            'React accepts options as props. Svelte, Vue and Angular accept an options object. Astro uses serializable props and src for a client request.',
-          ],
-          [
-            'ThemePicker',
-            'Edits the selected roles using one active color store.',
-            'view: area | wheel | shared-wheel · roles · activeRole · controls · disabled',
-            'roles contains primary, secondary and/or accent. A picker with one role shows an unlabeled dot and hides role and view selectors by default.',
-          ],
-          [
-            'ThemeGenerator',
-            'Connects a color-picker composition to one theme role.',
-            'role: primary | secondary | accent · custom children · disabled',
-            'Place ColorArea, ColorSlider and ColorInput inside it. Angular custom content requires [custom]="true".',
-          ],
-          [
-            'ThemeHarmony',
-            'Generates secondary and accent from primary.',
-            'label · store.setHarmony() · store.generateHarmony()',
-            'Supported harmonies: analogous, triadic and split-complementary. Manual role editing remains available afterward.',
-          ],
-          [
-            'ThemeBackground',
-            'Controls whether surfaces use a tint from primary.',
-            'label · store.setBackground(neutral | tinted)',
-            'Tinting is optional. It changes generated light and dark backgrounds.',
-          ],
-          [
-            'ThemeRadius / ThemeBorderWidth',
-            'Edits a geometry token for one target.',
-            'target: DEFAULT | input | card | popover | button | table | picker',
-            'Radius is measured in rem and border width in px. Select either field independently for each target.',
-          ],
-          [
-            'ThemePalette',
-            'Displays the eleven generated shades for one role.',
-            'role · shape: square | circle | joined · classes: root, item, swatch, label · labels · shadeClasses',
-            'Customize shape, spacing, labels and per-shade classes. Colors follow the theme. Vanilla uses themePaletteMarkup(role, options). CSS variables: --tk-palette-gap, --tk-swatch-height, --tk-swatch-radius, --tk-shade-label-size.',
-          ],
-          [
-            'ThemeMode / useThemeMode()',
-            'Controls the saved appearance preference.',
-            'value: system | light | dark · custom content',
-            'Default persistence key: theme-kit:mode. Pass modeStorage: false to disable it or browserModeStorage(key) to use your own key.',
-          ],
-          [
-            'ThemeName / ThemeSelect',
-            'Edits a custom name or applies a preset theme.',
-            'ThemeName: label · ThemeSelect: themes: Theme[]',
-            'Custom names survive subsequent color edits. store.setName() restores a suggested name.',
-          ],
-          [
-            'ThemeLoading / ThemeReady / ThemeError',
-            'Renders content based on loading and failure state.',
-            'Custom children · ThemeError retry callback',
-            'ThemeReady also displays fallback content. A failure can display both the fallback theme and an error/retry control.',
-          ],
-          [
-            'ThemeExport / themeConfiguration()',
-            'Returns the selected theme fields, JSON and CSS.',
-            'format: json | css · selection: roles, radius, width, background, modes',
-            'Selection filters theme, JSON and CSS. Use mergeThemeConfiguration(base, config.json) to restore selected values. config.css contains declarations that you can wrap in a CSS selector.',
-          ],
-          [
-            'createThemeStore(options)',
-            'Creates the theme state without mounting controls.',
-            'selection · timeoutMs: 10000 by default · revalidateOnFocus · revalidateIntervalMs',
-            'start()/reload() run the loader. stop() cancels pending work. setDisabled(boolean) blocks editing without clearing values. setSelection(selection) sets explicit export fields. Providers mount the lifecycle automatically.',
-          ],
-          [
-            'mountThemeKit(element, options)',
-            'Mounts the complete Vanilla theme editor.',
-            'ThemeOptions + themes · picker · radius · width · backgroundControl · onChange',
-            'Returns store, getConfiguration(selection) and destroy(). Export fields follow the mounted controls unless you supply an explicit selection. Nested editors can share an existing store.',
-          ],
-        ];
-  return `<table class="api-table"><thead><tr><th>Component / helper</th><th>Usage</th></tr></thead><tbody>${rows.map(([name, purpose, props, note]) => `<tr><td>${code(name)}</td><td><p>${purpose}</p><p>${code(props.replaceAll('<', '&lt;').replaceAll('>', '&gt;'))}</p><small>${note}</small></td></tr>`).join('')}</tbody></table>`;
+  const entries = referenceEntries(kit);
+  return `<div class="api-reference" data-api-reference>
+    <div class="api-reference-intro"><p>Look up a component, property or method. Each entry shows its accepted values, default behavior and an example.</p><label class="api-search">Find an API entry<input type="search" placeholder="Try disabled, roles or setColor" data-api-search autocomplete="off" aria-controls="api-entries"></label></div>
+    <p class="api-conventions">Component properties and usage examples use React names. Svelte uses <code>class</code> and snippets, Vue uses <code>class</code> and slots, and Angular uses inputs and templates. See Working examples for complete implementations in all six adapters. Core methods use the same TypeScript API in every adapter.</p>
+    <nav class="api-index" aria-label="API entries">${entries.map(entry => `<a href="#${idFor(entry)}" data-api-link="${entry.id}">${escape(entry.name)}</a>`).join('')}</nav>
+    <p class="api-search-status" data-api-status role="status" hidden></p>
+    <div id="api-entries">${entries.map(entry => `<article class="api-entry" id="${idFor(entry)}" data-api-entry="${entry.id}">
+      <header class="api-entry-heading"><div><p class="api-kind">${escape(entry.kind)}</p><h3>${escape(entry.name)}</h3></div><a href="#${idFor(entry)}" aria-label="Link to ${escape(entry.name)}">#</a></header>
+      <p class="api-purpose">${escape(entry.description)}</p>${entry.note ? `<p class="api-note">${escape(entry.note)}</p>` : ''}
+      <table class="api-properties"><caption>${escape(entry.name)} ${entry.kind === 'Methods' ? 'methods' : entry.kind === 'Return value' ? 'returned fields' : 'properties and parameters'}</caption><thead><tr><th scope="col">Key</th><th scope="col">Type / accepted values</th><th scope="col">Default</th><th scope="col">Behavior & example</th></tr></thead><tbody>${entry.fields.map(field => `<tr data-api-property><th scope="row" data-label="Key"><code>${escape(field.key)}</code><span class="api-requirement">${qualifier(entry, field.key, field.required)}</span></th><td data-label="Type / accepted values"><code class="api-type">${typeMarkup(field.type, entries)}</code></td><td data-label="Default"><code>${escape(field.default)}</code></td><td data-label="Behavior & example"><p>${escape(field.description)}</p><code class="api-inline-example">${escape(field.example)}</code></td></tr>`).join('')}</tbody></table>
+      <details class="api-usage"><summary>Usage example <span>${entry.example.file.endsWith('tsx') ? 'React' : 'TypeScript'}</span></summary><div data-api-code="${entry.id}"></div></details>
+    </article>`).join('')}</div></div>`;
+}
+
+export function mountReference(host: HTMLElement, kit: Kit) {
+  const entries = referenceEntries(kit);
+  for (const entry of entries) {
+    codePanel(host.querySelector<HTMLElement>(`[data-api-code="${entry.id}"]`)!, () => entry.example.code, { file: entry.example.file, label: `${entry.name} usage` });
+  }
+  const search = host.querySelector<HTMLInputElement>('[data-api-search]')!;
+  const status = host.querySelector<HTMLElement>('[data-api-status]')!;
+  const filter = () => {
+    const query = search.value.trim().toLowerCase();
+    let visible = 0;
+    for (const entry of entries) {
+      const section = host.querySelector<HTMLElement>(`[data-api-entry="${entry.id}"]`)!;
+      const nameMatches = `${entry.name} ${entry.description}`.toLowerCase().includes(query);
+      let matches = 0;
+      section.querySelectorAll<HTMLElement>('[data-api-property]').forEach(row => {
+        row.hidden = !!query && !nameMatches && !row.textContent!.toLowerCase().includes(query);
+        if (!row.hidden) matches++;
+      });
+      section.hidden = matches === 0;
+      host.querySelector<HTMLElement>(`[data-api-link="${entry.id}"]`)!.hidden = section.hidden;
+      if (!section.hidden) visible++;
+    }
+    status.hidden = !query;
+    status.textContent = visible ? `${visible} matching ${visible === 1 ? 'entry' : 'entries'}` : 'No matching entries. Try a component name, property or accepted value.';
+  };
+  search.addEventListener('input', filter);
+  const navigate = (event: Event) => {
+    const link = (event.target as HTMLElement).closest<HTMLAnchorElement>('a[href^="#api-"]');
+    if (link && search.value) {
+      search.value = '';
+      filter();
+    }
+  };
+  host.addEventListener('click', navigate);
+  return () => {
+    search.removeEventListener('input', filter);
+    host.removeEventListener('click', navigate);
+  };
 }
