@@ -1060,14 +1060,25 @@ footer > div {
   margin-top: 20px;
 }
 .asset-downloads {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
   margin: 18px 0;
+  overflow-x: auto;
 }
-.asset-downloads .button {
-  font-size: 11px;
-  border-color: var(--line);
+.asset-downloads table {
+  min-width: 470px;
+}
+.asset-downloads tbody th {
+  font-size: 13px;
+  font-weight: 500;
+  background: transparent;
+}
+.asset-downloads a {
+  display: inline-block;
+  padding: 6px 0;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.asset-downloads a:hover {
+  color: var(--accent);
 }
 .docs-diagram {
   border: 1px solid var(--line);

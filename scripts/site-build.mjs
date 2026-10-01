@@ -13,8 +13,8 @@ for (const kit of ['color-picker','theme-kit']) {
   try { await access(source); } catch { source = `node_modules/@sebytza23/${kit}-vanilla/browser/${kit}.js`; }
   await cp(source, `dist/downloads/${kit}.js`);
   await cp(source.replace(/\.js$/, '.min.js'), `dist/downloads/${kit}.min.js`);
-  let style = `packages/${kit}/styles.css`;
-  try { await access(style); } catch { style = new URL(import.meta.resolve(`@sebytza23/${kit}/styles.css`)); }
+  let style = `release/${kit}-vanilla/styles.css`;
+  try { await access(style); } catch { style = new URL(import.meta.resolve(`@sebytza23/${kit}-vanilla/styles.standard.css`)); }
   await cp(style, `dist/downloads/${kit}.css`);
   const css = await readFile(style, 'utf8');
   await writeFile(`dist/downloads/${kit}.min.css`, (await transform(css, {loader: 'css', minify: true, sourcemap: false})).code);
