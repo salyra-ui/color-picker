@@ -279,7 +279,7 @@ export function wheelThumbStyle(state: HSV): string {
   return `position:absolute;left:${50 + (Math.cos(a) * state.s) / 2}%;top:${50 + (Math.sin(a) * state.s) / 2}%;transform:translate(-50%,-50%);width:var(--cp-thumb-size,12px);height:var(--cp-thumb-size,12px);border:var(--cp-thumb-border,2px solid white);box-shadow:var(--cp-thumb-shadow,0 0 0 1px #000);border-radius:var(--cp-thumb-radius,50%);pointer-events:none;display:grid;place-items:center;color:var(--cp-thumb-text-color,white);font-size:var(--cp-thumb-text-size,10px)`;
 }
 export function areaStyle(state: ColorSnapshot): string {
-  return `background:linear-gradient(to top,#000,transparent),linear-gradient(to right,#fff,transparent),hsl(${state.h} 100% 50%);position:relative;touch-action:none;min-height:120px;min-width:160px`;
+  return `background:linear-gradient(to top,#000,transparent),linear-gradient(to right,#fff,transparent),hsl(${state.h} 100% 50%);position:relative;touch-action:none;min-height:var(--cp-area-height,180px);min-width:0;width:100%`;
 }
 export function thumbStyle(state: ColorSnapshot): string {
   return `position:absolute;left:${state.s}%;top:${100 - state.v}%;transform:translate(-50%,-50%);width:var(--cp-thumb-size,12px);height:var(--cp-thumb-size,12px);border:var(--cp-thumb-border,2px solid white);box-shadow:var(--cp-thumb-shadow,0 0 0 1px #000);border-radius:var(--cp-thumb-radius,50%);pointer-events:none;display:grid;place-items:center;color:var(--cp-thumb-text-color,white);font-size:var(--cp-thumb-text-size,10px)`;

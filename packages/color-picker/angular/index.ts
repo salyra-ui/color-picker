@@ -28,7 +28,8 @@ import {
   sliderLabels,
   sliderValue,
   setSliderValue,
-  alphaTrackStyle,
+  colorPreviewStyle,
+  sliderTrackStyle,
   type ColorMarker,
   type ColorPartClasses,
   type SliderChannel,
@@ -276,7 +277,7 @@ export class ColorWheel {
       ' ' +
       (classes.label ?? '')
     "
-    [style]="alphaTrackStyle(state().hex)"
+    [style]="sliderTrackStyle(state())"
     [attr.data-channel]="channel"
     >{{ label || labels[channel]
     }}<input
@@ -297,7 +298,7 @@ export class ColorSlider {
   @Input() label = '';
   readonly labels = sliderLabels;
   readonly sliderValue = sliderValue;
-  readonly alphaTrackStyle = alphaTrackStyle;
+  readonly sliderTrackStyle = sliderTrackStyle;
   readonly store = useColorStore();
   readonly state = useColor();
   change(event: Event) {
@@ -399,12 +400,13 @@ export class ColorSwatch {
   standalone: true,
   template: `<output
     class="cp-preview"
-    [style.background]="state().value"
+    [style]="colorPreviewStyle(state().value)"
     [attr.aria-label]="'Selected color ' + state().value"
     >{{ state().value }}</output
   >`,
 })
 export class ColorPreview {
+  readonly colorPreviewStyle = colorPreviewStyle;
   readonly state = useColor();
 }
 
@@ -426,7 +428,7 @@ export class ColorPreview {
         [ngTemplateOutletContext]="{ $implicit: state().format }"
       />
     } @else {
-      {{ state().format.toUpperCase() }} ↔
+      Next format
     }
   </button>`,
 })

@@ -3,6 +3,11 @@
   gap: 24px;
   max-width: 760px;
 }
+.recipe .tk-scope {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
 .recipe-actions {
   display: flex;
   flex-wrap: wrap;
@@ -45,7 +50,7 @@
   width: 28px;
   height: 28px;
 }
-.recipe label {
+.recipe label:not([class]) {
   display: flex;
   gap: 8px;
   align-items: center;

@@ -1,6 +1,6 @@
 {
   "name": "salyra-ui-color-picker-workspace",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "private": true,
   "type": "module",
   "description": "Copy-first theme engine and composable framework components",
@@ -73,6 +73,6 @@
     "node": ">=22.19.0"
   },
   "dependencies": {
-    "@salyra-ui/theme-studio": "0.3.0"
+    "@salyra-ui/theme-studio": "0.3.1"
   }
 }

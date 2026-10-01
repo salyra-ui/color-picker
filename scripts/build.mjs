@@ -32,6 +32,13 @@ for (const name of ['color-picker', 'theme-studio'].filter(name => availableKits
     sourcemap: false,
     minify: true,
   });
+  // Compiler-input adapters share a private DOM controller. Ship its runtime next to the declarations.
+  if (name === 'theme-studio') await build({
+    entryPoints: [`${root}/core/border-control.ts`],
+    outfile: `${out}/core/border-control.js`,
+    bundle: true, format: 'esm', platform: 'neutral', target: 'es2022',
+    packages: 'external', sourcemap: false, minify: true,
+  });
   await build({
     entryPoints: [`${root}/react/index.tsx`],
     outfile: `${out}/react/index.js`,

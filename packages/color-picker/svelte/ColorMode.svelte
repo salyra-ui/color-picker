@@ -20,7 +20,5 @@
         (colorFormats.indexOf($color.format) + 1) % colorFormats.length
       ],
     )}
-  >{#if children}{@render children(
-      $color.format,
-    )}{:else}{$color.format.toUpperCase()} ↔{/if}</button
+  >{#if children}{@render children($color.format)}{:else}Next format{/if}</button
 >

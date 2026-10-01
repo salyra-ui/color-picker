@@ -8,7 +8,8 @@ import {
   bindAlphaInput,
   sliderValue,
   setSliderValue,
-  alphaTrackStyle,
+  colorPreviewStyles,
+  sliderTrackVariables,
   type ColorMarker,
   type ColorPartClasses,
   type SliderChannel,
@@ -262,9 +263,13 @@ class ColorSliderElement extends HTMLElement {
       this,
       (store) => {
         input.value = String(sliderValue(store.getSnapshot(), channel));
-        (input.parentElement as HTMLElement).style.cssText = alphaTrackStyle(
-          store.getSnapshot().hex,
-        );
+        // Update only our variables, preserving caller-supplied inline styles.
+        const track =
+          input.closest<HTMLElement>('.cp-slider') ?? input.parentElement!;
+        for (const [property, value] of Object.entries(
+          sliderTrackVariables(store.getSnapshot()),
+        ))
+          track.style.setProperty(property, value);
       },
       (store) => {
         const update = () =>
@@ -420,7 +425,10 @@ class ColorPreviewElement extends HTMLElement {
     const output = this.querySelector('output')!;
     this.cleanup = connect(this, (store) => {
       const value = store.getSnapshot().value;
-      output.style.background = value;
+      for (const [property, color] of Object.entries(
+        colorPreviewStyles(value),
+      ))
+        output.style.setProperty(property, color);
       output.textContent = value;
       output.setAttribute('aria-label', `Selected color ${value}`);
     });
@@ -475,7 +483,7 @@ class ColorModeElement extends HTMLElement {
       this,
       (store) => {
         const format = store.getSnapshot().format;
-        if (!custom) button.textContent = `${format.toUpperCase()} ↔`;
+        if (!custom) button.textContent = 'Next format';
         button
           .querySelectorAll<HTMLElement>('[data-color-format]')
           .forEach((label) => (label.textContent = format.toUpperCase()));

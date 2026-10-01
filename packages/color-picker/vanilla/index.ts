@@ -41,7 +41,7 @@ export const colorPickerMarkup = `<div class="cp-picker">
   <cp-surface><div data-view="area">${colorAreaMarkup}</div><div data-view="wheel">${colorWheelMarkup}</div></cp-surface>
   ${colorSliderMarkup('h', 'Hue')}${colorSliderMarkup('v', 'Brightness')}${colorSliderMarkup('alpha', 'Alpha')}
   ${colorFormatMarkup}<cp-input></cp-input>
-  <cp-alpha-input><label class="cp-channel">Alpha %<input type="number" min="0" max="100" step=".1" /></label></cp-alpha-input>
+  <cp-alpha-input><label class="cp-channel cp-alpha-input">Alpha<span class="cp-channel-field"><input type="number" min="0" max="100" step=".1" /><span aria-hidden="true">%</span></span></label></cp-alpha-input>
   <cp-mode><button type="button">Switch format</button></cp-mode>
   <cp-output format="name"><output aria-live="polite"></output></cp-output>
 </div>`;

@@ -63,7 +63,7 @@ const colorEntries: ApiEntry[] = [
     f('onMarkerChange', '(id: string, hsv: Partial<HSV>) => void', 'No callback', 'Receives marker edits from a drag or keyboard action. Update that marker in your state.', 'onMarkerChange={(id, hsv) => updateMarker(id, hsv)}'),
     f('renderMarker', '(marker: ColorMarker, active: boolean) => ReactNode', 'Uses marker.label', 'Replaces marker text in React. Svelte uses a marker snippet and Vue a marker slot. A single marker has a small dot by default.', 'renderMarker={(marker) => marker.label}'),
   ], react('color-picker', ['ColorWheel', 'ColorSlider'], '<ColorWheel thumbText="C" /><ColorSlider channel="v" /><ColorSlider channel="alpha" />')),
-  entry('ColorSlider', 'Component', 'Edits one HSV or alpha channel while keeping the other channels.', [
+  entry('ColorSlider', 'Component', 'Edits one HSV or alpha channel while keeping the other channels. Brightness and saturation tracks reflect the selected color.', [
     f('channel', "'h' | 's' | 'v' | 'alpha'", "'h'", 'h edits hue from 0 to 359 degrees. s edits saturation, v edits brightness and alpha edits opacity, each from 0 to 100 in the UI.', 'channel="alpha"'),
     f('label', 'string', 'Hue / Saturation / Brightness / Alpha', 'Replaces the visible and accessible label for the selected channel.', 'label="Opacity"'), classField, classesField,
   ], react('color-picker', ['ColorSlider'], '<ColorSlider channel="alpha" label="Opacity" classes={{ track: "opacity-track" }} />')),
@@ -206,10 +206,10 @@ const themeEntries: ApiEntry[] = [
   entry('ThemeBackground', 'Component', 'A checkbox that enables a primary-tinted surface palette or restores neutral surfaces.', [
     f('label', 'string', "'Tint background with primary'", 'Replaces the checkbox text. Checked applies tinted and unchecked applies neutral.', 'label="Use brand-colored surfaces"'), themeClass,
   ], react('theme-studio', ['ThemeBackground'], '<ThemeBackground label="Use brand-colored surfaces" />'), 'Mounting this control registers background and foreground fields for export. The active appearance is exported unless selection.modes includes both light and dark.'),
-  entry('ThemeBorder / ThemeRadius / ThemeBorderWidth', 'Component', 'Edits one radius or border-width token. Each target is independent and each mounted field is registered for export.', [
+  entry('ThemeBorder / ThemeRadius / ThemeBorderWidth', 'Component', 'Edits one radius or border-width token. Each target is independent and each mounted field is registered for export. Incomplete input stays in the field while focused. Blur, Enter or Escape restores the current valid value.', [
     f('kind', "'width' | 'radius'", "'width' on ThemeBorder", 'width uses px with step 1. radius uses rem with step 0.125. ThemeRadius fixes kind to radius and ThemeBorderWidth fixes it to width.', 'kind="radius"'),
     f('target', target, "'DEFAULT'", 'Chooses the token to edit. DEFAULT is the shared default token. The named targets affect their own CSS variables, not the other targets.', 'target="button"'),
-    f('label', 'string', 'Target + border + kind', 'Replaces the input label. Units still appear next to the field.', 'label="Button corner radius"'),
+    f('label', 'string', 'Target + radius or border width', 'Replaces the input label. Units still appear next to the field.', 'label="Button corner radius"'),
     f('numeric range', 'number: 0 to 1000', 'Current theme token', 'Rejects negative, non-finite and out-of-range edits. A newly generated theme starts at 0.5 rem radius and 1 px width for every target.', 'store.setBorder("radius", "button", 0.75)'),
   ], react('theme-studio', ['ThemeRadius', 'ThemeBorderWidth'], '<ThemeRadius target="button" label="Button corner radius" /><ThemeBorderWidth target="card" label="Card border width" />'), 'numeric range describes the input constraint. It is not a prop. Geometry selection uses the same targets as the controls and does not export omitted fields.'),
   entry('ThemePalette', 'Component', 'Displays eleven generated shades for one role. Color values always come from the current theme.', [

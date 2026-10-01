@@ -74,7 +74,7 @@ test('theme history restores name and geometry independently', async ({
   page,
 }) => {
   const lab = await openWorkflow(page, 'theme-studio', 'history');
-  const radius = lab.getByRole('spinbutton', { name: 'card radius rem' });
+  const radius = lab.getByRole('spinbutton', { name: /card radius(?: rem)?/i });
   const name = lab.getByRole('textbox', { name: /^Theme name/ });
   await radius.fill('1.25');
   await radius.press('Tab');

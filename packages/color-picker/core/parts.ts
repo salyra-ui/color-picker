@@ -1,4 +1,6 @@
 import type { ColorStore, ColorSnapshot } from './picker';
+import { hsvToHex } from './color';
+import { colorContrast } from './contrast';
 export interface ColorPartClasses {
   root?: string;
   thumb?: string;
@@ -25,7 +27,36 @@ export function setSliderValue(
   if (channel === 'alpha') store.setAlpha(value / 100);
   else store.setHSV({ [channel]: value });
 }
+/** Shared by every adapter. HSV keeps the chosen hue when the color is gray or black. */
+export function sliderTrackVariables(
+  state: ColorSnapshot,
+): Record<string, string> {
+  return {
+    '--cp-alpha-color': state.hex,
+    '--cp-saturation-start': hsvToHex({ ...state, s: 0 }),
+    '--cp-saturation-end': hsvToHex({ ...state, s: 100 }),
+    '--cp-brightness-end': hsvToHex({ ...state, v: 100 }),
+  };
+}
+const cssVariables = (variables: Record<string, string>) =>
+  Object.entries(variables)
+    .map(([property, value]) => `${property}:${value}`)
+    .join(';');
+export function sliderTrackStyle(state: ColorSnapshot): string {
+  return cssVariables(sliderTrackVariables(state));
+}
+/** Text is measured over the preview's opaque checker canvas, including color alpha. */
+export function colorPreviewStyles(value: string): Record<string, string> {
+  return {
+    background: `linear-gradient(${value},${value}),repeating-conic-gradient(#eee 0% 25%,white 0% 50%) 0/12px 12px`,
+    color: colorContrast('#000000', value).suggestedForeground,
+  };
+}
+export const colorPreviewStyle = (value: string) =>
+  cssVariables(colorPreviewStyles(value));
+/** Kept for compositions that only need an alpha track. */
 export const alphaTrackStyle = (hex: string) => `--cp-alpha-color:${hex}`;
+
 /** Numeric alpha editor in percent; keeps a draft while editing and validates without clamping. */
 export function bindAlphaInput(
   input: HTMLInputElement,

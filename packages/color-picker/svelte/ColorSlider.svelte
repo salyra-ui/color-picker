@@ -3,7 +3,7 @@
     sliderLabels,
     sliderValue,
     setSliderValue,
-    alphaTrackStyle,
+    sliderTrackStyle,
     type SliderChannel,
     type ColorPartClasses,
   } from '../core';
@@ -27,7 +27,7 @@
   class="cp-slider {className} {classes.root ?? ''} {classes.label ?? ''}"
   data-cp-part="slider"
   data-channel={channel}
-  style={alphaTrackStyle($color.hex)}
+  style={sliderTrackStyle($color)}
   >{label ?? sliderLabels[channel]}<input
     data-cp-part="track"
     class="{classes.track ?? ''} {classes.input ?? ''}"

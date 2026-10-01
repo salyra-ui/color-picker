@@ -195,7 +195,7 @@ h1 {
   gap: 1rem;
 }
 .standalone .cp-area {
-  min-height: 130px !important;
+  --cp-area-height: 130px;
 }
 footer {
   padding: 3rem 0;

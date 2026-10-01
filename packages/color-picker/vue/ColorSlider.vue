@@ -3,7 +3,7 @@ import {
   sliderLabels,
   sliderValue,
   setSliderValue,
-  alphaTrackStyle,
+  sliderTrackStyle,
   type SliderChannel,
   type ColorPartClasses,
 } from '../core';
@@ -24,7 +24,7 @@ const store = useColorStore(),
     :class="['cp-slider', classes.root, classes.label]"
     data-cp-part="slider"
     :data-channel="channel"
-    :style="alphaTrackStyle(color.hex)"
+    :style="sliderTrackStyle(color)"
     >{{ label ?? sliderLabels[channel]
     }}<input
       data-cp-part="track"

@@ -5,6 +5,7 @@ export default defineConfig({
     'performance.spec.ts',
     'recipes.browser.spec.ts',
     'workflows.browser.spec.ts',
+    'controls.browser.spec.ts',
   ],
   workers: 1,
   use: {

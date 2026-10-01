@@ -17,7 +17,7 @@ export function markerStyle(marker: ColorMarker, active: boolean): string {
   const a = (marker.color.h * Math.PI) / 180;
   return `position:absolute;transform:translate(-50%,-50%);left:${50 + (Math.cos(a) * marker.color.s) / 2}%;top:${50 + (Math.sin(a) * marker.color.s) / 2}%;background:${marker.color.hex};z-index:${active ? 2 : 1}`;
 }
-/** Each queued drag sample retains its role, even if selection changes before the frame. */
+/** Each queued drag sample retains its marker ID, even if selection changes before the frame. */
 export function bindMarkerWheel(
   element: HTMLElement,
   options: MarkerWheelOptions,
@@ -25,9 +25,9 @@ export function bindMarkerWheel(
   const win = element.ownerDocument.defaultView!;
   const disabled = () => !!element.closest('[inert], [aria-disabled="true"]');
   let pointer: number | undefined,
-    role: string | undefined,
+    draggedId: string | undefined,
     frame: number | undefined,
-    pending: { role: string; hsv: HSV } | undefined,
+    pending: { markerId: string; hsv: HSV } | undefined,
     moved = false,
     marker = false,
     startX = 0,
@@ -39,17 +39,17 @@ export function bindMarkerWheel(
     if (pending) {
       const next = pending;
       pending = undefined;
-      if (options.getMarkers().some((marker) => marker.id === next.role))
-        options.setHSV(next.role, next.hsv);
+      if (options.getMarkers().some((marker) => marker.id === next.markerId))
+        options.setHSV(next.markerId, next.hsv);
     }
   };
   const read = (event: PointerEvent) => {
     if (disabled()) return;
-    const current = options.getMarkers().find((item) => item.id === role);
-    if (!role || !current) return;
+    const current = options.getMarkers().find((item) => item.id === draggedId);
+    if (!draggedId || !current) return;
     const r = element.getBoundingClientRect();
     pending = {
-      role,
+      markerId: draggedId,
       hsv: wheelAtPoint(
         current.color,
         event.clientX - r.left,
@@ -77,7 +77,7 @@ export function bindMarkerWheel(
     } else element.focus();
     event.preventDefault();
     // Framework callbacks may schedule selection rather than publish synchronously.
-    role = button?.dataset.markerId ?? options.getActiveId();
+    draggedId = button?.dataset.markerId ?? options.getActiveId();
     startX = event.clientX;
     startY = event.clientY;
     pointer = event.pointerId;
@@ -104,12 +104,12 @@ export function bindMarkerWheel(
     if (!marker || moved) read(event);
     flush();
     pointer = undefined;
-    role = undefined;
+    draggedId = undefined;
   };
   const cancel = () => {
     flush();
     pointer = undefined;
-    role = undefined;
+    draggedId = undefined;
   };
   const click = (event: MouseEvent) => {
     if (disabled()) return;
@@ -135,8 +135,8 @@ export function bindMarkerWheel(
       ].includes(event.key)
     )
       options.select(button.dataset.markerId!);
-    const role = options.getActiveId();
-    const current = options.getMarkers().find((item) => item.id === role);
+    const targetId = button?.dataset.markerId ?? options.getActiveId();
+    const current = options.getMarkers().find((item) => item.id === targetId);
     if (!current) return;
     const c = current.color,
       step = event.shiftKey ? 10 : 1;
@@ -150,7 +150,7 @@ export function bindMarkerWheel(
     };
     if (patch[event.key]) {
       event.preventDefault();
-      options.setHSV(role, patch[event.key]);
+      options.setHSV(targetId, patch[event.key]);
     }
   };
   element.addEventListener('pointerdown', down);

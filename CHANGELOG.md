@@ -1,5 +1,17 @@
 # Salyra UI changelog
 
+## 0.3.1
+
+### Editor controls
+
+- Consistent field heights, focus rings, spacing and disabled styling in the optional stylesheets.
+- Saturation and brightness gradients follow the current HSV color across all adapters.
+- Color previews display alpha over a checker background and choose readable text instead of a white text shadow.
+- Geometry controls group value and unit in one field. A shared controller preserves incomplete drafts and validates on edit.
+- Keyboard edits target the focused wheel marker even when a framework defers selection.
+- Vanilla updates preserve custom inline control styles. Framework examples no longer override component label layouts.
+- Default format switch text is “Next format”. Custom callbacks, snippets, slots and templates remain supported.
+
 ## 0.3.0
 
 ### Color picker

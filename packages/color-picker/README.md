@@ -90,3 +90,7 @@ History captures color and alpha. Format, surface and disabled changes do not ad
 `colorContrast(foreground, background, {canvas, text})` composites alpha over an opaque canvas, then returns `ratio`, `aa`, `aaa`, rendered colors and `suggestedForeground`. The default canvas is white. `text` is `normal` or `large`. The helper never changes the selected color. Its pass/fail result checks color contrast only.
 
 [Complete examples for all six integrations](https://salyra-ui.github.io/color-picker/color.html)
+
+## Control styling
+
+The optional stylesheet uses inherited variables such as `--cp-control-height`, `--cp-control-radius`, `--cp-control-border`, `--cp-focus-color`, `--cp-area-height` and `--cp-gap`. Set them on your picker wrapper to keep styles local. Existing thumb, marker and track variables still work. Number fields retain arrow-key editing while hiding native spinner buttons. Saturation and brightness tracks follow the current HSV color, including retained hue for black and gray.

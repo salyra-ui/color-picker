@@ -1,5 +1,6 @@
 import type { Integration, Kit } from './snippets';
 export const recipeStyles = `.recipe { display: grid; gap: 24px; max-width: 760px; }
+.recipe .tk-scope { display: grid; gap: 16px; min-width: 0; }
 .recipe-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .recipe-actions button { padding: 8px 14px; cursor: pointer; }
 .recipe-actions button:disabled { cursor: default; opacity: .45; }
@@ -9,7 +10,7 @@ export const recipeStyles = `.recipe { display: grid; gap: 24px; max-width: 760p
 .recipe input, .recipe select { max-width: 100%; }
 .recipe .cp-area { height: 180px; }
 .recipe .cp-swatch { width: 28px; height: 28px; }
-.recipe label { display: flex; gap: 8px; align-items: center; }`;
+.recipe label:not([class]) { display: flex; gap: 8px; align-items: center; }`;
 export function controllerSource(kit: Kit) {
   if (kit === 'theme-studio')
     return `import { createThemeStore, createThemeEditor, generateTheme, themeConfiguration, themeColor, createThemeCollection, browserThemeCollectionStorage } from '@salyra-ui/theme-studio';

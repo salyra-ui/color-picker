@@ -19,6 +19,8 @@ import {
   markerWheelStyle,
   markerStyle,
   bindAlphaInput,
+  colorPreviewStyles,
+  sliderTrackVariables,
   sliderLabels,
   sliderValue,
   setSliderValue,
@@ -137,8 +139,9 @@ export function ColorArea({
       style={{
         position: 'relative',
         touchAction: 'none',
-        minWidth: 160,
-        minHeight: 120,
+        minWidth: 0,
+        width: '100%',
+        minHeight: 'var(--cp-area-height,180px)',
         background: `linear-gradient(to top,#000,transparent),linear-gradient(to right,#fff,transparent),hsl(${state.h} 100% 50%)`,
         ...style,
       }}
@@ -185,7 +188,7 @@ export function ColorSlider({
   return (
     <label
       className={`cp-slider ${className} ${classes.root ?? ''} ${classes.label ?? ''}`}
-      style={{ '--cp-alpha-color': state.hex } as CSSProperties}
+      style={sliderTrackVariables(state) as CSSProperties}
       data-cp-part="slider"
       data-channel={channel}
     >
@@ -295,7 +298,7 @@ export function ColorPreview({ className = '' }: { className?: string }) {
   return (
     <output
       className={`cp-preview ${className}`}
-      style={{ background: state.value }}
+      style={colorPreviewStyles(state.value) as CSSProperties}
       aria-label={`Selected color ${state.value}`}
     >
       {state.value}
@@ -327,7 +330,7 @@ export function ColorMode({
     >
       {typeof children === 'function'
         ? children(state.format)
-        : (children ?? `${state.format.toUpperCase()} ↔`)}
+        : (children ?? 'Next format')}
     </button>
   );
 }

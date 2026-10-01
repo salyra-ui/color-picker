@@ -530,8 +530,8 @@ main {
   gap: 15px;
 }
 .cp-area {
+  --cp-area-height: 195px;
   border-radius: 0;
-  min-height: 195px !important;
 }
 .cp-wheel {
   max-width: 260px;
@@ -715,10 +715,15 @@ summary {
   font-size: 12px;
 }
 .tk-harmony select,
-.tk-border input {
+.tk-border-field {
   border-color: var(--line);
   border-radius: 0;
   padding: 8px;
+}
+.tk-border-field { padding: 0 8px; }
+.tk-border-field input {
+  border: 0;
+  padding: 8px 0;
 }
 .tk-harmony button,
 .theme-controls cp-mode button {
