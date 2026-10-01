@@ -203,9 +203,10 @@ test('saved theme versions migrate older input and reject future input', async (
 });
 for (const path of ['/', '/svelte.html', '/vue.html', '/angular.html']) {
   test(`native forms and draft editing work on ${path}`, async ({ page }) => {
-    page.on('pageerror', (error) => console.error(error.message));
+    const runtimeErrors: string[] = [];
+    page.on('pageerror', (error) => runtimeErrors.push(error.message));
     page.on('console', (msg) => {
-      if (msg.type() === 'error') console.error(msg.text());
+      if (msg.type() === 'error') runtimeErrors.push(msg.text());
     });
     await page.goto(`http://127.0.0.1:4317${path}`);
     const cards = page.locator('.native-workflow-card');
@@ -229,6 +230,7 @@ for (const path of ['/', '/svelte.html', '/vue.html', '/angular.html']) {
     await themeHex.fill('#654321');
     await themeHex.press('Tab');
     await expect(theme.getByRole('status')).toHaveText('Up to date');
+    expect(runtimeErrors).toEqual([]);
   });
 }
 for (const kit of ['color-picker', 'theme-studio'] as const) {

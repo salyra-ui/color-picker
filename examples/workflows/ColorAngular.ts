@@ -1,7 +1,6 @@
 import {
   Component,
   ElementRef,
-  ViewChild,
   afterNextRender,
   DestroyRef,
   inject,
@@ -68,7 +67,7 @@ import { createDemo } from './color-controller';
 export class ColorWorkflow {
   readonly demo = createDemo();
   readonly view = signal(this.demo.getSnapshot());
-  @ViewChild('root') root!: ElementRef<HTMLFormElement>;
+  readonly element: ElementRef<HTMLElement> = inject(ElementRef);
   checked(event: Event) {
     return (event.target as HTMLInputElement).checked;
   }
@@ -78,7 +77,9 @@ export class ColorWorkflow {
     );
     let detach: (() => void) | undefined;
     afterNextRender(() => {
-      detach = this.demo.mount(this.root.nativeElement);
+      detach = this.demo.mount(
+        this.element.nativeElement.querySelector<HTMLFormElement>('.recipe')!,
+      );
     });
     inject(DestroyRef).onDestroy(() => {
       stop();

@@ -1,7 +1,6 @@
 import {
   Component,
   ElementRef,
-  ViewChild,
   afterNextRender,
   DestroyRef,
   inject,
@@ -124,7 +123,7 @@ import { createDemo } from './theme-controller';
 export class ThemeWorkflow {
   readonly demo = createDemo();
   readonly view = signal(this.demo.getSnapshot());
-  @ViewChild('root') root!: ElementRef<HTMLDivElement>;
+  readonly element: ElementRef<HTMLElement> = inject(ElementRef);
   checked(event: Event) {
     return (event.target as HTMLInputElement).checked;
   }
@@ -134,7 +133,9 @@ export class ThemeWorkflow {
     );
     let detach: (() => void) | undefined;
     afterNextRender(() => {
-      detach = this.demo.mount(this.root.nativeElement);
+      detach = this.demo.mount(
+        this.element.nativeElement.querySelector<HTMLDivElement>('.recipe')!,
+      );
     });
     inject(DestroyRef).onDestroy(() => {
       stop();

@@ -228,16 +228,16 @@ ${markup}
             .replace('theme-', 'tk-')
             .replace('color-', 'cp-')}>`,
         );
-    return `import { Component, ElementRef, ViewChild, afterNextRender, DestroyRef, inject, signal } from '@angular/core';
+    return `import { Component, ElementRef, afterNextRender, DestroyRef, inject, signal } from '@angular/core';
 import { ${components} } from '@salyra-ui/${kit}/angular';
 import { createDemo } from './controller';
 @Component({ selector: 'app-root', standalone: true, imports: [${components}], template: \`<${root} #root class="recipe"${studio ? '' : ' (submit)="$event.preventDefault(); demo.submit(root)"'}>${markup}</${root}>\` })
 export class App {
   readonly demo = createDemo(); readonly view = signal(this.demo.getSnapshot());
-  @ViewChild('root') root!: ElementRef<${studio ? 'HTMLDivElement' : 'HTMLFormElement'}>;
+  readonly element: ElementRef<HTMLElement> = inject(ElementRef);
   checked(event: Event) { return (event.target as HTMLInputElement).checked; }
   constructor() { const stop = this.demo.subscribe(() => this.view.set(this.demo.getSnapshot())); let detach: (() => void) | undefined;
-    afterNextRender(() => { detach = this.demo.mount(this.root.nativeElement); });
+    afterNextRender(() => { detach = this.demo.mount(this.element.nativeElement.querySelector<${studio ? 'HTMLDivElement' : 'HTMLFormElement'}>('.recipe')!); });
     inject(DestroyRef).onDestroy(() => { stop(); detach?.(); this.demo.destroy(); });
   }
 }`;
