@@ -5,13 +5,14 @@ import { tmpdir } from 'node:os';
 import { resolve, join } from 'node:path';
 import { build, preview } from 'vite';
 import { workflows } from '../examples/docs/workflow-data';
+const demoUrl = process.env.SALYRA_DEMO_URL ?? 'http://127.0.0.1:4317';
 
 async function openWorkflow(
   page: Page,
   kit: 'color-picker' | 'theme-studio',
   id: string,
 ) {
-  await page.goto(`http://127.0.0.1:4317/docs.html?kit=${kit}#workflows`);
+  await page.goto(`${demoUrl}/docs.html?kit=${kit}#workflows`);
   const lab = page.locator('.workflow-gallery');
   await lab
     .getByLabel(
@@ -208,9 +209,13 @@ for (const path of ['/', '/svelte.html', '/vue.html', '/angular.html']) {
     page.on('console', (msg) => {
       if (msg.type() === 'error') runtimeErrors.push(msg.text());
     });
-    await page.goto(`http://127.0.0.1:4317${path}`);
+    await page.goto(`${demoUrl}${path}`);
     const cards = page.locator('.native-workflow-card');
-    await expect(cards).toHaveCount(2);
+    await expect(cards)
+      .toHaveCount(2)
+      .catch((error) => {
+        throw new Error([...runtimeErrors, error.message].join('\n'));
+      });
     const color = cards.first(),
       theme = cards.last();
     const colorHex = color.getByLabel('HEX', { exact: true });
