@@ -1,6 +1,42 @@
 import { test, expect } from '@playwright/test';
 const demoUrl = process.env.SALYRA_DEMO_URL ?? 'http://127.0.0.1:4317';
 
+for (const width of [390, 1280]) {
+  test(`Vanilla picker controls keep their spacing at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto(`${demoUrl}/color.html`);
+    const picker = page.locator('#workflow-gallery .cp-picker');
+    const rectangles = await picker.evaluate((root) => {
+      const rect = (selector: string) => {
+        const bounds = root.querySelector(selector)!.getBoundingClientRect();
+        return { top: bounds.top, bottom: bounds.bottom };
+      };
+      return {
+        view: rect('cp-view-select .cp-format'),
+        area: rect('.cp-area'),
+        alpha: rect('.cp-alpha-input .cp-channel-field'),
+        mode: rect('cp-mode button'),
+        result: rect('cp-output output'),
+      };
+    });
+    expect(rectangles.area.top - rectangles.view.bottom).toBeGreaterThanOrEqual(
+      12,
+    );
+    expect(
+      rectangles.mode.top - rectangles.alpha.bottom,
+    ).toBeGreaterThanOrEqual(12);
+    expect(
+      rectangles.result.top - rectangles.mode.bottom,
+    ).toBeGreaterThanOrEqual(12);
+    const alpha = page.locator('#kit-explorer .cp-alpha-input');
+    expect(
+      await alpha.evaluate((field) => getComputedStyle(field).rowGap),
+    ).toBe('8px');
+  });
+}
+
 for (const path of [
   '/react.html',
   '/svelte.html',

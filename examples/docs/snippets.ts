@@ -664,7 +664,7 @@ export function modeExample(integration: Integration) {
 
 function withColorLayout(source: string, integration: Integration) {
   const layout =
-    '.picker-parts { display: grid; gap: 14px; width: 100%; max-width: 360px; }\n.picker-parts cp-provider { display: contents; }';
+    '.picker-parts { display: grid; gap: var(--cp-gap, 16px); width: 100%; max-width: 360px; }\n.picker-parts cp-provider { display: contents; }';
   const globalLayout =
     integration === 'Svelte'
       ? layout.replace(' cp-provider', ' :global(cp-provider)')

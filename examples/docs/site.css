@@ -527,7 +527,7 @@ main {
 }
 .picker-parts {
   display: grid;
-  gap: 15px;
+  gap: var(--cp-gap, 16px);
 }
 .cp-area {
   --cp-area-height: 195px;
@@ -560,7 +560,7 @@ main {
 }
 .cp-channel {
   font-size: 11px;
-  gap: 6px;
+  gap: 8px;
 }
 .cp-channel-field {
   border-color: var(--line);
@@ -589,7 +589,7 @@ main {
 }
 .picker-parts cp-mode button {
   font-size: 12px;
-  width: 100%;
+  justify-self: start;
 }
 .color-result {
   display: flex;
