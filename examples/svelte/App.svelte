@@ -1,4 +1,6 @@
 <script lang="ts">
+  import ColorWorkflow from '../workflows/ColorSvelte.svelte';
+  import ThemeWorkflow from '../workflows/ThemeSvelte.svelte';
   import {
     ColorAlphaInput,
     ColorPreview,
@@ -55,7 +57,7 @@
 </script>
 
 <nav>
-  <strong>theme / kit</strong><a href="/">React</a><a href="/svelte.html"
+  <strong>Salyra UI</strong><a href="/">React</a><a href="/svelte.html"
     >Svelte</a
   ><a href="/vue.html">Vue</a>
 </nav>
@@ -187,5 +189,6 @@
       }}>Simulate failure</button
     >
   </div>
-  <footer>Independent context per provider · No shared server state</footer>
+  <section class="native-workflows"><h2>Color and theme workflows</h2><p>Use these examples to try history, forms, saved colors and draft editing.</p><div class="native-workflow-grid"><article class="native-workflow-card"><h3>Color form &amp; history</h3><p>Submit a color with alpha, undo edits, reset the form and save recent or favorite colors.</p><ColorWorkflow /></article><article class="native-workflow-card"><h3>Draft &amp; Apply</h3><p>Edit a separate draft, lock accent during generation and apply it to the preview. Export the selected tokens for Tailwind.</p><ThemeWorkflow /></article></div></section>
+<footer>Independent context per provider · No shared server state</footer>
 </main>

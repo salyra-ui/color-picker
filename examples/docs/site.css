@@ -1801,3 +1801,73 @@ td code {
 .lab-options label:has(select) { display: grid; grid-template-columns: minmax(0,1fr) minmax(120px,220px); }
 .lab-options select { min-width: 0; width: 100%; height: 38px; border: 1px solid var(--line); border-radius: 0; background: #fff; color: #171717; padding: 6px 12px; font: inherit; }
 @media (max-width: 800px) { .lab-applied { position: static; } }
+
+/* Code actions form one compact group, separate from the language tabs. */
+.code-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.code-toolbar .code-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 32px;
+  margin: 0;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+}
+.code-toolbar .code-actions button:hover { border-color: var(--ink); }
+.code-toolbar .code-actions button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.code-actions svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.code-toolbar .fixed-source-file { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 720px) {
+  .code-toolbar { flex-wrap: wrap; }
+  .code-toolbar .framework-tabs { flex-basis: 100%; border-bottom: 1px solid var(--line); }
+  .code-actions { padding: 8px; }
+}
+
+.workflow-gallery { border: 1px solid var(--line); }
+.workflow-selector { display:flex; justify-content:space-between; align-items:center; gap:20px; padding:16px 20px; border-bottom:1px solid var(--line); }
+.workflow-selector > label { display:flex; align-items:center; gap:16px; font-size:12px; }
+.workflow-selector select { padding:10px 12px; background:white; max-width:100%; }
+.workflow-summary { padding:24px; }
+.workflow-summary h3 { margin:0 0 10px; font-size:23px; letter-spacing:-.04em; }
+.workflow-summary p { margin:0 0 12px; max-width:640px; font-size:14px; line-height:1.7; }
+.workflow-summary > span { font-size:11px; color:var(--muted); }
+.workflow-preview { padding:0 24px 24px; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:24px; align-items:start; }
+.workflow-preview > [data-picker] { grid-row:span 3; min-width:0; }
+.workflow-preview > [data-controls] { display:grid; gap:16px; min-width:0; }
+.workflow-preview > pre { margin:0; padding:18px; background:var(--surface); border:1px solid var(--line); overflow:auto; max-height:400px; font-size:12px; white-space:pre-wrap; word-break:break-word; }
+.workflow-preview > .recipe-actions, .workflow-preview > .workflow-field { grid-column:1 / -1; }
+.workflow-preview .workflow-field { display:grid; gap:8px; font-size:12px; }
+.workflow-preview input[type="color"] { width:48px; height:36px; padding:3px; }
+.workflow-preview select { padding:8px 10px; background:white; max-width:100%; }
+.workflow-preview [data-controls] > label { display:flex; gap:12px; align-items:center; font-size:12px; }
+.workflow-preview [data-text-sample] { padding:24px; font-size:24px; border:1px solid var(--line); }
+.workflow-locks { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; padding:16px; border:1px solid var(--line); font-size:12px; }
+.workflow-locks legend { padding:0 4px; }
+.workflow-locks label { display:flex; align-items:center; gap:8px; }
+.workflow-pairs { display:grid; gap:8px; }
+.workflow-pairs article { padding:16px; font-size:14px; }
+.workflow-preview textarea { padding:12px; width:100%; font:12px/1.7 monospace; }
+.workflow-gallery [hidden] { display:none; }
+.workflow-preview .recipe-actions { margin:0; }
+@media(max-width:800px) {
+ .workflow-preview { grid-template-columns:minmax(0,1fr); padding:0 16px 16px; }
+ .workflow-preview > [data-picker] { grid-row:auto; }
+ .workflow-summary { padding:20px 16px; }
+ .workflow-selector { flex-wrap:wrap; padding:12px 16px; }
+ .workflow-selector > label { flex-wrap:wrap; min-width:0; }
+}
+
+.workflow-preview .recipe-preview button { border: var(--border-width-button) solid currentColor; }

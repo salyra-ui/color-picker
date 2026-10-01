@@ -59,6 +59,7 @@ export function codePanel(
     integration?: Integration;
     file?: string;
     baseName?: string;
+    downloadName?: () => string;
     files?: (integration: Integration) => { name: string; code: string }[];
   } = {},
 ) {
@@ -67,7 +68,7 @@ export function codePanel(
   let files: { name: string; code: string }[] = [];
   const id = `source-${++panelSequence}`;
   host.classList.add('code-panel');
-  host.innerHTML = `<div class="code-toolbar"><div class="framework-tabs" role="tablist" aria-label="${escape(options.label ?? 'Example')} framework" ${options.file ? 'hidden' : ''}>${integrations.map((i) => `<button type="button" role="tab" id="${id}-${i}" aria-controls="${id}-code" data-framework="${i}">${i}</button>`).join('')}</div><span class="fixed-source-file" ${options.file ? '' : 'hidden'}>${escape(options.file ?? '')}</span><button type="button" class="download-button">Download files</button><button type="button" class="copy-button">Copy code</button></div><div class="source-file-tabs" role="tablist" aria-label="${escape(options.label ?? 'Example')} files"></div><pre id="${id}-code" role="tabpanel" tabindex="0"><code></code></pre><p class="copy-status" aria-live="polite"></p>`;
+  host.innerHTML = `<div class="code-toolbar"><div class="framework-tabs" role="tablist" aria-label="${escape(options.label ?? 'Example')} framework" ${options.file ? 'hidden' : ''}>${integrations.map((i) => `<button type="button" role="tab" id="${id}-${i}" aria-controls="${id}-code" data-framework="${i}">${i}</button>`).join('')}</div><span class="fixed-source-file" ${options.file ? '' : 'hidden'}>${escape(options.file ?? '')}</span><div class="code-actions"><button type="button" class="download-button" aria-label="Download files" title="Download all example files as a ZIP"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M5 16v4h14v-4"/></svg><span>Download files</span></button><button type="button" class="copy-button">Copy code</button></div></div><div class="source-file-tabs" role="tablist" aria-label="${escape(options.label ?? 'Example')} files"></div><pre id="${id}-code" role="tabpanel" tabindex="0"><code></code></pre><p class="copy-status" aria-live="polite"></p>`;
   const code = host.querySelector('code')!;
   const button = host.querySelector<HTMLButtonElement>('.copy-button')!;
   const status = host.querySelector('.copy-status')!;
@@ -100,7 +101,7 @@ export function codePanel(
           `<button type="button" role="tab" aria-controls="${id}-code" data-file="${i}">${escape(f.name)}</button>`,
       )
       .join('');
-    fileTabs.hidden = Boolean(options.file);
+    fileTabs.hidden = Boolean(options.file) && files.length === 1;
     frameworkTabs
       .querySelectorAll<HTMLButtonElement>('[data-framework]')
       .forEach((b) => {
@@ -151,7 +152,7 @@ export function codePanel(
       buttons[next].click();
       buttons[next].focus();
     });
-  host.querySelector('.download-button')!.addEventListener('click', () => downloadSources(files, (options.baseName ?? 'example') + '-' + current.toLowerCase()));
+  host.querySelector('.download-button')!.addEventListener('click', () => downloadSources(files, options.downloadName?.() ?? (options.baseName ?? 'example') + (options.file ? '' : '-' + current.toLowerCase())));
   button.addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(code.textContent ?? '');

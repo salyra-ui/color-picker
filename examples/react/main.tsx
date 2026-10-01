@@ -40,6 +40,8 @@ import {
   type ThemeOptions,
 } from '@salyra-ui/theme-studio';
 import '../demo.css';
+import ColorWorkflow from '../workflows/ColorReact';
+import ThemeWorkflow from '../workflows/ThemeReact';
 const indigo = generateTheme('#6366f1', { name: 'Indigo' }),
   coral = generateTheme('#ef6b52', { name: 'Coral' }),
   forest = generateTheme('#277d59', { name: 'Forest' });
@@ -192,7 +194,7 @@ function App() {
   return (
     <>
       <nav>
-        <strong>theme / kit</strong>
+        <strong>Salyra UI</strong>
         <a href="/">React</a>
         <a href="/svelte.html">Svelte</a>
         <a href="/vue.html">Vue</a>
@@ -244,7 +246,8 @@ function App() {
           </section>
         </div>
         <AsyncDemo source={editorStore} />
-        <footer>
+        <section className="native-workflows"><h2>Color and theme workflows</h2><p>Use these examples to try history, forms, saved colors and draft editing.</p><div className="native-workflow-grid"><article className="native-workflow-card"><h3>Color form &amp; history</h3><p>Submit a color with alpha, undo edits, reset the form and save recent or favorite colors.</p><ColorWorkflow /></article><article className="native-workflow-card"><h3>Draft &amp; Apply</h3><p>Edit a separate draft, lock accent during generation and apply it to the preview. Export the selected tokens for Tailwind.</p><ThemeWorkflow /></article></div></section>
+      <footer>
           Framework independent core · Scoped providers · SSR ready · Copy and
           customize
         </footer>

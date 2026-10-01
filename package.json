@@ -23,7 +23,8 @@
     "check:recipes": "npm run build:packages && tsx scripts/recipes-check.ts",
     "check:bundles": "node scripts/bundle-check.mjs",
     "test:performance": "playwright test --config playwright.performance.config.ts",
-    "test:recipes": "npm run check:recipes -- --browser"
+    "test:recipes": "npm run check:recipes -- --browser",
+    "generate:examples": "tsx scripts/generate-demo-workflows.ts && tsx scripts/generate-workflow-sources.ts && prettier --write examples/workflows examples/docs/workflow-sources.ts"
   },
   "devDependencies": {
     "@angular/common": "~19.2.0",

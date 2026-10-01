@@ -1,7 +1,11 @@
 import { defineConfig } from '@playwright/test';
 export default defineConfig({
   testDir: './tests',
-  testMatch: ['performance.spec.ts', 'recipes.browser.spec.ts'],
+  testMatch: [
+    'performance.spec.ts',
+    'recipes.browser.spec.ts',
+    'workflows.browser.spec.ts',
+  ],
   workers: 1,
   use: {
     headless: true,

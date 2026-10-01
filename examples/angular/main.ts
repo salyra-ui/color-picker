@@ -34,10 +34,14 @@ import {
 } from '@salyra-ui/theme-studio/angular';
 import { createThemeStore, generateTheme, type ThemeOptions } from '@salyra-ui/theme-studio';
 import '../demo.css';
+import '../workflows/workflow.css';
+import { ColorWorkflow } from '../workflows/ColorAngular';
+import { ThemeWorkflow } from '../workflows/ThemeAngular';
 @Component({
   selector: 'demo-root',
   standalone: true,
   imports: [
+    ColorWorkflow, ThemeWorkflow,
     ColorSurface,
     ColorViewSelect,
     ColorFormatSelect,
@@ -63,7 +67,7 @@ import '../demo.css';
     ThemeError,
   ],
   template: `<nav>
-      <strong>theme / kit</strong><span>Angular / standalone components</span>
+      <strong>Salyra UI</strong><span>Angular / standalone components</span>
     </nav>
     <main>
       <div class="eyebrow">Angular 19 / signals</div>
@@ -155,6 +159,7 @@ import '../demo.css';
         <button (click)="simulate(false)">Simulate success</button
         ><button (click)="simulate(true)">Simulate failure</button>
       </div>
+<section class="native-workflows"><h2>Color and theme workflows</h2><p>Use these examples to try history, forms, saved colors and draft editing.</p><div class="native-workflow-grid"><article class="native-workflow-card"><h3>Color form &amp; history</h3><p>Submit a color with alpha, undo edits, reset the form and save recent or favorite colors.</p><color-workflow></color-workflow></article><article class="native-workflow-card"><h3>Draft &amp; Apply</h3><p>Edit a separate draft, lock accent during generation and apply it to the preview. Export the selected tokens for Tailwind.</p><theme-workflow></theme-workflow></article></div></section>
     </main>`,
 })
 export class App {

@@ -1,0 +1,109 @@
+---
+import { createColorStore } from '@salyra-ui/color-picker';
+import ColorProvider from '@salyra-ui/color-picker/astro/ColorProvider.astro';
+import ColorArea from '@salyra-ui/color-picker/astro/ColorArea.astro';
+import ColorSlider from '@salyra-ui/color-picker/astro/ColorSlider.astro';
+import ColorInput from '@salyra-ui/color-picker/astro/ColorInput.astro';
+const color = createColorStore('#5268E080').getSnapshot();
+import '@salyra-ui/color-picker/styles.min.css';
+import './workflow.css';
+---
+
+<form class="recipe" data-recipe="color-picker">
+  <div data-picker>
+    <ColorProvider value="#5268E080">
+      <ColorArea value="#5268E080" />
+      <ColorSlider channel="h" value={color.h} />
+      <ColorSlider channel="alpha" value={color.alpha * 100} />
+      <ColorInput value="#5268E080" />
+    </ColorProvider>
+  </div>
+  <div data-favorites></div>
+  <div data-recent></div>
+  <div class="recipe-actions">
+    <button type="button" data-save>
+      Save color
+    </button>
+    <button type="button" data-favorite>
+      Toggle favorite
+    </button>
+    <button type="button" data-undo>
+      Undo
+    </button>
+    <button type="button" data-redo>
+      Redo
+    </button>
+    <button type="reset">Reset</button>
+    <button type="submit">Submit</button>
+  </div>
+  <output data-output class="recipe-output" aria-live="polite"></output>
+  <p data-contrast></p>
+</form>
+<script>
+  import type { ColorProviderElement } from '@salyra-ui/color-picker/astro/client';
+  import {
+    mountColorPicker,
+    mountColorCollection,
+  } from '@salyra-ui/color-picker/vanilla';
+  import { createDemo } from './color-controller';
+  import '@salyra-ui/color-picker/styles.min.css';
+  import './workflow.css';
+  for (const root of document.querySelectorAll<HTMLFormElement>(
+    '[data-recipe="color-picker"]',
+  )) {
+    const demo = createDemo();
+    const button = (name: string) =>
+      root.querySelector<HTMLButtonElement>('[data-' + name + ']')!;
+    const provider = root.querySelector<ColorProviderElement>(
+      '[data-picker] cp-provider',
+    )!;
+    provider.setStore(demo.store);
+    const picker = { destroy: () => provider.remove() };
+    const favorites = mountColorCollection(
+      root.querySelector<HTMLElement>('[data-favorites]')!,
+      demo.store,
+      demo.collection,
+      { kind: 'favorites' },
+    );
+    const recent = mountColorCollection(
+      root.querySelector<HTMLElement>('[data-recent]')!,
+      demo.store,
+      demo.collection,
+    );
+    button('save').onclick = () =>
+      demo.collection.remember(demo.store.getSnapshot().value);
+    button('favorite').onclick = () =>
+      demo.collection.toggleFavorite(demo.store.getSnapshot().value);
+    root.onsubmit = (e) => {
+      e.preventDefault();
+      demo.submit(root);
+    };
+    button('undo').onclick = demo.history.undo;
+    button('redo').onclick = demo.history.redo;
+    const update = () => {
+      const state = demo.getSnapshot();
+      button('undo').disabled = !state.history.canUndo;
+      button('redo').disabled = !state.history.canRedo;
+
+      root.querySelector('[data-output]')!.textContent = state.submitted;
+      root.querySelector('[data-contrast]')!.textContent =
+        'Text contrast: ' +
+        state.contrast.ratio.toFixed(2) +
+        ':1 · ' +
+        (state.contrast.aa ? 'AA passes' : 'AA fails');
+    };
+    const stop = demo.subscribe(update),
+      detach = demo.mount(root);
+    update();
+    const destroy = () => {
+      stop();
+      detach();
+      picker.destroy();
+      favorites.destroy();
+      recent.destroy();
+      demo.destroy();
+    };
+    window.addEventListener('pagehide', destroy, { once: true });
+    document.addEventListener('astro:before-swap', destroy, { once: true });
+  }
+</script>

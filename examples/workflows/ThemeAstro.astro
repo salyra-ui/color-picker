@@ -1,0 +1,164 @@
+---
+import {
+  generateTheme,
+  createThemeStore,
+  themeConfiguration,
+} from '@salyra-ui/theme-studio';
+import ThemeProvider from '@salyra-ui/theme-studio/astro/ThemeProvider.astro';
+import ThemePicker from '@salyra-ui/theme-studio/astro/ThemePicker.astro';
+import ThemeName from '@salyra-ui/theme-studio/astro/ThemeName.astro';
+import ThemeRadius from '@salyra-ui/theme-studio/astro/ThemeRadius.astro';
+import ThemeBorderWidth from '@salyra-ui/theme-studio/astro/ThemeBorderWidth.astro';
+import ThemeHarmony from '@salyra-ui/theme-studio/astro/ThemeHarmony.astro';
+import ThemeBackground from '@salyra-ui/theme-studio/astro/ThemeBackground.astro';
+const theme = generateTheme('#5268E0');
+const appliedCss = themeConfiguration(
+  createThemeStore({ theme, mode: 'light', modeStorage: false }).getSnapshot(),
+).css;
+import '@salyra-ui/theme-studio/styles.min.css';
+import './workflow.css';
+---
+
+<div class="recipe" data-recipe="theme-studio">
+  <h2>Draft theme</h2>
+  <div data-editor>
+    <ThemeProvider {theme} mode="light" modeStorage={false}>
+      <ThemePicker {theme} />
+      <ThemeName {theme} />
+      <ThemeRadius {theme} target="card" />
+      <ThemeBorderWidth {theme} target="card" />
+      <ThemeHarmony />
+      <ThemeBackground {theme} />
+    </ThemeProvider>
+  </div>
+  <label>
+    Recent themes<select data-theme-list="recent"></select>
+  </label>
+  <label>
+    Favorite themes<select data-theme-list="favorites"></select>
+  </label>
+  <button type="button" data-favorite>
+    Favorite applied theme
+  </button>
+  <label>
+    <input type="checkbox" data-lock />
+    Lock accent during generation
+  </label>
+  <label>
+    <input type="checkbox" data-live />
+    Apply changes live
+  </label>
+  <div class="recipe-actions">
+    <button type="button" data-undo>
+      Undo
+    </button>
+    <button type="button" data-redo>
+      Redo
+    </button>
+    <button type="button" data-apply>
+      Apply
+    </button>
+    <button type="button" data-cancel>
+      Cancel
+    </button>
+  </div>
+  <p data-status role="status"></p>
+  <div data-applied class="recipe-preview" style={appliedCss}>
+    <h2>Applied theme</h2>
+    <button type="button">Example button</button>
+  </div>
+  <details>
+    <summary>Tailwind CSS</summary>
+    <pre data-output class="recipe-output"></pre>
+  </details>
+  <p data-contrast></p>
+</div>
+<script>
+  import type { ThemeProviderElement } from '@salyra-ui/theme-studio/astro/client';
+  import {
+    mountThemeKit,
+    themeConfiguration,
+  } from '@salyra-ui/theme-studio/vanilla';
+  import { createDemo } from './theme-controller';
+  import '@salyra-ui/theme-studio/styles.min.css';
+  import './workflow.css';
+  for (const root of document.querySelectorAll<HTMLDivElement>(
+    '[data-recipe="theme-studio"]',
+  )) {
+    const demo = createDemo();
+    const button = (name: string) =>
+      root.querySelector<HTMLButtonElement>('[data-' + name + ']')!;
+    const provider = root.querySelector<ThemeProviderElement>(
+      '[data-editor] tk-provider',
+    )!;
+    provider.setStore(demo.editor.store, { modeStorage: false });
+    const picker = { destroy: () => provider.remove() };
+    root.querySelector('[data-editor] details')?.remove();
+    button('apply').onclick = demo.apply;
+    button('favorite').onclick = () =>
+      demo.collection.toggleFavorite(demo.target.getSnapshot().theme);
+    for (const list of root.querySelectorAll<HTMLSelectElement>(
+      '[data-theme-list]',
+    ))
+      list.onchange = () => {
+        const theme = demo.collection
+          .getSnapshot()
+          [list.dataset.themeList as 'recent' | 'favorites'].find(
+            (theme) => theme.id === list.value,
+          );
+        if (theme) demo.editor.store.setTheme(theme);
+      };
+    button('cancel').onclick = demo.editor.cancel;
+    root.querySelector<HTMLInputElement>('[data-lock]')!.onchange = (e) =>
+      demo.editor.setLocked(
+        'accent',
+        (e.currentTarget as HTMLInputElement).checked,
+      );
+    root.querySelector<HTMLInputElement>('[data-live]')!.onchange = (e) =>
+      demo.editor.setLive((e.currentTarget as HTMLInputElement).checked);
+    button('undo').onclick = demo.editor.history.undo;
+    button('redo').onclick = demo.editor.history.redo;
+    const update = () => {
+      const state = demo.getSnapshot();
+      button('undo').disabled = !state.history.canUndo;
+      button('redo').disabled = !state.history.canRedo;
+      root.querySelector('[data-editor] details')?.remove();
+      button('apply').disabled = !state.session.dirty || state.session.conflict;
+      button('cancel').disabled =
+        !state.session.dirty && !state.session.conflict;
+      for (const list of root.querySelectorAll<HTMLSelectElement>(
+        '[data-theme-list]',
+      )) {
+        list.replaceChildren(new Option('Choose a theme', ''));
+        const themes =
+          state.collection[list.dataset.themeList as 'recent' | 'favorites'];
+        for (const theme of themes) list.add(new Option(theme.name, theme.id));
+        list.disabled = !themes.length;
+      }
+      root.querySelector('[data-status]')!.textContent = state.session.conflict
+        ? 'The applied theme changed. Cancel to load it.'
+        : state.session.dirty
+          ? 'Unapplied changes'
+          : 'Up to date';
+      root.querySelector<HTMLElement>('[data-applied]')!.style.cssText =
+        themeConfiguration(demo.target.getSnapshot()).css;
+      root.querySelector('[data-output]')!.textContent = state.tailwind;
+      root.querySelector('[data-contrast]')!.textContent =
+        'Text contrast: ' +
+        state.contrast.ratio.toFixed(2) +
+        ':1 · ' +
+        (state.contrast.aa ? 'AA passes' : 'AA fails');
+    };
+    const stop = demo.subscribe(update),
+      detach = demo.mount(root);
+    update();
+    const destroy = () => {
+      stop();
+      detach();
+      picker.destroy();
+      demo.destroy();
+    };
+    window.addEventListener('pagehide', destroy, { once: true });
+    document.addEventListener('astro:before-swap', destroy, { once: true });
+  }
+</script>
