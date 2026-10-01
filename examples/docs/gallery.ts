@@ -203,10 +203,14 @@ export function mountExplorer(
   host: HTMLElement,
   kit: Kit,
   initial?: ColorVariant | ThemeVariant,
+  section: 'all' | 'examples' | 'customization' = 'all',
 ) {
   const isColor = kit === 'color-picker',
-    variants = isColor ? colorVariants : themeVariants;
-  let variant = initial ?? variants[0].id,
+    variants = (isColor ? colorVariants : themeVariants).filter(({ id }) => {
+      const customizable = id === 'custom' || id === 'palette';
+      return section === 'all' || (section === 'customization' ? customizable : !customizable);
+    });
+  let variant = variants.find(({ id }) => id === initial)?.id ?? variants[0].id,
     cleanup: (() => void) | undefined;
   let custom: CustomSettings = {
     ...defaultCustom,
@@ -218,11 +222,11 @@ export function mountExplorer(
     modes: ['light'],
   };
   host.classList.add('explorer');
-  host.innerHTML = `<div class="example-toolbar"><label class="example-select">Example<select data-example aria-label="${isColor ? 'Color picker' : 'Theme kit'} example">${variants.map((v) => `<option value="${v.id}" ${v.id === variant ? 'selected' : ''}>${escape(v.title)}</option>`).join('')}</select></label><div class="view-tabs" role="group" aria-label="Example display"><button type="button" data-display="preview" aria-pressed="true">Preview</button><button type="button" data-display="code" aria-pressed="false">Code</button></div></div><div class="example-description"><p></p></div><div class="example-body" data-display="preview"><div class="example-preview"><div class="preview-label">Interactive preview <span>Vanilla adapter</span></div><div class="preview-content"></div></div><div class="example-code"></div></div>`;
+  host.innerHTML = `<div class="example-toolbar">${variants.length === 1 ? `<span class="example-select">${escape(variants[0].title)}</span>` : `<label class="example-select">${section === 'customization' ? 'Customize' : 'Example'}<select data-example aria-label="${isColor ? 'Color picker' : 'Theme kit'} ${section === 'customization' ? 'customization' : 'example'}">${variants.map((v) => `<option value="${v.id}" ${v.id === variant ? 'selected' : ''}>${escape(v.title)}</option>`).join('')}</select></label>`}<div class="view-tabs" role="group" aria-label="Example display"><button type="button" data-display="preview" aria-pressed="true">Preview</button><button type="button" data-display="code" aria-pressed="false">Code</button></div></div><div class="example-description"><p></p></div><div class="example-body" data-display="preview"><div class="example-preview"><div class="preview-label">Interactive preview <span>Vanilla adapter</span></div><div class="preview-content"></div></div><div class="example-code"></div></div>`;
   const body = host.querySelector<HTMLElement>('.example-body')!,
     content = host.querySelector<HTMLElement>('.preview-content')!,
     description = host.querySelector('.example-description p')!,
-    exampleSelect = host.querySelector<HTMLSelectElement>('[data-example]')!;
+    exampleSelect = host.querySelector<HTMLSelectElement>('[data-example]');
   const panel = codePanel(
     host.querySelector('.example-code')!,
     (i) =>
@@ -246,7 +250,7 @@ export function mountExplorer(
   const show = () => {
     cleanup?.();
     content.replaceChildren();
-    exampleSelect.value = variant;
+    if (exampleSelect) exampleSelect.value = variant;
     description.textContent = variants.find(
       (v) => v.id === variant,
     )!.description;
@@ -567,7 +571,7 @@ export function mountExplorer(
     )!.textContent = custom.text;
     panel.refresh();
   }
-  exampleSelect.addEventListener('change', () => {
+  exampleSelect?.addEventListener('change', () => {
     variant = exampleSelect.value as typeof variant;
     show();
   });
