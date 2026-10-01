@@ -1,4 +1,5 @@
 import { cp, mkdir, writeFile, readFile, access } from 'node:fs/promises';
+import { transform } from 'esbuild';
 import { execFileSync } from 'node:child_process';
 // A separate static entry keeps the original development demo at / intact.
 await cp('dist/index.html', 'dist/react.html');
@@ -11,9 +12,12 @@ for (const kit of ['color-picker','theme-kit']) {
   let source = `packages/${kit}/dist/browser/${kit}.js`;
   try { await access(source); } catch { source = `node_modules/@sebytza23/${kit}-vanilla/browser/${kit}.js`; }
   await cp(source, `dist/downloads/${kit}.js`);
+  await cp(source.replace(/\.js$/, '.min.js'), `dist/downloads/${kit}.min.js`);
   let style = `packages/${kit}/styles.css`;
-  try { await access(style); } catch { style = `node_modules/@sebytza23/${kit}/styles.css`; }
+  try { await access(style); } catch { style = new URL(import.meta.resolve(`@sebytza23/${kit}/styles.css`)); }
   await cp(style, `dist/downloads/${kit}.css`);
+  const css = await readFile(style, 'utf8');
+  await writeFile(`dist/downloads/${kit}.min.css`, (await transform(css, {loader: 'css', minify: true, sourcemap: false})).code);
 }
 await writeFile('dist/.nojekyll','');
 const base = process.env.PAGES_BASE ?? '/';

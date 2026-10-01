@@ -6,7 +6,7 @@ Composable color controls, conversions, alpha and color naming for React, Svelte
 
 Choose one adapter: `npm install @sebytza23/color-picker-svelte` (or react/vue/angular/astro/vanilla). The adapter installs only its matching core dependencies and exports core helpers. Import `@sebytza23/color-picker-svelte/styles.css` in your app.
 
-Version 0.1.1 is available on npm. Each adapter is published separately and installs only its own core dependencies.
+Version 0.1.2 is available on npm. Each adapter is published separately and installs only its own core dependencies.
 
 ## Develop and verify
 
@@ -44,3 +44,9 @@ Code examples have independent React, Svelte, Vue, Angular, Astro and Vanilla ta
 Run `npm run test:consumer` to install the public React and Vanilla packages in a clean temporary project and verify SSR, native DOM composition, alpha, naming and mode state.
 
 Release archives contain no `.map` files or `sourceMappingURL` references. `npm run pack:all` checks the packaged files and fails if a sourcemap is included.
+
+## Production output
+
+Runtime JavaScript and CSS are minified. Existing `styles.css` imports load `styles.min.css`. Vanilla includes readable and minified browser/ESM builds and styles. Svelte, Vue and Astro retain compiler-compatible templates and type syntax with compact scripts.
+
+`npm run check:release` validates packaged component compilation, exports and Vanilla variants. CI runs this after packing, together with the sourcemap guard.

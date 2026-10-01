@@ -1,4 +1,6 @@
-import { mkdir, cp, readFile, writeFile, readdir, rm } from 'node:fs/promises';
+import { mkdir, cp, readFile, writeFile, readdir, rm, rename } from 'node:fs/promises';
+import { transform } from 'esbuild';
+import { compactComponents } from './compact-components.mjs';
 const { version } = JSON.parse(await readFile('package.json', 'utf8'));
 const frameworks = ['react','svelte','vue','angular','astro','vanilla'];
 async function rewrite(dir) {
@@ -22,15 +24,17 @@ for (const kit of ['color-picker','theme-kit'].filter(kit => availableKits.inclu
   await rm(base, { recursive: true, force: true });
   await mkdir(base, { recursive: true });
   await cp(`packages/${kit}/dist/core`, `${base}/core`, { recursive: true });
-  await cp(`packages/${kit}/styles.css`, `${base}/styles.css`);
+  await rename(`${base}/core/index.js`, `${base}/core/index.min.js`);
+  const css = await readFile(`packages/${kit}/styles.css`, 'utf8');
+  await writeFile(`${base}/styles.min.css`, (await transform(css, { loader: 'css', minify: true, sourcemap: false })).code);
   await cp(`packages/${kit}/README.md`, `${base}/README.md`);
   if (kit === 'color-picker') await cp(`packages/${kit}/THIRD_PARTY_NOTICES.md`, `${base}/THIRD_PARTY_NOTICES.md`);
   await rewrite(base);
   const core = { name: `@sebytza23/${kit}`, version, type: 'module', description: kit === 'color-picker' ? 'Framework independent color conversion, naming and picker state' : 'Framework independent theme generation and persistence',
     homepage: `https://sebytza23.github.io/${kit}/docs.html?kit=${kit}`,
     repository: { type: 'git', url: `https://github.com/sebytza23/${kit}.git` }, publishConfig: { access: 'public' },
-    exports: { '.': { types: './core/index.d.ts', default: './core/index.js' }, './styles.css': './styles.css' },
-    files: ['core','styles.css','README.md','THIRD_PARTY_NOTICES.md'],
+    exports: { '.': { types: './core/index.d.ts', default: './core/index.min.js' }, './styles.css': './styles.min.css', './styles.min.css': './styles.min.css' },
+    files: ['core','styles.min.css','README.md','THIRD_PARTY_NOTICES.md'],
     ...(kit === 'theme-kit' ? { dependencies: { '@sebytza23/color-picker': version } } : {}) };
   await writeFile(`${base}/package.json`, JSON.stringify(core, null, 2)+'\n');
   for (const framework of frameworks) {
@@ -38,17 +42,26 @@ for (const kit of ['color-picker','theme-kit'].filter(kit => availableKits.inclu
     await rm(out, { recursive: true, force: true });
     await mkdir(out, { recursive: true });
     await cp(`packages/${kit}/dist/${framework}`, `${out}/${framework}`, { recursive: true });
-    await writeFile(`${out}/styles.css`, (kit === 'theme-kit' ? await readFile(availableKits.includes('color-picker') ? 'packages/color-picker/styles.css' : 'node_modules/@sebytza23/color-picker/styles.css', 'utf8') : '') + await readFile(`packages/${kit}/styles.css`, 'utf8'));
+    const colorCss = kit === 'theme-kit' ? await readFile(availableKits.includes('color-picker') ? 'packages/color-picker/styles.css' : new URL(import.meta.resolve('@sebytza23/color-picker/styles.css')), 'utf8') : '';
+    const styles = colorCss + css;
+    await writeFile(`${out}/styles.min.css`, (await transform(styles, { loader: 'css', minify: true, sourcemap: false })).code);
+    if (framework === 'vanilla') await writeFile(`${out}/styles.css`, styles);
+    if (framework === 'react') await rename(`${out}/react/index.js`, `${out}/react/index.min.js`);
+    if (['svelte', 'vue', 'astro'].includes(framework)) await compactComponents(`${out}/${framework}`);
     if (framework === 'vanilla') await cp(`packages/${kit}/dist/browser`, `${out}/browser`, { recursive: true });
     await rewrite(out);
-    const source = `${framework}/index.${framework === 'svelte' || framework === 'vue' ? 'ts' : 'js'}`;
-    const exports = { '.': { types: `./${framework}/index.${framework === 'svelte' || framework === 'vue' ? 'ts' : 'd.ts'}`, ...(framework === 'svelte' ? { svelte: `./${source}` } : {}), default: `./${source}` }, './styles.css': './styles.css' };
+    const source = `${framework}/index.${framework === 'svelte' || framework === 'vue' ? 'ts' : framework === 'react' || framework === 'vanilla' ? 'min.js' : 'js'}`;
+    const exports = { '.': { types: `./${framework}/index.${framework === 'svelte' || framework === 'vue' ? 'ts' : 'd.ts'}`, ...(framework === 'svelte' ? { svelte: `./${source}` } : {}), default: `./${source}` }, './styles.css': './styles.min.css', './styles.min.css': './styles.min.css' };
     if (framework === 'astro') { exports['.'] = `./astro/client.ts`; exports['./*'] = './astro/*'; exports['./client'] = './astro/client.ts'; }
-    if (framework === 'vanilla') exports['./browser/*'] = './browser/*';
+    if (framework === 'vanilla') {
+      exports['./browser/*'] = './browser/*';
+      exports['./standard'] = { types: './vanilla/index.d.ts', default: './vanilla/index.js' };
+      exports['./styles.standard.css'] = './styles.css';
+    }
     const dependency = { [`@sebytza23/${kit}`]: version, ...(kit === 'theme-kit' ? { '@sebytza23/color-picker': version, [`@sebytza23/color-picker-${framework === 'astro' ? 'vanilla' : framework}`]: version } : {}), ...(framework === 'astro' ? { [`@sebytza23/${kit}-vanilla`]: version } : {}) };
     const peer = { react: { react: '>=18' }, svelte: { svelte: '>=5' }, vue: { vue: '>=3.5' }, angular: { '@angular/core': '>=19', '@angular/common': '>=19' }, astro: { astro: '>=5' }, vanilla: {} }[framework];
-    await writeFile(`${out}/package.json`, JSON.stringify({ name: `@sebytza23/${kit}-${framework}`, version, type: 'module', repository: core.repository, homepage: core.homepage, publishConfig: core.publishConfig, exports, files: [framework,'browser','styles.css','README.md'], sideEffects: framework === 'vanilla' || framework === 'astro' ? true : ['**/*.css'], dependencies: dependency, peerDependencies: peer }, null, 2)+'\n');
-    await writeFile(`${out}/README.md`, `# @sebytza23/${kit}-${framework}\n\nInstall only this adapter and its core dependencies.\n\n\`npm install @sebytza23/${kit}-${framework}\`\n\nDocumentation: https://sebytza23.github.io/${kit}/docs.html?kit=${kit}\n\n${framework === 'vanilla' ? 'The browser/ bundle works with plain HTML without a framework.' : `Import \`@sebytza23/${kit}-${framework}/styles.css\` in your application.`}\n\n${kit === 'color-picker' ? '![Color picker with hue, alpha and named color](https://sebytza23.github.io/color-picker/npm/color-picker-controls.jpg)\n\n![Separate RGB channel inputs](https://sebytza23.github.io/color-picker/npm/color-picker-channels.jpg)' : '![Theme generator with three color roles and a live dark preview](https://sebytza23.github.io/theme-kit/npm/theme-kit-generator.jpg)\n\n![Custom shade labels and joined swatches](https://sebytza23.github.io/theme-kit/npm/theme-kit-swatches.jpg)'}\n`);
+    await writeFile(`${out}/package.json`, JSON.stringify({ name: `@sebytza23/${kit}-${framework}`, version, type: 'module', repository: core.repository, homepage: core.homepage, publishConfig: core.publishConfig, exports, files: [framework,'browser','styles.min.css', ...(framework === 'vanilla' ? ['styles.css'] : []), 'README.md'], sideEffects: framework === 'vanilla' || framework === 'astro' ? true : ['**/*.css'], dependencies: dependency, peerDependencies: peer }, null, 2)+'\n');
+    await writeFile(`${out}/README.md`, `# @sebytza23/${kit}-${framework}\n\nInstall only this adapter and its core dependencies.\n\n\`npm install @sebytza23/${kit}-${framework}\`\n\nDocumentation: https://sebytza23.github.io/${kit}/docs.html?kit=${kit}\n\n${framework === 'vanilla' ? `The browser bundles work with plain HTML without a framework. Use \`browser/${kit}.min.js\` and \`styles.min.css\` in production. The readable \`browser/${kit}.js\` bundle, \`/standard\` ESM entry and \`/styles.standard.css\` are also included.` : `Import \`@sebytza23/${kit}-${framework}/styles.css\` in your application.`}\n\n${kit === 'color-picker' ? '![Color picker with hue, alpha and named color](https://sebytza23.github.io/color-picker/npm/color-picker-controls.jpg)\n\n![Separate RGB channel inputs](https://sebytza23.github.io/color-picker/npm/color-picker-channels.jpg)' : '![Theme generator with three color roles and a live dark preview](https://sebytza23.github.io/theme-kit/npm/theme-kit-generator.jpg)\n\n![Custom shade labels and joined swatches](https://sebytza23.github.io/theme-kit/npm/theme-kit-swatches.jpg)'}\n`);
   }
 }
 console.log(`Prepared ${availableKits.filter(kit => ['color-picker','theme-kit'].includes(kit)).length * 7} independent npm packages under release/. No package was published.`);

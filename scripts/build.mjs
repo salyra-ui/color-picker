@@ -1,4 +1,4 @@
-import { build } from 'esbuild';
+import { build, transform } from 'esbuild';
 import { mkdir, cp, readFile, writeFile, readdir, rm } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 execFileSync(
@@ -30,6 +30,7 @@ for (const name of ['color-picker', 'theme-kit'].filter(name => availableKits.in
     target: 'es2022',
     packages: 'external',
     sourcemap: false,
+    minify: true,
   });
   await build({
     entryPoints: [`${root}/react/index.tsx`],
@@ -43,12 +44,15 @@ for (const name of ['color-picker', 'theme-kit'].filter(name => availableKits.in
     jsx: 'automatic',
     banner: { js: '"use client";' },
     sourcemap: false,
+    minify: true,
   });
   await mkdir(`${out}/browser`, { recursive: true });
   await build({ entryPoints: [`${root}/vanilla/index.ts`], outfile: `${out}/vanilla/index.js`, bundle: true,
     format: 'esm', platform: 'browser', target: 'es2022', packages: 'external', external: ['../core'], sourcemap: false });
-  await build({ entryPoints: [`${root}/vanilla/index.ts`], outfile: `${out}/browser/${name}.js`, bundle: true,
-    format: 'iife', globalName: name === 'color-picker' ? 'ColorPicker' : 'ThemeKit', platform: 'browser', target: 'es2022', minify: true });
+  await build({ entryPoints: [`${root}/vanilla/index.ts`], outfile: `${out}/vanilla/index.min.js`, bundle: true,
+    format: 'esm', platform: 'browser', target: 'es2022', packages: 'external', external: ['../core'], sourcemap: false, minify: true });
+  for (const minify of [false, true]) await build({ entryPoints: [`${root}/vanilla/index.ts`], outfile: `${out}/browser/${name}${minify ? '.min' : ''}.js`, bundle: true,
+    format: 'iife', globalName: name === 'color-picker' ? 'ColorPicker' : 'ThemeKit', platform: 'browser', target: 'es2022', sourcemap: false, minify });
   await cp(`.types-build/${name}/vanilla`, `${out}/vanilla`, { recursive: true });
   await cp(`.types-build/${name}/core`, `${out}/core`, { recursive: true });
   await cp(`.types-build/${name}/react`, `${out}/react`, { recursive: true });
@@ -66,11 +70,12 @@ for (const name of ['color-picker', 'theme-kit'].filter(name => availableKits.in
     for (const entry of await readdir(`${out}/${folder}`)) {
       if (!entry.endsWith('.js') && !entry.endsWith('.d.ts')) continue;
       const file = `${out}/${folder}/${entry}`;
-      const source = await readFile(file, 'utf8');
+      let source = await readFile(file, 'utf8');
+      if (folder === 'angular' && entry.endsWith('.js')) source = (await transform(source, { loader: 'js', minify: true, sourcemap: false, target: 'es2022' })).code;
       await writeFile(
         file,
         source.replace(
-          /(from\s+['"])(\.{1,2}\/[^'"]+)(['"])/g,
+          /(from\s*['"])(\.{1,2}\/[^'"]+)(['"])/g,
           (_, a, path, z) =>
             `${a}${path.endsWith('/core') ? path + '/index.js' : /\.[a-z]+$/.test(path) ? path : path + '.js'}${z}`,
         ),

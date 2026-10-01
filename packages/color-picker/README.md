@@ -28,3 +28,9 @@ For UI components, install one adapter: `@sebytza23/color-picker-react`, `-svelt
 [Source repository](https://github.com/sebytza23/color-picker)
 
 See THIRD_PARTY_NOTICES.md for attribution of the bundled color names.
+
+## Production files
+
+JavaScript runtime bundles and CSS are minified. The `styles.css` export loads `styles.min.css`, so existing imports work. Svelte, Vue and Astro retain their compiler inputs and type syntax with compact scripts. Declaration files remain readable. No sourcemaps are included.
+
+Vanilla includes readable and minified browser bundles, `browser/color-picker.js` and `browser/color-picker.min.js`. The default ESM entry is minified. Import `/standard` for the readable ESM entry, or `/styles.standard.css` for readable CSS.
