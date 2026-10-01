@@ -28,7 +28,6 @@ export function referenceTable(kit: Kit) {
   return `<div class="api-reference" data-api-reference>
     <div class="api-reference-intro"><p>Look up a component, property or method. Each entry shows its accepted values, default behavior and an example.</p><label class="api-search">Find an API entry<input type="search" placeholder="Try disabled, roles or setColor" data-api-search autocomplete="off" aria-controls="api-entries"></label></div>
     <p class="api-conventions">Component properties and usage examples use React names. Svelte uses <code>class</code> and snippets, Vue uses <code>class</code> and slots, and Angular uses inputs and templates. See Working examples for complete implementations in all six adapters. Core methods use the same TypeScript API in every adapter.</p>
-    <nav class="api-index" aria-label="API entries">${entries.map(entry => `<a href="#${idFor(entry)}" data-api-link="${entry.id}">${escape(entry.name)}</a>`).join('')}</nav>
     <p class="api-search-status" data-api-status role="status" hidden></p>
     <div id="api-entries">${entries.map(entry => `<article class="api-entry" id="${idFor(entry)}" data-api-entry="${entry.id}">
       <header class="api-entry-heading"><div><p class="api-kind">${escape(entry.kind)}</p><h3>${escape(entry.name)}</h3></div><a href="#${idFor(entry)}" aria-label="Link to ${escape(entry.name)}">#</a></header>
@@ -57,7 +56,6 @@ export function mountReference(host: HTMLElement, kit: Kit) {
         if (!row.hidden) matches++;
       });
       section.hidden = matches === 0;
-      host.querySelector<HTMLElement>(`[data-api-link="${entry.id}"]`)!.hidden = section.hidden;
       if (!section.hidden) visible++;
     }
     status.hidden = !query;

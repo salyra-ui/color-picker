@@ -218,10 +218,11 @@ export function mountExplorer(
     modes: ['light'],
   };
   host.classList.add('explorer');
-  host.innerHTML = `<div class="variant-tabs" role="group" aria-label="${isColor ? 'Color picker' : 'Theme kit'} example">${variants.map((v) => `<button type="button" data-variant="${v.id}" aria-pressed="${v.id === variant}">${v.title}</button>`).join('')}</div><div class="example-description"><p></p><div class="view-tabs" role="group" aria-label="Example display"><button type="button" data-display="preview" aria-pressed="true">Preview</button><button type="button" data-display="code" aria-pressed="false">Code</button></div></div><div class="example-body" data-display="preview"><div class="example-preview"><div class="preview-label">Interactive preview <span>Vanilla adapter</span></div><div class="preview-content"></div></div><div class="example-code"></div></div>`;
+  host.innerHTML = `<div class="example-toolbar"><label class="example-select">Example<select data-example aria-label="${isColor ? 'Color picker' : 'Theme kit'} example">${variants.map((v) => `<option value="${v.id}" ${v.id === variant ? 'selected' : ''}>${escape(v.title)}</option>`).join('')}</select></label><div class="view-tabs" role="group" aria-label="Example display"><button type="button" data-display="preview" aria-pressed="true">Preview</button><button type="button" data-display="code" aria-pressed="false">Code</button></div></div><div class="example-description"><p></p></div><div class="example-body" data-display="preview"><div class="example-preview"><div class="preview-label">Interactive preview <span>Vanilla adapter</span></div><div class="preview-content"></div></div><div class="example-code"></div></div>`;
   const body = host.querySelector<HTMLElement>('.example-body')!,
     content = host.querySelector<HTMLElement>('.preview-content')!,
-    description = host.querySelector('.example-description p')!;
+    description = host.querySelector('.example-description p')!,
+    exampleSelect = host.querySelector<HTMLSelectElement>('[data-example]')!;
   const panel = codePanel(
     host.querySelector('.example-code')!,
     (i) =>
@@ -245,11 +246,7 @@ export function mountExplorer(
   const show = () => {
     cleanup?.();
     content.replaceChildren();
-    host
-      .querySelectorAll<HTMLButtonElement>('[data-variant]')
-      .forEach((b) =>
-        b.setAttribute('aria-pressed', String(b.dataset.variant === variant)),
-      );
+    exampleSelect.value = variant;
     description.textContent = variants.find(
       (v) => v.id === variant,
     )!.description;
@@ -570,12 +567,10 @@ export function mountExplorer(
     )!.textContent = custom.text;
     panel.refresh();
   }
-  host.querySelectorAll<HTMLButtonElement>('[data-variant]').forEach((b) =>
-    b.addEventListener('click', () => {
-      variant = b.dataset.variant as typeof variant;
-      show();
-    }),
-  );
+  exampleSelect.addEventListener('change', () => {
+    variant = exampleSelect.value as typeof variant;
+    show();
+  });
   host
     .querySelectorAll<HTMLButtonElement>('.view-tabs button[data-display]')
     .forEach((b) =>
