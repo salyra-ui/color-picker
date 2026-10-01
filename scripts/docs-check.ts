@@ -171,7 +171,10 @@ for (const integration of integrations) {
 const { referenceEntries } = await import('../examples/docs/reference-data');
 let referenceCount = 0;
 for (const kit of ['color-picker', 'theme-kit'] as const) {
+  const referenceIds = new Set<string>();
   for (const entry of referenceEntries(kit)) {
+    if (referenceIds.has(entry.id)) throw new Error(`Duplicate API reference anchor: ${kit}/${entry.id}`);
+    referenceIds.add(entry.id);
     typedSources.set(`${process.cwd()}/examples/docs/check-api-${kit}-${entry.id}.${entry.example.file.endsWith('tsx') ? 'tsx' : 'ts'}`, entry.example.code);
     referenceCount++;
   }

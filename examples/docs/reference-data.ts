@@ -33,7 +33,7 @@ const react = (kit: Kit, imports: string[], markup: string): ApiEntry['example']
   code: `import { ${[kit === 'color-picker' ? 'ColorProvider' : 'ThemeProvider', ...(kit === 'theme-kit' ? ['generateTheme'] : []), ...imports].filter((v, i, all) => all.indexOf(v) === i).join(', ')} } from '@sebytza23/${kit}-react';\nimport '@sebytza23/${kit}-react/styles.css';\n\nexport function Example() {\n  return ${kit === 'color-picker' ? '<ColorProvider value="#5268E0">' : '<ThemeProvider theme={generateTheme("#5268E0")} modeStorage={false}>'}\n    ${markup}\n  </${kit === 'color-picker' ? 'ColorProvider' : 'ThemeProvider'}>;\n}`,
 });
 const core = (kit: Kit, imports: string[], body: string): ApiEntry['example'] => ({ file: 'usage.ts', code: `import { ${imports.join(', ')} } from '@sebytza23/${kit}';\n\n${body}` });
-const entry = (name: string, kind: ApiEntry['kind'], description: string, fields: ApiField[], example: ApiEntry['example'], note?: string): ApiEntry => ({ id: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-$/, ''), name, kind, description, fields, example, note });
+const entry = (name: string, kind: ApiEntry['kind'], description: string, fields: ApiField[], example: ApiEntry['example'], note?: string): ApiEntry => ({ id: name === 'ThemeConfiguration' ? 'theme-configuration' : name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-$/, ''), name, kind, description, fields, example, note });
 const colorEntries: ApiEntry[] = [
   entry('ColorProvider', 'Component', 'Shares one selected color with its surfaces, sliders, inputs and format controls.', [
     f('value', 'HEX string', "'#6366F1'", 'Sets the initial color. React also applies subsequent value changes. Accepts short or full hex, with optional alpha.', 'value="#5268E080"'),
