@@ -6,7 +6,7 @@ const field = (
   fallback: string,
   description: string,
   example: string,
-): ApiField => ({ key, type, default: fallback, description, example, required: fallback === "Required", readOnly: ["ratio / aa / aaa", "suggestedForeground", "history", "Theme.schemaVersion", "ThemeConfiguration.schemaVersion"].includes(key) || (key === "store" && fallback === "Isolated draft") });
+): ApiField => ({ key, type, default: fallback, description, example, required: fallback === "Required", readOnly: fallback !== "Required" && ["ratio / aa / aaa", "suggestedForeground", "history", "Theme.schemaVersion", "ThemeConfiguration.schemaVersion"].includes(key) || (key === "store" && fallback === "Isolated draft") });
 const item = (
   name: string,
   description: string,
