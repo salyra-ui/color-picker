@@ -3,7 +3,8 @@ import { codePanel, escape } from './gallery';
 import { referenceEntries, type ApiEntry } from './reference-data';
 
 const idFor = (entry: ApiEntry) => `api-${entry.id}`;
-const qualifier = (entry: ApiEntry, key: string, required?: boolean) => {
+const qualifier = (entry: ApiEntry, key: string, required?: boolean, readOnly?: boolean) => {
+  if (readOnly) return 'Read only';
   if (key.includes('return value')) return 'Returned';
   if (key.includes('range') || key === 'harmony values') return 'Input constraint';
   if (/\w+\(/.test(key)) return 'Method';
@@ -32,7 +33,7 @@ export function referenceTable(kit: Kit) {
     <div id="api-entries">${entries.map(entry => `<article class="api-entry" id="${idFor(entry)}" data-api-entry="${entry.id}">
       <header class="api-entry-heading"><div><p class="api-kind">${escape(entry.kind)}</p><h3>${escape(entry.name)}</h3></div><a href="#${idFor(entry)}" aria-label="Link to ${escape(entry.name)}">#</a></header>
       <p class="api-purpose">${escape(entry.description)}</p>${entry.note ? `<p class="api-note">${escape(entry.note)}</p>` : ''}
-      <table class="api-properties"><caption>${escape(entry.name)} ${entry.kind === 'Methods' ? 'methods' : entry.kind === 'Return value' ? 'returned fields' : 'properties and parameters'}</caption><thead><tr><th scope="col">Key</th><th scope="col">Type / accepted values</th><th scope="col">Default</th><th scope="col">Behavior & example</th></tr></thead><tbody>${entry.fields.map(field => `<tr data-api-property><th scope="row" data-label="Key"><code>${escape(field.key)}</code><span class="api-requirement">${qualifier(entry, field.key, field.required)}</span></th><td data-label="Type / accepted values"><code class="api-type">${typeMarkup(field.type, entries)}</code></td><td data-label="Default"><code>${escape(field.default)}</code></td><td data-label="Behavior & example"><p>${escape(field.description)}</p><code class="api-inline-example">${escape(field.example)}</code></td></tr>`).join('')}</tbody></table>
+      <table class="api-properties"><caption>${escape(entry.name)} ${entry.kind === 'Methods' ? 'methods' : entry.kind === 'Return value' ? 'returned fields' : 'properties and parameters'}</caption><thead><tr><th scope="col">Key</th><th scope="col">Type / accepted values</th><th scope="col">Default</th><th scope="col">Behavior & example</th></tr></thead><tbody>${entry.fields.map(field => `<tr data-api-property><th scope="row" data-label="Key"><code>${escape(field.key)}</code><span class="api-requirement">${qualifier(entry, field.key, field.required, field.readOnly)}</span></th><td data-label="Type / accepted values"><code class="api-type">${typeMarkup(field.type, entries)}</code></td><td data-label="Default"><code>${escape(field.default)}</code></td><td data-label="Behavior & example"><p>${escape(field.description)}</p><code class="api-inline-example">${escape(field.example)}</code></td></tr>`).join('')}</tbody></table>
       <details class="api-usage"><summary>Usage example <span>${entry.example.file.endsWith('tsx') ? 'React' : 'TypeScript'}</span></summary><div data-api-code="${entry.id}"></div></details>
     </article>`).join('')}</div></div>`;
 }

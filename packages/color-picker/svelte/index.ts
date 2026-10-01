@@ -6,6 +6,7 @@ export { default as ColorInput } from './ColorInput.svelte';
 export { default as ColorSwatch } from './ColorSwatch.svelte';
 export { default as ColorPreview } from './ColorPreview.svelte';
 export * from './context';
+export { default as ColorCollection } from './ColorCollection.svelte';
 export { default as ColorMode } from './ColorMode.svelte';
 export { default as ColorFormatSelect } from './ColorFormatSelect.svelte';
 

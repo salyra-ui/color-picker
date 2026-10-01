@@ -75,7 +75,12 @@ export function channelValue(
   format: ChannelFormat,
   index: ChannelIndex,
 ): string {
-  return String(Number(getColorChannels(state, format)[index].toFixed(4)));
+  const step = channelSpecs[format][index].step;
+  // Display precision follows the native input step without rounding the stored color.
+  const decimals = String(step).split('.')[1]?.length ?? 0;
+  return String(
+    Number(getColorChannels(state, format)[index].toFixed(decimals)),
+  );
 }
 export function setColorChannel(
   store: ColorStore,

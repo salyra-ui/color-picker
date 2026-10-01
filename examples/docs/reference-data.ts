@@ -1,3 +1,4 @@
+import { featureReferenceEntries } from './features-reference';
 import type { Kit } from './snippets';
 export interface ApiField {
   key: string;
@@ -6,6 +7,7 @@ export interface ApiField {
   description: string;
   example: string;
   required?: boolean;
+  readOnly?: boolean;
 }
 export interface ApiEntry {
   id: string;
@@ -253,8 +255,8 @@ const themeEntries: ApiEntry[] = [
     f('ThemeReady.children', 'ReactNode', 'None', 'Renders when status is ready or fallback. It includes the application that should use the theme.', '<ThemeReady><p>Application content</p></ThemeReady>', true),
     f('ThemeError.children', '(error: Error, retry: () => Promise<void>) => ReactNode', 'None', 'Renders when the context has an error. retry runs store.reload(). Use it for your own message and retry button.', '<ThemeError>{(error, retry) => <button onClick={() => void retry()}>Retry</button>}</ThemeError>', true),
   ], react('theme-studio', ['ThemeLoading', 'ThemeReady', 'ThemeError'], '<ThemeLoading><p>Loading theme</p></ThemeLoading><ThemeReady><p>Application content</p></ThemeReady><ThemeError>{(error, retry) => <button onClick={() => void retry()}>{error.message}: Retry</button>}</ThemeError>'), 'In Svelte and Vue, error and retry are snippet/slot values. Angular exposes a projected error template. Vanilla uses tk-loading, tk-ready and tk-error, with data-tk-retry on your retry button.'),
-  entry('ThemeExport', 'Component', 'Displays the selected JSON or CSS output, or passes the full configuration to your own UI.', [
-    f('format', "'json' | 'css'", "'json'", 'Chooses which string is displayed by the default output. Does not affect the fields in the configuration.', 'format="css"'),
+  entry('ThemeExport', 'Component', 'Displays the selected JSON, CSS or Tailwind output, or passes the full configuration to your own UI.', [
+    f('format', "'json' | 'css' | 'tailwind'", "'json'", 'Chooses which string is displayed by the default output. Does not affect the fields in the configuration.', 'format="css"'),
     f('selection', 'TokenSelection', 'Provider selection / mounted fields', 'Overrides the export selection for this component. Omitted selection uses the snapshot selection, or full output when no fields are registered.', 'selection={{ roles: ["primary"], radius: ["card"] }}'),
     f('onChange', '(configuration: ThemeConfiguration) => void', 'No callback', 'React callback receives the initial configuration and subsequent theme or appearance updates.', 'onChange={(config) => console.log(config.json)}'),
     f('children', '(configuration: ThemeConfiguration) => ReactNode', 'pre containing output string', 'Renders your own export UI. configuration includes selected theme data, tokens, JSON and CSS.', '<ThemeExport>{(config) => <pre>{config.json}</pre>}</ThemeExport>'), themeClass,
@@ -275,6 +277,8 @@ const themeEntries: ApiEntry[] = [
     f('systemMode', "'light' | 'dark'", 'Snapshot system appearance', 'Device appearance, or the server seed before mount.', 'config.systemMode'),
     f('tokens', 'Readonly<Record<string, string>>', 'Selected CSS tokens', 'Map of variable names to values, such as --primary and --border-radius-card. Values retain their CSS units.', 'config.tokens["--border-radius-card"]'),
     f('css', 'string', 'Selected declarations', 'CSS declarations without a selector. Wrap them in your chosen scope or apply them as an inline style.', '`.app { ${config.css} }`'),
+    f('schemaVersion', '1', 'Current schema', 'Format version written into saved configuration JSON.', 'config.schemaVersion'),
+    f('tailwind', 'string', 'Selected tokens with utility mappings', 'Tailwind 4 stylesheet for the configured fields. Import after Tailwind CSS.', 'config.tailwind'),
     f('json', 'string', 'Selected theme + mode metadata', 'Serialized export. A partial theme must be merged into a full base before loading it as a complete Theme.', 'mergeThemeConfiguration(config.sourceTheme, config.json)'),
   ], themeCore('const config = themeConfiguration(store.getSnapshot(), { roles: ["primary"] });\nconst updated = mergeThemeConfiguration(config.sourceTheme, config.json);\nstore.setTheme(updated);', ['themeConfiguration', 'mergeThemeConfiguration'])),
   entry('ThemeStore', 'Methods', 'The framework-independent state shared by providers, editors and application consumers.', [
@@ -413,7 +417,7 @@ themeEntries.push(
   entry('themeConfiguration', 'Function', 'Builds export data from a theme snapshot, using an explicit selection or the current context selection.', [
     f('snapshot (argument 1)', 'ThemeSnapshot', 'None', 'The state to export. Use getSnapshot() for current data or getServerSnapshot() for the initial server seed.', 'themeConfiguration(store.getSnapshot())', true),
     f('selection (argument 2)', 'TokenSelection', 'snapshot.selection / full theme', 'Overrides context export fields. See TokenSelection for each nested key and its accepted values.', 'themeConfiguration(store.getSnapshot(), { roles: ["primary"], width: ["button"] })'),
-    f('return value', 'ThemeConfiguration', 'Selected export', 'Contains theme, sourceTheme, mode, modePreference, systemMode, tokens, css and json.', 'const config = themeConfiguration(store.getSnapshot())'),
+    f('return value', 'ThemeConfiguration', 'Selected export', 'Contains schemaVersion, theme, sourceTheme, mode, modePreference, systemMode, tokens, css, tailwind and json.', 'const config = themeConfiguration(store.getSnapshot())'),
   ], themeCore('const config = themeConfiguration(store.getSnapshot(), { roles: ["primary"], width: ["button"] });\nconsole.log(config.json, config.css);', ['themeConfiguration'])),
   entry('mergeThemeConfiguration', 'Function', 'Applies selected export fields to a complete base theme, preserving fields absent from the export.', [
     f('base (argument 1)', 'Theme', 'None', 'Full theme that supplies omitted palettes, geometry and appearance data.', 'mergeThemeConfiguration(store.getSnapshot().theme, config.json)', true),
@@ -428,11 +432,11 @@ themeEntries.push(
   ], core('theme-studio', ['createThemeStore', 'generateTheme', 'browserStorage', 'browserModeStorage'], 'const options = {\n  fallbackTheme: generateTheme("#5268E0"),\n  storage: browserStorage("app:theme"), modeStorage: browserModeStorage("app:mode"),\n};\nconst store = createThemeStore(options);\nconsole.log(store.getSnapshot());')),
   entry('mountThemeStore', 'Function', 'Mounts cache writes, loading, mode persistence and refresh listeners for consumers without a framework provider.', [
     f('store (argument 1)', 'ThemeStore', 'None', 'Store whose lifecycle should start. Framework providers call this helper automatically.', 'mountThemeStore(store)', true),
-    f('storage (argument 2)', 'ThemeStorage', 'No theme writes', 'Theme cache used for writes and same-origin subscription. Pass the same storage adapter used in createThemeStore options.', 'mountThemeStore(store, options.storage)'),
-    f('options (argument 3)', '{ modeStorage?, revalidateOnFocus?, revalidateIntervalMs? }', '{}', 'Enables appearance persistence and refresh behavior. Keys use the same values as ThemeProvider options. Loader options belong to createThemeStore.', 'mountThemeStore(store, options.storage, options)'),
+    f('storage (argument 2)', 'ThemeStorage', 'Store creation storage', 'Theme cache used for writes and same-origin subscription. Omitting it inherits the adapter passed to createThemeStore.', 'mountThemeStore(store, options.storage)'),
+    f('options (argument 3)', '{ modeStorage?, revalidateOnFocus?, revalidateIntervalMs? }', 'Store creation options', 'Overrides appearance persistence and refresh behavior. Omitted values inherit createThemeStore options, including modeStorage: false. Loader options belong to createThemeStore.', 'mountThemeStore(store, options.storage, options)'),
     f('return value', '() => void', 'Cleanup', 'Stops requests, timers and listeners, then flushes any queued theme write. Call on unmount.', 'cleanup()'),
   ], core('theme-studio', ['createThemeStore', 'generateTheme', 'browserStorage', 'mountThemeStore'], 'const options = { theme: generateTheme("#5268E0"), storage: browserStorage("app:theme"), modeStorage: false as const };\nconst store = createThemeStore(options);\nconst cleanup = mountThemeStore(store, options.storage, options);\n// When the consumer unmounts:\ncleanup();')),
 );
 export function referenceEntries(kit: Kit): ApiEntry[] {
-  return kit === 'color-picker' ? colorEntries : themeEntries;
+  return [...(kit === 'color-picker' ? colorEntries : themeEntries), ...featureReferenceEntries(kit)];
 }

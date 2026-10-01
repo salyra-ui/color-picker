@@ -1,0 +1,14 @@
+{
+  "color-picker/react": 27648,
+  "color-picker/svelte": 28672,
+  "color-picker/vue": 28672,
+  "color-picker/angular": 33792,
+  "color-picker/astro": 32768,
+  "color-picker/vanilla": 32768,
+  "theme-studio/react": 36864,
+  "theme-studio/svelte": 39936,
+  "theme-studio/vue": 38912,
+  "theme-studio/angular": 48128,
+  "theme-studio/astro": 45056,
+  "theme-studio/vanilla": 45056
+}

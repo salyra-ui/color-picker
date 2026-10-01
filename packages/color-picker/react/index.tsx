@@ -12,6 +12,8 @@ import {
 } from 'react';
 import {
   colorViews,
+  type ColorCollectionStore,
+  type ColorCollectionClasses,
   type ColorView,
   bindMarkerWheel,
   markerWheelStyle,
@@ -632,11 +634,54 @@ export function ColorAlphaInput({
           min={0}
           max={100}
           step={0.1}
-          defaultValue={store.getSnapshot().alpha * 100}
+          defaultValue={Number((store.getSnapshot().alpha * 100).toFixed(1))}
           aria-label={label}
         />
         <span>%</span>
       </span>
     </label>
+  );
+}
+
+/** Recent or favorite colors, using the nearest color context. */
+export function ColorCollection({
+  collection,
+  kind = 'recent',
+  label = kind === 'recent' ? 'Recent colors' : 'Favorite colors',
+  classes = {},
+  renderLabel,
+}: {
+  collection: ColorCollectionStore;
+  kind?: 'recent' | 'favorites';
+  label?: string;
+  classes?: ColorCollectionClasses;
+  renderLabel?: (color: string) => ReactNode;
+}) {
+  const store = useColorStore(),
+    color = useColor();
+  const state = useSyncExternalStore(
+    collection.subscribe,
+    collection.getSnapshot,
+    collection.getSnapshot,
+  );
+  return (
+    <fieldset
+      className={`cp-collection ${classes.root ?? ''}`}
+      disabled={color.disabled}
+    >
+      <legend className={classes.label}>{label}</legend>
+      {state[kind].map((value) => (
+        <button
+          key={value}
+          type="button"
+          className={`cp-swatch ${classes.item ?? ''}`}
+          style={{ background: value }}
+          aria-label={value}
+          onClick={() => store.setHex(value)}
+        >
+          {renderLabel?.(value)}
+        </button>
+      ))}
+    </fieldset>
   );
 }

@@ -7,7 +7,7 @@ withDefaults(defineProps<{ label?: string; classes?: ColorPartClasses }>(), {
   classes: () => ({}),
 });
 const store = useColorStore(),
-  initial = store.getSnapshot().alpha * 100,
+  initial = Number((store.getSnapshot().alpha * 100).toFixed(1)),
   input = ref<HTMLInputElement>();
 let cleanup: (() => void) | undefined;
 onMounted(() => (cleanup = bindAlphaInput(input.value!, store)));

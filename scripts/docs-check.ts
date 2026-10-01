@@ -42,8 +42,8 @@ let count = 0;
 const typedSources = new Map<string, string>();
 for (const integration of integrations) {
   const samples = [
-    ...colorVariants.map((v) => colorExample(integration, v.id)),
-    ...themeVariants.map((v) => themeExample(integration, v.id)),
+    ...colorVariants.filter(v => v.id !== 'form').map((v) => colorExample(integration, v.id)),
+    ...themeVariants.filter(v => v.id !== 'editing').map((v) => themeExample(integration, v.id)),
     loaderExample(integration),
     modeExample(integration),
     standaloneExample(integration),

@@ -7,6 +7,7 @@ for (const kit of ['color-picker', 'theme-studio']) {
   await cp(`packages/${kit}`, join(target, 'packages', kit), { recursive: true, filter: source => !source.split('/').includes('dist') });
   for (const folder of ['examples', 'tests', 'scripts', '.github', 'public']) await cp(folder, join(target, folder), { recursive: true, filter: source => !['dist', 'node_modules', '.astro'].some(part => source.split('/').includes(part)) });
   await rm(join(target, 'scripts/split-packages.mjs'), { force: true });
+  await cp('CHANGELOG.md', join(target, 'CHANGELOG.md'));
   for (const file of await readdir('.')) if (/^(tsconfig.*\.json|.*\.html|.*config.*\.(?:ts|js|mjs|cjs))$/.test(file)) await cp(file, join(target, file));
   const manifest = JSON.parse(await readFile('package.json', 'utf8'));
   manifest.name = `salyra-ui-${kit}-workspace`;

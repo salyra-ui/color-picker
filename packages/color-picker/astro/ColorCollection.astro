@@ -1,0 +1,37 @@
+---
+import type { ColorCollectionClasses } from '../core';
+interface Props {
+  colors?: readonly string[];
+  kind?: 'recent' | 'favorites';
+  label?: string;
+  classes?: ColorCollectionClasses;
+}
+const {
+  colors = [],
+  kind = 'recent',
+  label = kind === 'recent' ? 'Recent colors' : 'Favorite colors',
+  classes = {},
+} = Astro.props;
+---
+
+<cp-collection
+  kind={kind}
+  label={label}
+  data-colors={JSON.stringify(colors)}
+  data-classes={JSON.stringify(classes)}
+>
+  <fieldset class:list={['cp-collection', classes.root]}>
+    <legend class={classes.label}>{label}</legend>
+    {colors.map((value) => (
+      <button
+        type="button"
+        class:list={['cp-swatch', classes.item]}
+        aria-label={value}
+        style={{ background: value }}
+      ></button>
+    ))}
+  </fieldset>
+</cp-collection>
+<script>
+  import './client';
+</script>

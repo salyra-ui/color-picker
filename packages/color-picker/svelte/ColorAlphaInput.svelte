@@ -8,7 +8,7 @@
     classes = {},
   }: { label?: string; class?: string; classes?: ColorPartClasses } = $props();
   const store = useColorStore(),
-    initial = store.getSnapshot().alpha * 100;
+    initial = Number((store.getSnapshot().alpha * 100).toFixed(1));
   let input: HTMLInputElement;
   onMount(() => bindAlphaInput(input, store));
 </script>

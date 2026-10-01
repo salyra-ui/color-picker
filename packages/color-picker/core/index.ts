@@ -8,3 +8,7 @@ export * from './color-names';
 
 export * from './markers';
 export * from './parts';
+export * from './history';
+export * from './contrast';
+export * from './form';
+export * from './collection';

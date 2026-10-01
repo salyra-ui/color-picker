@@ -1,3 +1,6 @@
+import { mountEditingLab, mountColorFormLab } from './labs';
+import { recipeFiles } from './recipes';
+import { downloadSources } from './download';
 import { sourceFiles } from './code-files';
 import {
   createColorStore,
@@ -64,7 +67,7 @@ export function codePanel(
   let files: { name: string; code: string }[] = [];
   const id = `source-${++panelSequence}`;
   host.classList.add('code-panel');
-  host.innerHTML = `<div class="code-toolbar"><div class="framework-tabs" role="tablist" aria-label="${escape(options.label ?? 'Example')} framework" ${options.file ? 'hidden' : ''}>${integrations.map((i) => `<button type="button" role="tab" id="${id}-${i}" aria-controls="${id}-code" data-framework="${i}">${i}</button>`).join('')}</div><span class="fixed-source-file" ${options.file ? '' : 'hidden'}>${escape(options.file ?? '')}</span><button type="button" class="copy-button">Copy code</button></div><div class="source-file-tabs" role="tablist" aria-label="${escape(options.label ?? 'Example')} files"></div><pre id="${id}-code" role="tabpanel" tabindex="0"><code></code></pre><p class="copy-status" aria-live="polite"></p>`;
+  host.innerHTML = `<div class="code-toolbar"><div class="framework-tabs" role="tablist" aria-label="${escape(options.label ?? 'Example')} framework" ${options.file ? 'hidden' : ''}>${integrations.map((i) => `<button type="button" role="tab" id="${id}-${i}" aria-controls="${id}-code" data-framework="${i}">${i}</button>`).join('')}</div><span class="fixed-source-file" ${options.file ? '' : 'hidden'}>${escape(options.file ?? '')}</span><button type="button" class="download-button">Download files</button><button type="button" class="copy-button">Copy code</button></div><div class="source-file-tabs" role="tablist" aria-label="${escape(options.label ?? 'Example')} files"></div><pre id="${id}-code" role="tabpanel" tabindex="0"><code></code></pre><p class="copy-status" aria-live="polite"></p>`;
   const code = host.querySelector('code')!;
   const button = host.querySelector<HTMLButtonElement>('.copy-button')!;
   const status = host.querySelector('.copy-status')!;
@@ -148,6 +151,7 @@ export function codePanel(
       buttons[next].click();
       buttons[next].focus();
     });
+  host.querySelector('.download-button')!.addEventListener('click', () => downloadSources(files, (options.baseName ?? 'example') + '-' + current.toLowerCase()));
   button.addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(code.textContent ?? '');
@@ -245,6 +249,7 @@ export function mountExplorer(
     {
       label: isColor ? 'Color picker' : 'Theme editor',
       baseName: isColor ? 'ColorPicker' : 'ThemeEditor',
+      files: i => variant === 'editing' || variant === 'form' ? recipeFiles(kit,i) : sourceFiles(isColor ? colorExample(i,variant as ColorVariant,custom) : variant === 'palette' ? paletteExample(i,swatchSettings) : themeExample(i,variant as ThemeVariant,custom,variant === 'geometry' ? geometrySelection : themeExampleSelection(variant as ThemeVariant)), i, isColor ? 'ColorPicker' : 'ThemeEditor'),
     },
   );
   const show = () => {
@@ -254,7 +259,11 @@ export function mountExplorer(
     description.textContent = variants.find(
       (v) => v.id === variant,
     )!.description;
-    if (isColor) {
+    if (variant === 'editing') {
+      cleanup = mountEditingLab(content);
+    } else if (variant === 'form') {
+      cleanup = mountColorFormLab(content);
+    } else if (isColor) {
       content.innerHTML = `<div class="color-demo">${colorMarkup(variant as ColorVariant)}<div class="color-result"><div class="swatch-checker"><div data-color-swatch></div></div><div><h3 data-color-name></h3><p data-color-match></p><code data-color-hex></code></div></div></div><details class="color-values"><summary>All color values</summary><dl data-color-values></dl></details>`;
       if (variant === 'custom') {
         const form = customizationForm(custom, () => applyCustomization());
@@ -342,7 +351,7 @@ export function mountExplorer(
       render();
       cleanup = () => provider.remove();
     } else {
-      content.innerHTML = `<div class="theme-demo"><div class="theme-controls"></div><div class="sample-host">${sampleMarkup(themeExampleSelection(variant as ThemeVariant).roles)}</div></div><details class="configuration"><summary>Generated configuration</summary><div class="output-actions"><label>Format<select data-output-format aria-label="Configuration format"><option value="json">JSON</option><option value="css">CSS</option></select></label><button type="button" data-copy-output>Copy output</button><button type="button" data-download>Download</button></div><pre tabindex="0"></pre><p data-output-status aria-live="polite"></p></details>`;
+      content.innerHTML = `<div class="theme-demo"><div class="theme-controls"></div><div class="sample-host">${sampleMarkup(themeExampleSelection(variant as ThemeVariant).roles)}</div></div><details class="configuration"><summary>Generated configuration</summary><div class="output-actions"><label>Format<select data-output-format aria-label="Configuration format"><option value="json">JSON</option><option value="css">CSS</option><option value="tailwind">Tailwind CSS</option></select></label><button type="button" data-copy-output>Copy output</button><button type="button" data-download>Download</button></div><pre tabindex="0"></pre><p data-output-status aria-live="polite"></p></details>`;
       const sample = content.querySelector<HTMLElement>('.sample-host')!,
         output = content.querySelector('pre')!,
         controls = content.querySelector<HTMLElement>('.theme-controls')!;
@@ -353,17 +362,19 @@ export function mountExplorer(
       ];
       let json = '';
       let css = '';
+      let tailwind = '';
       const format = content.querySelector<HTMLSelectElement>(
         '[data-output-format]',
       )!;
       format.value = 'json';
       const renderOutput = () => {
-        output.textContent = format.value === 'css' ? css : json;
+        output.textContent = format.value === 'tailwind' ? tailwind : format.value === 'css' ? css : json;
       };
       format.addEventListener('change', renderOutput);
       const changed = (config: ThemeConfiguration) => {
         updateSample(sample, themeConfiguration(mountedStore(config)));
         json = config.json;
+        tailwind = config.tailwind;
         css = `:root {\n${Object.entries(config.tokens)
           .map(([name, value]) => `  ${name}: ${value};`)
           .join('\n')}\n}`;
@@ -537,7 +548,7 @@ export function mountExplorer(
         .addEventListener('click', async () => {
           try {
             await navigator.clipboard.writeText(
-              format.value === 'css' ? css : json,
+              format.value === 'tailwind' ? tailwind : format.value === 'css' ? css : json,
             );
             content.querySelector('[data-output-status]')!.textContent =
               `${format.value.toUpperCase()} copied.`;
@@ -550,8 +561,8 @@ export function mountExplorer(
         .querySelector('[data-download]')!
         .addEventListener('click', () =>
           download(
-            format.value === 'css' ? css : json,
-            format.value === 'css' ? 'theme.css' : 'theme.json',
+            format.value === 'tailwind' ? tailwind : format.value === 'css' ? css : json,
+            format.value === 'tailwind' ? 'theme.tailwind.css' : format.value === 'css' ? 'theme.css' : 'theme.json',
           ),
         );
     }

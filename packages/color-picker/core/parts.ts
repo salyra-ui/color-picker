@@ -35,7 +35,7 @@ export function bindAlphaInput(
   const render = () => {
     if (!focused) {
       input.value = String(
-        Number((store.getSnapshot().alpha * 100).toFixed(4)),
+        Number((store.getSnapshot().alpha * 100).toFixed(1)),
       );
       input.setAttribute('aria-invalid', 'false');
     }

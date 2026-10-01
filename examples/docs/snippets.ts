@@ -1,3 +1,4 @@
+import { recipeSource } from './recipes';
 import {
   themePickerMarkup,
   themePaletteMarkup,
@@ -16,8 +17,9 @@ export const integrations = [
 export type Integration = (typeof integrations)[number];
 export type Kit = 'color-picker' | 'theme-studio';
 export type ColorVariant =
-  'rectangle' | 'wheel' | 'channels' | 'custom' | 'disabled';
+  'rectangle' | 'wheel' | 'channels' | 'custom' | 'disabled' | 'form';
 export type ThemeVariant =
+  | 'editing'
   | 'shared'
   | 'rectangle'
   | 'single'
@@ -56,6 +58,7 @@ export const colorVariants: {
       'Change the label inside the dot, the control color and the track size. Copy the updated component and styles.',
   },
 ];
+colorVariants.push({id:'form', title:'Forms & saved colors', description:'Submit the selected color, reset the form, undo edits and keep recent or favorite swatches.'});
 colorVariants.push({
   id: 'disabled',
   title: 'Disabled',
@@ -104,6 +107,7 @@ export const themeVariants: {
       'Give the editor your own labels, colors and classes. The appearance buttons show how to replace the default text.',
   },
 ];
+themeVariants.push({id:'editing', title:'Draft & Apply', description:'Edit a draft, undo changes, lock accent during generation and apply the result to a separate preview.'});
 themeVariants.push(
   {
     id: 'palette',
@@ -422,6 +426,7 @@ export function colorExample(
   variant: ColorVariant,
   settings = defaultCustom,
 ) {
+  if (variant === 'form') return recipeSource('color-picker', integration);
   let source = withColorLayout(
     baseColorExample(
       integration,
@@ -531,6 +536,7 @@ export function themeExample(
   settings: CustomSettings = { ...defaultCustom, text: 'B', size: 26 },
   selection: TokenSelection = themeExampleSelection(variant),
 ) {
+  if (variant === 'editing') return recipeSource('theme-studio', integration);
   if (variant === 'palette') return paletteExample(integration);
   let source = withApplicationPreview(
     baseThemeExample(integration, variant, selection),

@@ -80,3 +80,52 @@ export function mountColorPicker(
     },
   };
 }
+
+/** Custom classes style the list and buttons while their fill remains the selected color. */
+export function mountColorCollection(
+  host: HTMLElement,
+  store: ColorStore,
+  collection: import('../core').ColorCollectionStore,
+  options: {
+    kind?: 'recent' | 'favorites';
+    label?: string;
+    classes?: import('../core').ColorCollectionClasses;
+    renderLabel?: (color: string) => string;
+  } = {},
+) {
+  const root = host.ownerDocument.createElement('fieldset');
+  root.className = `cp-collection ${options.classes?.root ?? ''}`;
+  const legend = host.ownerDocument.createElement('legend');
+  legend.className = options.classes?.label ?? '';
+  legend.textContent =
+    options.label ??
+    (options.kind === 'favorites' ? 'Favorite colors' : 'Recent colors');
+  const update = () => {
+    root.replaceChildren(legend);
+    for (const value of collection.getSnapshot()[options.kind ?? 'recent']) {
+      const button = host.ownerDocument.createElement('button');
+      button.type = 'button';
+      button.className = `cp-swatch ${options.classes?.item ?? ''}`;
+      button.style.background = value;
+      button.setAttribute('aria-label', value);
+      button.textContent = options.renderLabel?.(value) ?? '';
+      button.addEventListener('click', () => store.setHex(value));
+      root.append(button);
+    }
+  };
+  update();
+  root.disabled = store.getSnapshot().disabled;
+  host.append(root);
+  const stopCollection = collection.subscribe(update),
+    stopColor = store.subscribe(() => {
+      root.disabled = store.getSnapshot().disabled;
+    });
+  return {
+    element: root,
+    destroy() {
+      stopCollection();
+      stopColor();
+      root.remove();
+    },
+  };
+}

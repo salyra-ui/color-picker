@@ -1,5 +1,7 @@
 import {
   type ColorView,
+  createColorCollection,
+  type ColorCollectionStore,
   bindMarkerWheel,
   markerWheelStyle,
   markerStyle,
@@ -553,6 +555,68 @@ class ColorSurfaceElement extends HTMLElement {
     this.cleanup?.();
   }
 }
+export class ColorCollectionElement extends HTMLElement {
+  collection?: ColorCollectionStore;
+  private cleanup?: () => void;
+  private stopCollection?: () => void;
+  setCollection(collection: ColorCollectionStore) {
+    this.disconnectedCallback();
+    this.collection = collection;
+    if (this.isConnected) this.connectedCallback();
+  }
+  connectedCallback() {
+    if (this.cleanup) return;
+    const colors: string[] = JSON.parse(
+      this.getAttribute('data-colors') ?? '[]',
+    );
+    this.collection ??= createColorCollection({
+      favorites: this.getAttribute('kind') === 'favorites' ? colors : [],
+    });
+    if (
+      !this.collection.getSnapshot().recent.length &&
+      this.getAttribute('kind') !== 'favorites'
+    )
+      for (const color of [...colors].reverse())
+        this.collection.remember(color);
+    const collection = this.collection;
+    let store: ColorStore | undefined;
+    const render = () => {
+      const classes = JSON.parse(this.getAttribute('data-classes') ?? '{}');
+      const root = this.ownerDocument.createElement('fieldset');
+      root.className = `cp-collection ${classes.root ?? ''}`;
+      root.disabled = store?.getSnapshot().disabled ?? false;
+      const label = this.ownerDocument.createElement('legend');
+      label.textContent = this.getAttribute('label') ?? 'Recent colors';
+      label.className = classes.label ?? '';
+      root.append(label);
+      for (const value of collection.getSnapshot()[
+        this.getAttribute('kind') === 'favorites' ? 'favorites' : 'recent'
+      ]) {
+        const button = this.ownerDocument.createElement('button');
+        button.type = 'button';
+        button.className = `cp-swatch ${classes.item ?? ''}`;
+        button.style.background = value;
+        button.setAttribute('aria-label', value);
+        button.addEventListener('click', () => store?.setHex(value));
+        root.append(button);
+      }
+      this.replaceChildren(root);
+    };
+    this.cleanup = connect(this, (next) => {
+      store = next;
+      const root = this.querySelector('fieldset');
+      if (root) root.disabled = next.getSnapshot().disabled;
+    });
+    this.stopCollection = collection.subscribe(render);
+    render();
+  }
+  disconnectedCallback() {
+    this.cleanup?.();
+    this.stopCollection?.();
+    this.cleanup = undefined;
+    this.stopCollection = undefined;
+  }
+}
 class ColorSwatchElement extends HTMLElement {
   private cleanup?: () => void;
   connectedCallback() {
@@ -625,5 +689,6 @@ for (const [name, element] of [
   ['cp-view-select', ColorViewSelectElement],
   ['cp-surface', ColorSurfaceElement],
   ['cp-swatch', ColorSwatchElement],
+  ['cp-collection', ColorCollectionElement],
 ] as const)
   if (!customElements.get(name)) customElements.define(name, element);

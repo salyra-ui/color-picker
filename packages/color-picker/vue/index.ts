@@ -6,6 +6,7 @@ export { default as ColorInput } from './ColorInput.vue';
 export { default as ColorSwatch } from './ColorSwatch.vue';
 export { default as ColorPreview } from './ColorPreview.vue';
 export * from './context';
+export { default as ColorCollection } from './ColorCollection.vue';
 export { default as ColorMode } from './ColorMode.vue';
 export { default as ColorFormatSelect } from './ColorFormatSelect.vue';
 

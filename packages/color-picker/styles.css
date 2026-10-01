@@ -259,3 +259,7 @@ cp-alpha-input {
 
 .cp-provider-controls { display: contents; border: 0; padding: 0; margin: 0; min-width: 0; }
 .cp-provider-controls[data-disabled="true"] > *, cp-provider[data-disabled="true"] { opacity: var(--cp-disabled-opacity, .55); cursor: not-allowed; }
+
+.cp-collection { margin: 0; padding: 0; border: 0; display: flex; flex-wrap: wrap; gap: var(--cp-collection-gap, 8px); }
+.cp-collection legend { margin-bottom: 8px; font: inherit; }
+.cp-collection .cp-swatch { width: var(--cp-swatch-size, 28px); height: var(--cp-swatch-size, 28px); border-radius: var(--cp-swatch-radius, 4px); }
