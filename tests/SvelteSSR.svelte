@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { ColorProvider, ColorMode, createColorStore } from '@sebytza23/color-picker-svelte';
+  const disabledColor = createColorStore('#123456', 'rgb', 'area', true);
   import type { Theme } from '@sebytza23/theme-kit';
   import {
     ThemeSelect,
@@ -22,3 +24,5 @@
     /><ThemeRadius target="card" /></ThemeReady
   ></ThemeProvider
 >
+
+<ColorProvider store={disabledColor}><ColorMode>{#snippet children(format)}SSR disabled {format.toUpperCase()}{/snippet}</ColorMode></ColorProvider>

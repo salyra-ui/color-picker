@@ -23,6 +23,7 @@ export function bindMarkerWheel(
   options: MarkerWheelOptions,
 ): () => void {
   const win = element.ownerDocument.defaultView!;
+  const disabled = () => !!element.closest('[inert], [aria-disabled="true"]');
   let pointer: number | undefined,
     role: string | undefined,
     frame: number | undefined,
@@ -34,6 +35,7 @@ export function bindMarkerWheel(
   const flush = () => {
     if (frame !== undefined) win.cancelAnimationFrame(frame);
     frame = undefined;
+    if (disabled()) pending = undefined;
     if (pending) {
       const next = pending;
       pending = undefined;
@@ -42,6 +44,7 @@ export function bindMarkerWheel(
     }
   };
   const read = (event: PointerEvent) => {
+    if (disabled()) return;
     const current = options.getMarkers().find((item) => item.id === role);
     if (!role || !current) return;
     const r = element.getBoundingClientRect();
@@ -58,7 +61,13 @@ export function bindMarkerWheel(
     if (frame === undefined) frame = win.requestAnimationFrame(flush);
   };
   const down = (event: PointerEvent) => {
-    if (pointer !== undefined || event.button !== 0 || !event.isPrimary) return;
+    if (
+      disabled() ||
+      pointer !== undefined ||
+      event.button !== 0 ||
+      !event.isPrimary
+    )
+      return;
     const button = (event.target as HTMLElement).closest<HTMLElement>(
       '[data-marker-id]',
     );
@@ -80,7 +89,12 @@ export function bindMarkerWheel(
   const move = (event: PointerEvent) => {
     if (event.pointerId === pointer) {
       // A click (including normal hand jitter) selects without moving either color.
-      if (marker && !moved && Math.hypot(event.clientX - startX, event.clientY - startY) < 4) return;
+      if (
+        marker &&
+        !moved &&
+        Math.hypot(event.clientX - startX, event.clientY - startY) < 4
+      )
+        return;
       moved = true;
       read(event);
     }
@@ -98,12 +112,14 @@ export function bindMarkerWheel(
     role = undefined;
   };
   const click = (event: MouseEvent) => {
+    if (disabled()) return;
     const button = (event.target as HTMLElement).closest<HTMLElement>(
       '[data-marker-id]',
     );
     if (button) options.select(button.dataset.markerId!);
   };
   const key = (event: KeyboardEvent) => {
+    if (disabled()) return;
     const button = (event.target as HTMLElement).closest<HTMLElement>(
       '[data-marker-id]',
     );

@@ -26,6 +26,7 @@ export interface ColorSnapshot extends Readonly<HSV> {
   readonly alpha: number;
   readonly format: ColorFormat;
   readonly view: ColorView;
+  readonly disabled: boolean;
 }
 export const colorViews = ['area', 'wheel'] as const;
 export type ColorView = (typeof colorViews)[number];
@@ -35,6 +36,7 @@ export interface ColorStore {
   getSnapshot(): ColorSnapshot;
   getServerSnapshot(): ColorSnapshot;
   subscribe(listener: () => void): () => void;
+  setDisabled(disabled: boolean): void;
   setHex(hex: string): void;
   setFormat(format: ColorFormat): void;
   setView(view: ColorView): void;
@@ -45,6 +47,7 @@ export function createColorStore(
   hex = '#6366F1',
   format: ColorFormat = 'hex',
   view: ColorView = 'area',
+  disabled = false,
 ): ColorStore {
   if (!colorViews.includes(view)) throw new TypeError('Invalid color view');
   if (!colorFormats.includes(format))
@@ -53,6 +56,7 @@ export function createColorStore(
   const alpha = hexAlpha(hex);
   let state: ColorSnapshot = Object.freeze({
     ...initial,
+    disabled,
     format,
     view,
     hex: hsvToHex(initial),
@@ -65,6 +69,7 @@ export function createColorStore(
     const next = { h: hue(hsv.h), s: clamp(hsv.s), v: clamp(hsv.v) };
     if (next.h === state.h && next.s === state.s && next.v === state.v) return;
     state = Object.freeze({
+      ...state,
       ...next,
       hex: hsvToHex(next),
       value: withAlpha(hsvToHex(next), state.alpha),
@@ -75,6 +80,11 @@ export function createColorStore(
     listeners.forEach((fn) => fn());
   };
   return {
+    setDisabled(disabled) {
+      if (disabled === state.disabled) return;
+      state = Object.freeze({ ...state, disabled });
+      listeners.forEach((fn) => fn());
+    },
     getColor: () => getColor(state.hex, state.alpha),
     getValue: (format) => getColorValue(state.hex, format, state.alpha),
     getSnapshot: () => state,
@@ -146,11 +156,12 @@ export function bindColorArea(
     if (frame !== undefined) view.cancelAnimationFrame(frame);
     frame = undefined;
     if (pending) {
-      store.setHSV(pending);
+      if (!store.getSnapshot().disabled) store.setHSV(pending);
       pending = undefined;
     }
   };
   const read = (event: PointerEvent) => {
+    if (store.getSnapshot().disabled) return;
     const rect = element.getBoundingClientRect();
     pending =
       mode === 'wheel'
@@ -171,7 +182,13 @@ export function bindColorArea(
     if (frame === undefined) frame = view.requestAnimationFrame(flush);
   };
   const down = (event: PointerEvent) => {
-    if (pointer !== undefined || event.button !== 0 || !event.isPrimary) return;
+    if (
+      store.getSnapshot().disabled ||
+      pointer !== undefined ||
+      event.button !== 0 ||
+      !event.isPrimary
+    )
+      return;
     event.preventDefault();
     element.focus();
     pointer = event.pointerId;
@@ -192,6 +209,7 @@ export function bindColorArea(
     pointer = undefined;
   };
   const key = (event: KeyboardEvent) => {
+    if (store.getSnapshot().disabled) return;
     const { h, s, v } = store.getSnapshot(),
       step = event.shiftKey ? 10 : 1;
     const changes: Record<string, Partial<HSV>> = mode === 'wheel'

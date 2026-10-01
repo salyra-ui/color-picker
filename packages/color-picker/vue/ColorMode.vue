@@ -17,6 +17,6 @@ const color = useColor(),
       )
     "
   >
-    {{ color.format.toUpperCase() }} ↔
+    <slot :format="color.format">{{ color.format.toUpperCase() }} ↔</slot>
   </button>
 </template>

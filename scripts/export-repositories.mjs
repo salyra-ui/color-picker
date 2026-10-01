@@ -9,7 +9,7 @@ for (const kit of ['color-picker','theme-kit']) {
  await mkdir(join(target,'packages'),{recursive:true});
  for (const name of [kit,...names.map(f => `${kit}-${f}`)]) await cp(`packages/${name}`,join(target,'packages',name),{recursive:true,filter:(source)=>!source.split('/').includes('dist')});
  for (const folder of ['examples','tests','scripts','.github']) await cp(folder,join(target,folder),{recursive:true,filter:(source)=>!['dist','node_modules','.astro'].some(part=>source.split('/').includes(part))});
- for (const file of await readdir('.')) if(/^(tsconfig.*\.json|.*\.html|vite\.config\.ts|vitest\.config\.ts|playwright\.config\.ts)$/.test(file))await cp(file,join(target,file));
+ for (const file of await readdir('.')) if(/^(tsconfig.*\.json|.*\.html|.*config.*\.(?:ts|js|mjs|cjs))$/.test(file))await cp(file,join(target,file));
  const manifest=JSON.parse(await readFile('package.json','utf8'));
  manifest.name=`sebytza23-${kit}-workspace`;
  manifest.dependencies={};

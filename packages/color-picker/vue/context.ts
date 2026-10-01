@@ -17,8 +17,10 @@ export function useColorStore() {
   return store;
 }
 export function useColor() {
-  const store = useColorStore(),
-    state = shallowRef(store.getSnapshot());
+  return watchColor(useColorStore());
+}
+export function watchColor(store: ColorStore) {
+  const state = shallowRef(store.getSnapshot());
   onScopeDispose(
     store.subscribe(() => {
       state.value = store.getSnapshot();

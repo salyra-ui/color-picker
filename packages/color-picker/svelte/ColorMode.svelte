@@ -1,7 +1,11 @@
 <script lang="ts">
-  import { colorFormats } from '../core';
+  import type { Snippet } from 'svelte';
+  import { colorFormats, type ColorFormat } from '../core';
   import { useColor, useColorStore } from './context';
-  let { class: className = '' }: { class?: string } = $props();
+  let {
+    class: className = '',
+    children,
+  }: { class?: string; children?: Snippet<[ColorFormat]> } = $props();
   const color = useColor(),
     store = useColorStore();
 </script>
@@ -15,5 +19,8 @@
       colorFormats[
         (colorFormats.indexOf($color.format) + 1) % colorFormats.length
       ],
-    )}>{$color.format.toUpperCase()} ↔</button
+    )}
+  >{#if children}{@render children(
+      $color.format,
+    )}{:else}{$color.format.toUpperCase()} ↔{/if}</button
 >

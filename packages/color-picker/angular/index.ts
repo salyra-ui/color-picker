@@ -11,10 +11,13 @@ import {
   afterNextRender,
   afterRenderEffect,
   ViewChild,
+  ContentChild,
+  TemplateRef,
   ElementRef,
   type OnInit,
   type OnChanges,
 } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import {
   colorViews,
   type ColorView,
@@ -65,6 +68,7 @@ export class ColorContext {
         this.listeners.delete(fn);
       };
     },
+    setDisabled: (disabled) => this.current.setDisabled(disabled),
     setView: (view) => this.current.setView(view),
     setFormat: (format) => this.current.setFormat(format),
     setAlpha: (alpha) => this.current.setAlpha(alpha),
@@ -96,10 +100,20 @@ export function useColor() {
   selector: 'cp-provider',
   standalone: true,
   providers: [ColorContext],
-  template: '<ng-content />',
+  template: `<fieldset
+    class="cp-provider-controls"
+    [disabled]="state().disabled"
+    [attr.inert]="state().disabled ? '' : null"
+    [attr.aria-disabled]="state().disabled"
+    [attr.data-disabled]="state().disabled"
+  >
+    <ng-content />
+  </fieldset>`,
 })
 export class ColorProvider implements OnInit, OnChanges {
   @Input() value?: string;
+  @Input() disabled?: boolean;
+  readonly state = useColor();
   @Input() view: ColorView = 'area';
   @Input() store?: ColorStore;
   @Output() colorChange = new EventEmitter<string>();
@@ -107,13 +121,18 @@ export class ColorProvider implements OnInit, OnChanges {
   private destroyRef = inject(DestroyRef);
   ngOnInit() {
     this.context.configure(
-      this.store ?? createColorStore(this.value, 'hex', this.view),
+      this.store ??
+        createColorStore(this.value, 'hex', this.view, this.disabled),
     );
+    if (this.disabled !== undefined)
+      this.context.store.setDisabled(this.disabled);
     this.destroyRef.onDestroy(
       subscribeColor(this.context.store, (hex) => this.colorChange.emit(hex)),
     );
   }
   ngOnChanges() {
+    if (this.disabled !== undefined)
+      this.context.store.setDisabled(this.disabled);
     if (this.value !== undefined) this.context.store.setHex(this.value);
   }
 }
@@ -392,6 +411,7 @@ export class ColorPreview {
 @Component({
   selector: 'cp-mode',
   standalone: true,
+  imports: [NgTemplateOutlet],
   template: `<button
     type="button"
     class="cp-mode"
@@ -400,10 +420,18 @@ export class ColorPreview {
     "
     (click)="next()"
   >
-    {{ state().format.toUpperCase() }} ↔
+    @if (content) {
+      <ng-container
+        [ngTemplateOutlet]="content"
+        [ngTemplateOutletContext]="{ $implicit: state().format }"
+      />
+    } @else {
+      {{ state().format.toUpperCase() }} ↔
+    }
   </button>`,
 })
 export class ColorMode {
+  @ContentChild(TemplateRef) content?: TemplateRef<unknown>;
   readonly store = useColorStore();
   readonly state = useColor();
   next() {

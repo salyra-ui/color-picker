@@ -7,12 +7,12 @@ export function referenceTable(kit: Kit) {
           [
             'ColorProvider',
             'Shares one color store with its children.',
-            'value: HEX string · store: ColorStore · view: area | wheel',
+            'value: HEX string · store: ColorStore · view: area | wheel · disabled',
             'Create separate providers for independent colors. Provide a store to choose the initial format.',
           ],
           [
             'ColorArea / ColorWheel',
-            'Area edits saturation/brightness; wheel edits hue/saturation.',
+            'The rectangle edits saturation and brightness. The wheel edits hue and saturation.',
             'classes · thumbText · label',
             'Use a hue slider with the area and a brightness slider with the wheel. Both support pointer and keyboard input.',
           ],
@@ -38,13 +38,13 @@ export function referenceTable(kit: Kit) {
             'ColorAlphaInput',
             'Edits transparency as a percentage.',
             'label · classes',
-            'The store uses alpha from 0 to 1; the UI displays 0 to 100.',
+            'The store uses alpha from 0 to 1. The UI displays 0 to 100.',
           ],
           [
             'ColorFormatSelect / ColorMode',
             'Selects a format or cycles through the six formats.',
-            'ColorFormatSelect: label',
-            'Changing format changes the fields and output representation; it does not change the selected color.',
+            'ColorFormatSelect: label · ColorMode: custom children',
+            'Changing format keeps the same color. ColorMode accepts your own text or markup and exposes the current format to its content.',
           ],
           [
             'ColorViewSelect / ColorSurface',
@@ -56,12 +56,12 @@ export function referenceTable(kit: Kit) {
             'createColorStore(value, format, view)',
             'Creates the framework-independent color state.',
             'Defaults: #6366F1, hex, area',
-            'getColor() returns names and all formats. getValue(format) returns typed channel data. subscribe(listener) returns an unsubscribe function.',
+            'setDisabled(boolean) blocks user interaction while allowing programmatic updates. getColor() returns names and all formats. getValue(format) returns typed channel data. subscribe(listener) returns an unsubscribe function.',
           ],
           [
             'mountColorPicker(element, options)',
             'Mounts a complete Vanilla layout.',
-            'value · format · view · className · onChange',
+            'value · format · view · disabled · className · onChange',
             'Returns store, getColor(), getValue(format) and destroy(). Call destroy() when removing the picker.',
           ],
         ]
@@ -69,19 +69,19 @@ export function referenceTable(kit: Kit) {
           [
             'ThemeProvider',
             'Scopes the theme store and CSS variables to its children.',
-            'theme · fallbackTheme · loadTheme · mode · systemMode · storage · modeStorage',
+            'theme · fallbackTheme · loadTheme · mode · systemMode · storage · modeStorage · selection · disabled',
             'React accepts options as props. Svelte, Vue and Angular accept an options object. Astro uses serializable props and src for a client request.',
           ],
           [
             'ThemePicker',
             'Edits the selected roles using one active color store.',
-            'view: area | wheel | shared-wheel · roles · activeRole',
-            'roles contains primary, secondary and/or accent. A shared wheel with one role shows an anonymous dot.',
+            'view: area | wheel | shared-wheel · roles · activeRole · controls · disabled',
+            'roles contains primary, secondary and/or accent. A picker with one role shows an unlabeled dot and hides role and view selectors by default.',
           ],
           [
             'ThemeGenerator',
             'Connects a color-picker composition to one theme role.',
-            'role: primary | secondary | accent · custom children',
+            'role: primary | secondary | accent · custom children · disabled',
             'Place ColorArea, ColorSlider and ColorInput inside it. Angular custom content requires [custom]="true".',
           ],
           [
@@ -100,7 +100,13 @@ export function referenceTable(kit: Kit) {
             'ThemeRadius / ThemeBorderWidth',
             'Edits a geometry token for one target.',
             'target: DEFAULT | input | card | popover | button | table | picker',
-            'Radius is measured in rem; border width in px. Export selections can include either independently.',
+            'Radius is measured in rem and border width in px. Select either field independently for each target.',
+          ],
+          [
+            'ThemePalette',
+            'Displays the eleven generated shades for one role.',
+            'role · shape: square | circle | joined · classes: root, item, swatch, label · labels · shadeClasses',
+            'Customize shape, spacing, labels and per-shade classes. Colors follow the theme. Vanilla uses themePaletteMarkup(role, options). CSS variables: --tk-palette-gap, --tk-swatch-height, --tk-swatch-radius, --tk-shade-label-size.',
           ],
           [
             'ThemeMode / useThemeMode()',
@@ -122,21 +128,21 @@ export function referenceTable(kit: Kit) {
           ],
           [
             'ThemeExport / themeConfiguration()',
-            'Reads JSON, CSS, tokens and the current theme.',
-            'format: json | css · selection: roles, radius, width, background',
-            'CSS selection does not remove data from the full theme JSON. config.css contains declarations; wrap them in a selector for a CSS file.',
+            'Returns the selected theme fields, JSON and CSS.',
+            'format: json | css · selection: roles, radius, width, background, modes',
+            'Selection filters theme, JSON and CSS. Use mergeThemeConfiguration(base, config.json) to restore selected values. config.css contains declarations that you can wrap in a CSS selector.',
           ],
           [
             'createThemeStore(options)',
-            'Creates the state without mounting a UI.',
-            'timeoutMs: 10000 by default · revalidateOnFocus · revalidateIntervalMs',
-            'start()/reload() run the loader. stop() cancels pending work. Framework providers mount the lifecycle automatically.',
+            'Creates the theme state without mounting controls.',
+            'selection · timeoutMs: 10000 by default · revalidateOnFocus · revalidateIntervalMs',
+            'start()/reload() run the loader. stop() cancels pending work. setDisabled(boolean) blocks editing without clearing values. setSelection(selection) sets explicit export fields. Providers mount the lifecycle automatically.',
           ],
           [
             'mountThemeKit(element, options)',
             'Mounts the complete Vanilla theme editor.',
-            'ThemeOptions + themes · picker · onChange',
-            'Returns store, getConfiguration(selection) and destroy(). Nested editors can share an existing store.',
+            'ThemeOptions + themes · picker · radius · width · backgroundControl · onChange',
+            'Returns store, getConfiguration(selection) and destroy(). Export fields follow the mounted controls unless you supply an explicit selection. Nested editors can share an existing store.',
           ],
         ];
   return `<table class="api-table"><thead><tr><th>Component / helper</th><th>Usage</th></tr></thead><tbody>${rows.map(([name, purpose, props, note]) => `<tr><td>${code(name)}</td><td><p>${purpose}</p><p>${code(props.replaceAll('<', '&lt;').replaceAll('>', '&gt;'))}</p><small>${note}</small></td></tr>`).join('')}</tbody></table>`;

@@ -1,4 +1,4 @@
-import { StrictMode, useState } from 'react';
+import { StrictMode, Fragment, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
   ColorSurface,
@@ -35,6 +35,7 @@ import {
 import {
   createThemeStore,
   generateTheme,
+  targets,
   type ThemeStore,
   type ThemeOptions,
 } from '@sebytza23/theme-kit';
@@ -48,12 +49,12 @@ function Preview() {
     <>
       <article className="preview-card">
         <span className="eyebrow">Live preview</span>
-        <h3>A theme that feels like you.</h3>
+        <h3>Project settings</h3>
         <p>
-          Generate a harmony or choose each color independently. Every component
-          inherits the same theme.
+          Change the colors, radius and border width to see how they appear on
+          buttons and inputs.
         </p>
-        <button className="primary-btn">Create something</button>
+        <button className="primary-btn">Save changes</button>
         <input
           className="preview-input"
           aria-label="Preview input"
@@ -64,7 +65,7 @@ function Preview() {
           <span className="accent-sample">Accent</span>
         </div>
       </article>
-      <ThemePalette />
+      <ThemePalette shape="joined" />
       <div className="status">
         {state.theme.name} · {state.status}
       </div>
@@ -87,12 +88,18 @@ function ThemeDemo({ store }: { store: ThemeStore }) {
         <details className="editor-details">
           <summary>Borders &amp; shape</summary>
           <div className="border-editors">
-            <ThemeRadius target="card" label="Card radius" />
-            <ThemeBorderWidth target="card" label="Card border width" />
-            <ThemeRadius target="button" label="Button radius" />
-            <ThemeBorderWidth target="button" label="Button border width" />
-            <ThemeRadius target="input" label="Input radius" />
-            <ThemeBorderWidth target="input" label="Input border width" />
+            {targets.map((target) => (
+              <Fragment key={target}>
+                <ThemeRadius
+                  target={target}
+                  label={`${target === 'DEFAULT' ? 'Default' : target} radius`}
+                />
+                <ThemeBorderWidth
+                  target={target}
+                  label={`${target === 'DEFAULT' ? 'Default' : target} border width`}
+                />
+              </Fragment>
+            ))}
           </div>
         </details>
         <ThemeBackground />
@@ -198,9 +205,9 @@ function App() {
           your color.
         </h1>
         <p className="intro">
-          A standalone color picker and a theme engine that work together.
-          Compose the controls, bring your own UI, and keep the first render
-          ready.
+          Choose a color in the standalone picker or edit the application theme.
+          The examples below share color values, names and appearance settings
+          through their providers.
         </p>
         <div className="demo-grid">
           <section className="panel">

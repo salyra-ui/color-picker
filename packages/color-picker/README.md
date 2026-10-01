@@ -1,94 +1,161 @@
-# @sebytza23/color-picker
+# @sebytza23/theme-kit
 
-Standalone, framework independent color math and composable color controls. No dependency on theme-kit. Runtime core has zero dependencies.
+Theme generation and composition, depending on color-picker. Optional fetching and storage, scoped CSS, SSR-safe per-provider state, separate loading content and fallback theme.
 
-Core package: `@sebytza23/color-picker`. Independent adapters: `@sebytza23/color-picker-react`, `-svelte`, `-vue`, `-angular`, `-astro`, `-vanilla`. Each adapter exports core helpers and its own `/styles.css`. Astro components use `@sebytza23/color-picker-astro/*.astro`.
+Core package: `@sebytza23/theme-kit`. Independent adapters: `@sebytza23/theme-kit-react`, `-svelte`, `-vue`, `-angular`, `-astro`, `-vanilla`. Each adapter exports core helpers and its own `/styles.css`. Astro components use `@sebytza23/theme-kit-astro/*.astro`.
 
-Primitives: ColorProvider, ColorArea, ColorSlider (h/s/v/alpha), ColorInput (separate RGB/HSL/HSV/OKLCH/OKLab channel fields or a single HEX field), ColorChannelInput, ColorFormatSelect, ColorMode, ColorSwatch, ColorPreview (all five adapters). All optional CSS can be replaced. The native sliders provide single-axis accessible controls; the two-dimensional area accepts arrows, Shift+arrows, Home/End and pointer/touch/pen input.
+Core API: `generateTheme`, `generatePalette`, `createThemeStore`, `parseTheme`, `themeStyle`, `themeVariables`, `fromLegacyTheme`, `toLegacyTheme`, `browserStorage`.
 
 ```svelte
 <script>
+  import { generateTheme } from '@sebytza23/theme-kit';
   import {
-    ColorProvider,
-    ColorArea,
-    ColorSlider,
-    ColorInput,
-    ColorFormatSelect,
-    ColorMode,
-  } from '@sebytza23/color-picker-svelte';
+    ThemeProvider,
+    ThemeGenerator,
+    ThemePalette,
+  } from '@sebytza23/theme-kit-svelte';
   import '@sebytza23/color-picker/styles.css';
+  import '@sebytza23/theme-kit/styles.css';
+  const theme = generateTheme('#6366f1');
 </script>
 
-<ColorProvider value="#6366f1" onChange={(hex) => console.log(hex)}>
-  <ColorArea />
-  <ColorSlider />
-  <ColorFormatSelect />
-  <ColorInput />
-  <ColorMode />
-</ColorProvider>
+<ThemeProvider options={{ theme }}>
+  <ThemeGenerator />
+  <ThemePalette />
+</ThemeProvider>
 ```
 
-React uses `onChange`, Vue uses `@change`, Angular uses `(colorChange)`, Astro emits a bubbling `color-change` CustomEvent. Context hooks expose a stable store. `createColorStore()` is also usable without a UI framework. Supplied `store` is an initial option and must remain stable for a provider lifetime. Color `value` changes are synchronized without emitting duplicates for identical colors.
+Supplying `theme` is instant and standalone: no fetch or storage is required. `fallbackTheme` is applied automatically if a configured loader throws, returns invalid data or times out. Loading components are independent of that theme.
 
-`ColorArea` computes HSV directly from pointer coordinates in constant memory; pointer events are coalesced into one update per animation frame. Hue is preserved through gray/black and controlled hex echoes do not reset saturation.
+Read the workspace README for SSR, client fetch, failure, custom loading, persistence and all framework examples. Options initialize the provider; use `useThemeStore().setTheme(theme)` for later changes or remount for a new loader/configuration. `loadTheme` is called only after mounting or on explicit `store.start()/reload()`.
 
-Astro components share their nearest `<cp-provider>` element. For matching static HTML, pass the initial `value` to `ColorArea`/`ColorInput` as well as the provider; children synchronize from context once JavaScript runs. If placed inside a framework island, keep that island's whole provider subtree together.
+`ThemeLoading` and `ThemeReady` accept arbitrary children. Ready includes fallback; `ThemeError` lets you expose a retry UI. ThemeGenerator is an optional composed example; combine color-picker primitives and `store.generate(hex)` to build your own controls. Angular consumers can compose their own `<cp-provider>` and connect `(colorChange)` to the theme store. CSS stays local to the provider's DOM subtree, including nested themes. Portals/teleports outside that subtree need their own provider/style variables.
 
-Build from workspace: `npm run build`. The distributable package is `packages/color-picker/dist`; `npm pack ./packages/color-picker/dist` creates a standalone tarball. The unscoped name is a local working name: choose an available npm scope before publishing.
+Build independent packages with `npm run build:packages`. Publishable output is under `release/`; tarballs are produced by `npm run pack:all`. The theme core depends on `@sebytza23/color-picker`, and each native adapter depends only on matching adapters and cores. No packages have been published to npm.
 
-OKLCH/OKLab are converted into sRGB with chroma reduction outside gamut. `ColorTextInput` is an optional full-string editor; `ColorInput` uses separate numeric fields for each non-HEX channel. `ColorFormatSelect` and `ColorMode` belong to this package and require only ColorProvider.
+Optional surfaces: `generateTheme(seed, {background:'tinted'})` or `store.setBackground('tinted')` adds primary tint to light/dark backgrounds. `ThemeBackground` exposes the switch; neutral is the generated default. Imported themes retain their original backgrounds until explicitly changed.
 
 ## Extended API
 
-`getColor(hex)` returns the nearest NTC name, legacy slug, selected HEX, typed RGB/HSL/HSV/OKLCH/OKLab values and formatted channel strings. `getColorValue(hex, format)` and `store.getValue(format)` compute only the requested format. `store.getColor()` returns all values. Numeric perceptual lightness uses 0–1, HSL/HSV channels use percentages. `ColorWheel` edits hue/saturation; pair it with a brightness slider (`channel="v"`). See THIRD_PARTY_NOTICES.md for the NTC dataset attribution.
+`ThemeColor role="primary|secondary|accent"` edits one palette; `wheel` enables the color wheel. `ThemeHarmony` selects analogous, triadic or split-complementary and generates the two companion colors on request. `ThemeRadius` / `ThemeBorderWidth` independently edit a target (DEFAULT, input, card, popover, button, table, picker). Width is px; radius is rem. All five adapters expose these components. The store provides setColor, setHarmony, generateHarmony and setBorder. `selectThemeTokens(theme, {roles:["primary"], radius:["card"]})` exports only selected CSS tokens; `generateThemeTokens(seed)` exports primary only. The complete theme retains three roles; legacy semantic roles are stripped.
 
-## Views, transparency and customization
+## Composed picker views
 
-`ColorSurface` follows `store.setView('area' | 'wheel')`, composing the rectangle with Hue or the wheel with Brightness. `ColorViewSelect` supplies the view switch. The wheel and its generic multi-marker interaction live entirely in **color-picker**.
-
-Alpha is available in every adapter: compose `ColorSlider channel="alpha"` and/or `ColorAlphaInput`. The UI uses 0–100%; `store.setAlpha()` uses 0–1. `ColorProvider value` accepts #RGB, #RGBA, #RRGGBB and #RRGGBBAA. The returned HEX and change callbacks include the alpha byte when nonopaque. Each numeric RGB/HSL/HSV/OKLCH/OKLab result includes `alpha`; full formatted strings include `/ alpha`. Eight-bit HEX quantizes alpha; `store.getColor()`, `getValue()` and `getSnapshot().alpha` retain the numeric precision set via `setAlpha`. `snapshot.hex` is the opaque RGB base; `snapshot.value` is the RGBA result. Channel edits and surface changes preserve transparency. Naming ignores alpha. Theme palettes currently use opaque RGB bases.
+`ThemePicker` adds three modes: `area`, `wheel`, `shared-wheel` (default). `roles` selects any nonempty subset of primary/secondary/accent; `activeRole` selects the initial editor. The role checkboxes and view selector are included in the default composition. Selection changes the shared brightness/format/channel editors without recoloring any palette. Edits change only the active role. One visible role uses a small anonymous dot; two/three roles have labeled markers. All wheel rendering and interactions come from `color-picker/ColorWheel`.
 
 ```svelte
-<script>
-  import {
-    ColorProvider,
-    ColorWheel,
-    ColorSlider,
-    ColorInput,
-    ColorAlphaInput,
-    ColorViewSelect,
-    ColorSurface,
-  } from '@sebytza23/color-picker-svelte';
-  import '@sebytza23/color-picker/styles.css';
-</script>
-
-<ColorProvider
-  value="#6366F180"
-  view="wheel"
-  onChange={(rgba) => console.log(rgba)}
->
-  <ColorViewSelect />
-  <ColorSurface />
-  <ColorSlider channel="alpha" classes={{ track: 'my-alpha-track' }} />
-  <ColorAlphaInput classes={{ input: 'my-number-input' }} />
-  <ColorInput />
-</ColorProvider>
+<ThemeProvider options={{ theme }}>
+  <ThemePicker view="shared-wheel" roles={['primary', 'secondary', 'accent']} />
+</ThemeProvider>
 ```
 
-`ColorArea`, `ColorWheel`, `ColorSlider`, `ColorInput`, `ColorTextInput`, `ColorChannelInput` and `ColorAlphaInput` accept a `classes` object. Available parts are `root`, `thumb`, `marker`, `text`, `label`, `track`, `input`; each component uses the relevant parts. Root classes use `className` in React, `class` in Svelte/Astro, ordinary inherited `class` in Vue, and `[className]` in Angular. Vue root `style` is inherited; React/Svelte/Astro surfaces expose `style`. CSS can target stable `data-cp-part` attributes (`surface`, `thumb`, `thumb-text`, `marker`, `marker-text`, `slider`, `track`, `input`, `select`, `alpha-input`). Selectors work for custom styling of other primitives too. Angular styles targeting a child component should be global or use a consumer-owned copied component.
+React/Svelte/Vue use `ThemePicker`; Angular exposes `tk-picker` with `[roles]`, `activeRole`, `view`; Astro exports `ThemePicker.astro` (pass initial `theme` for matching SSR). `createThemePickerStore(themeStore, options)` provides independent formats, selection and retained HSV state per role. `mount()` subscribes to external theme changes and returns cleanup; adapters handle mounting automatically. `picker.activeColor` is a standard ColorStore, so arbitrary color-picker controls can edit the current role. React/Svelte/Vue may supply `picker` and replace the default controls via children/snippet/slot; Angular uses `[store]="picker"` and `[custom]="true"` with projected controls.
 
-Decorative CSS variables: `--cp-wheel-size`, `--cp-wheel-background`, `--cp-thumb-size`, `--cp-thumb-radius`, `--cp-thumb-border`, `--cp-thumb-shadow`, `--cp-thumb-text-color`, `--cp-thumb-text-size`, `--cp-marker-size`, `--cp-marker-radius`, `--cp-marker-border`, `--cp-marker-shadow`, `--cp-marker-active-shadow`, `--cp-marker-text-color`, `--cp-marker-text-size`, `--cp-hue-gradient`, `--cp-track-height`, `--cp-track-radius`, `--cp-slider-thumb-size`. Set them on a surface or any ancestor. The default stylesheet is optional; copy the markup for a fully bespoke layout. Keep the controller's positioning and pointer behavior when replacing the layout.
+## Theme lists and configured output
 
-`thumbText` changes the dot text. React also accepts `ColorArea renderThumb` and `ColorWheel renderMarker`; Svelte has a `thumb` snippet on ColorArea and a `marker` snippet on ColorWheel; Vue has `thumb` and scoped `marker` slots; Astro has a `thumb` slot. Angular ColorArea accepts projected `[cpThumb]` content. Marker labels are supplied by the caller and may be empty.
+`ThemeSelect themes={themes}` applies the chosen Theme to the nearest context. Lists can be replaced; IDs must be unique. A manually edited theme shows “Custom theme” until it exactly matches an entry again. An empty list disables the selector. The simple ThemeSwatch remains available for custom list layouts.
 
-A `ColorWheel` can render arbitrary `ColorMarker[]` with `id`, `color: {h,s,v,hex}`, optional `label` and `ariaLabel`. Pair `markers` with `activeId` and handle selection/edits: React/Svelte `onSelect(id)` / `onMarkerChange(id, hsv)`; Vue `@select` / `@marker-change`; Angular `(markerSelect)` / `(markerChange)` (payload `{id,hsv}`); Astro `marker-select` / `marker-change` CustomEvents and `ColorWheelElement.setMarkers(markers, activeId)`. This supports multi-color wheels without depending on theme-kit. Wrap the wheel in ColorProvider. One marker or an empty label uses the small dot style.
+`ThemeExport` reads that same context. Its default output is JSON; `format="css"` displays CSS declarations. The typed configuration is `{theme, mode, tokens, css, json}`. A selection filters `theme`, JSON, CSS and tokens together. Mounted editor parts register their roles and geometry fields automatically on the client. Pass an explicit `selection` to the provider and export component for a matching partial server export. Restore a partial export with `store.setTheme(mergeThemeConfiguration(store.getSnapshot().theme, config.json))`. The complete internal context is available as `config.sourceTheme`. Without a selection or registered editor fields, the export contains the full theme.
 
-## Independent adapters and vanilla output
+```svelte
+<script lang="ts">
+  import {
+    ThemeProvider,
+    ThemePicker,
+    ThemeSelect,
+    ThemeExport,
+  } from '@sebytza23/theme-kit-svelte';
+  import { generateTheme, type ThemeConfiguration } from '@sebytza23/theme-kit';
+  const themes = [generateTheme('#6366f1'), generateTheme('#ef6b52')];
+  let configured = $state<ThemeConfiguration>();
+</script>
 
-Install only `@sebytza23/color-picker-react`, `-svelte`, `-vue`, `-angular`, `-astro`, or `-vanilla`. Each adapter re-exports core helpers and ships its own stylesheet. The core contains only color/state/DOM math helpers and naming data; other framework adapters are not installed.
+<ThemeProvider options={{ theme: themes[0] }}>
+  <ThemeSelect {themes} />
+  <ThemePicker />
+  <ThemeExport
+    onChange={(value) => {
+      configured = value;
+    }}
+  />
+</ThemeProvider>
+```
 
-`mountColorPicker(host, {value, format, view, onChange})` returns `{element, store, getColor, getValue, destroy}`. `onChange` receives `ColorInfo`: name, exact/matchedHex, alpha, hex, RGB/HSL/HSV/OKLCH/OKLab objects and formatted channel strings. `getValue('hsl')` requests only HSL. `<cp-output format="name|json">` renders output and bubbles a `color-values` event with the full result. Color names are nearest matches from the bundled color list.
+For custom output, React accepts `children(configuration)`, Svelte a children snippet, Vue a slot with `{configuration}`, Angular `[custom]="true"` with projected content and `(configurationChange)`, Astro custom slot content with a bubbling `configuration-change` CustomEvent. React/Svelte use `onChange`; Vue uses `@change`. Events run on the client and report the initial configuration and later changes. Astro's ThemeExportElement also exposes `.configuration`. Without components, call `themeConfiguration(store.getSnapshot(), selection?)` whenever needed. Angular selectors are `tk-select` / `tk-export`; Astro files are ThemeSelect.astro / ThemeExport.astro (pass initial theme/mode for matching SSR).
 
-HTML/PHP can load `browser/color-picker.js` and call `window.ColorPicker.mountColorPicker()`. htmx can swap declarative cp-* fragments without an initializer. Custom element disconnection removes subscriptions and drag handlers. Native/vanilla entry points require a DOM; import the core in server code.
+A top-level ThemeProvider shares state with all descendant ThemePicker/ThemeGenerator/ThemeSelect instances, regardless of layout depth. The closest nested provider defines a separate scope. Standalone ColorPicker controls connect through their change callback or the ThemePicker's activeColor store. CSS applies inside the provider's DOM subtree; independent framework islands and portals outside it require explicit store/style wiring.
 
-The shared wheel fixes marker selection even when the framework publishes state asynchronously. Clicking or normal pointer jitter selects the marker without changing any color; dragging updates the clicked role. All adapters share this implementation.
+## Cache freshness across applications
+
+Storage and freshness are separate: browserStorage restores the last theme; a loader always revalidates on mount. An explicit server-rendered theme wins over old browser storage. `browserStorage(key)` now listens for changes in other same-origin tabs and applies valid themes without writing them back repeatedly. Removing the storage entry does not change the active theme.
+
+```ts
+import {
+  browserStorage,
+  createHttpThemeLoader,
+  createThemeStore,
+} from '@sebytza23/theme-kit';
+const loadTheme = createHttpThemeLoader('/api/themes/current');
+const options = {
+  // Supply a server-loaded theme here for immediate SSR when available.
+  loadTheme,
+  storage: browserStorage('my-app:current-theme'),
+  revalidateOnFocus: true,
+  revalidateIntervalMs: 30_000, // optional
+};
+const store = createThemeStore(options);
+// Pass options + store to a native ThemeProvider; it mounts and cleans up watchers.
+```
+
+The HTTP helper expects a Theme JSON body on 200. With ETag support, it sends If-None-Match and reuses the last validated theme on 304; a changed ETag/body replaces it. Normal 200-only endpoints work too. `.invalidate()` clears the helper's conditional cache. Each loader instance belongs to a provider/user/endpoint; do not share one singleton between SSR requests. The helper's memory cache does not persist across reloads; the browser HTTP cache and browserStorage provide reload caching. Cross-origin APIs must allow the conditional request header and expose ETag; authenticated APIs can supply headers/credentials via the helper options.
+
+For immediate changes from another application, connect backend notifications:
+
+```ts
+import { watchThemeUpdates } from '@sebytza23/theme-kit';
+const cleanup = watchThemeUpdates(store, {
+  onFocus: true,
+  subscribe(invalidate) {
+    const events = new EventSource('/api/theme-events');
+    events.addEventListener('theme-changed', invalidate);
+    return () => events.close();
+  },
+});
+// Call cleanup on component destruction; mount/start the store via the provider.
+```
+
+This is a client hook for your server's existing SSE/WebSocket protocol, not a bundled backend. Applications on different origins cannot share localStorage events; they must read a common authoritative API or receive its notifications. A backend can store themes in its database with a revision/updatedAt used as ETag. Redis is optional for server caching or distributing invalidation across server instances; when a theme is saved, invalidate that server cache and publish the revision notification. Redis itself does not update a browser's cached theme. Focus/interval refresh needs no realtime transport.
+
+For React SSR, resolve remote data before constructing the store and initialize it with `{theme: resolvedTheme, mode}`. Its server snapshot is the immutable seed used for hydration. To render a configuration edited before SSR, construct a fresh store from `configuration.sourceTheme` and `configuration.mode`; client subscribers read the current live snapshot.
+
+Protocol references: [ETag and conditional requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/ETag), [same-origin storage events](https://developer.mozilla.org/en-US/docs/Web/API/Window/storage_event), [Redis Pub/Sub for backend invalidation](https://redis.io/docs/latest/develop/use-cases/pub-sub/).
+
+## Three persisted color modes and custom names
+
+The selected `modePreference` is `system`, `light` or `dark`; snapshot `mode` is always resolved to light/dark. System follows `matchMedia` only after browser mount, with a deterministic `systemMode` SSR seed. Default preference is system. Default persistence uses localStorage key `theme-kit:mode`; use `modeStorage: browserModeStorage('my-app:mode')` to isolate applications, or `modeStorage: false` to disable it. Same-origin tabs synchronize. Storage errors do not break the UI.
+
+`ThemeMode value="dark"` renders a selectable mode button with custom children (React), snippet (Svelte), slot (Vue/Astro) or ng-template (Angular). Without value it cycles system → light → dark. `useThemeMode()` exposes preference, resolvedMode, setMode and cycle for your own buttons/select/toggle. Svelte exposes a subscribable store; Vue uses computed refs, Angular signals, React plain current values. Vanilla uses `themeModeActions(store)` and snapshot fields.
+
+`ThemeName` proposes the nearest primary color name but accepts an arbitrary name (up to 200 characters). `store.setName('My theme')` locks the name across palette/generator edits; `store.setName()` resets to suggested naming. The optional `nameSource` metadata survives theme JSON/cache round trips. `generateTheme(seed, {name})` supplies a custom name. Configuration output includes the preference and resolved mode; JSON uses `{theme, mode: modePreference, systemMode}` for round trips.
+
+## Independent adapters and vanilla HTML
+
+Install `@sebytza23/theme-kit-react`, `-svelte`, `-vue`, `-angular`, `-astro`, or `-vanilla`. Each installs only its matching color adapter and core dependencies. Every adapter re-exports core helpers. Each adapter's `styles.css` includes the color controls' styles; one stylesheet import is enough. The core package contains no framework adapters.
+
+The vanilla package exposes `mountThemeKit(host, options)`, returning `{element, store, getConfiguration, destroy}`. Or emit composable `tk-provider`, `tk-picker`, `tk-select`, `tk-export`, `cp-provider` and individual controls in HTML/PHP/htmx fragments. Custom elements connect on insertion and clean up on removal. The bundled `browser/theme-kit.js` creates `window.ThemeKit` and includes the color dependency. No npm runtime, framework or PHP extension is needed on the server.
+
+See the workspace `docs.html`, `generator.html` and `site.html` for the complete documentation and studio. These package names are prepared but not yet published to npm.
+
+## Shade swatches and disabled editors
+
+`ThemePalette` shows shades 50 through 950 for a role. Set `shape` to `square`, `circle` or `joined`. `classes` targets `root`, `item`, `swatch` and `label`. `labels` maps a shade to custom text, and `shadeClasses` styles individual shade items. The colors remain connected to the theme. Customize spacing and dimensions with `--tk-palette-gap`, `--tk-swatch-height`, `--tk-swatch-radius` and `--tk-shade-label-size`. Vanilla exposes `themePaletteMarkup(role, options)`.
+
+Pass `disabled: true` when creating the theme store or call `store.setDisabled(true)`. The provider blocks editing and keeps the current values visible. Programmatic updates remain available. Use a provider scoped to the editor if the rest of the application should stay interactive.
+
+A selection can contain `roles`, `radius`, `width`, `background` and `modes`. Radius and width targets are independent. With no `modes`, background JSON includes the resolved active mode. Set `modes: ['light', 'dark']` to include both. Selected JSON is a partial theme, so merge it with an existing theme before passing it to a full-theme loader or storage adapter.
+
+## Custom format buttons and disabled controls
+
+`ColorMode` accepts custom content. React accepts children or a function receiving the current format. Svelte accepts a children snippet with the format. Vue exposes `format` through its slot. Angular accepts an `ng-template` whose implicit value is the format. Astro accepts slot content. In Astro and Vanilla, put `data-color-format` on an element to display the current format inside custom content. Vanilla uses `<cp-mode data-custom><button type="button">…</button></cp-mode>`.
+
+Pass `disabled` to `ColorProvider` or `mountColorPicker`, or call `store.setDisabled(true)`. The disabled picker keeps its color and output visible, blocks pointer and keyboard editing, and still accepts programmatic updates. The core store supports an initial disabled state as the fourth `createColorStore(value, format, view, disabled)` argument.

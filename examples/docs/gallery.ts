@@ -14,6 +14,9 @@ import {
   type ThemeProviderElement,
   type ThemeOptions,
   type ThemeConfiguration,
+  type TokenSelection,
+  targets,
+  themePaletteMarkup,
 } from '@sebytza23/theme-kit-vanilla';
 import {
   integrations,
@@ -22,6 +25,11 @@ import {
   colorMarkup,
   colorExample,
   themeExample,
+  themeExampleSelection,
+  paletteExample,
+  paletteStyle,
+  defaultSwatch,
+  type SwatchSettings,
   renderingExample,
   customThemeMarkup,
   defaultCustom,
@@ -163,8 +171,8 @@ export function codePanel(
     },
   };
 }
-export function sampleMarkup() {
-  return `<div class="theme-sample"><div class="sample-header"><span>Application preview</span><span data-sample-mode></span></div><article class="sample-card"><span class="sample-name" data-sample-name></span><h3>Project settings</h3><p>Buttons, inputs and surfaces use the active theme tokens.</p><label>Project name<input value="Website redesign" aria-label="Example project name"></label><div class="sample-actions"><button class="sample-primary" type="button">Save changes</button><button class="sample-secondary" type="button">Cancel</button></div><div class="sample-note">Accent surface</div></article><div class="sample-colors">${['primary', 'secondary', 'accent'].map((r) => `<span style="--role:var(--${r})"><i></i>${r}</span>`).join('')}</div></div>`;
+export function sampleMarkup(roles: readonly string[] = ['primary', 'secondary', 'accent']) {
+  return `<div class="theme-sample"><div class="sample-header"><span>Application preview</span><span data-sample-mode></span></div><article class="sample-card"><span class="sample-name" data-sample-name></span><h3>Project settings</h3><p>Buttons, inputs and surfaces use the active theme tokens.</p><label>Project name<input value="Website redesign" aria-label="Example project name"></label><div class="sample-actions"><button class="sample-primary" type="button">Save changes</button><button class="sample-secondary" type="button">Cancel</button></div>${roles.includes('accent') ? '<div class="sample-note">Accent surface</div>' : ''}</article><div class="sample-colors">${roles.map((r) => `<span style="--role:var(--${r})"><i></i>${r}</span>`).join('')}</div></div>`;
 }
 export function updateSample(host: HTMLElement, config: ThemeConfiguration) {
   host.style.cssText = config.css;
@@ -204,8 +212,13 @@ export function mountExplorer(
     ...defaultCustom,
     ...(isColor ? {} : { text: 'B', size: 26 }),
   };
+  let swatchSettings: SwatchSettings = { ...defaultSwatch };
+  let geometrySelection: TokenSelection = {
+    ...themeExampleSelection('geometry'),
+    modes: ['light'],
+  };
   host.classList.add('explorer');
-  host.innerHTML = `<div class="variant-tabs" role="group" aria-label="${isColor ? 'Color picker' : 'Theme kit'} example">${variants.map((v) => `<button type="button" data-variant="${v.id}" aria-pressed="${v.id === variant}">${v.title}</button>`).join('')}</div><div class="example-description"><p></p><div class="view-tabs" role="group" aria-label="Example display"><button type="button" data-display="preview" aria-pressed="false">Preview</button><button type="button" data-display="split" aria-pressed="true">Split</button><button type="button" data-display="code" aria-pressed="false">Code</button></div></div><div class="example-body" data-display="split"><div class="example-preview"><div class="preview-label">Interactive preview <span>Vanilla adapter</span></div><div class="preview-content"></div></div><div class="example-code"></div></div>`;
+  host.innerHTML = `<div class="variant-tabs" role="group" aria-label="${isColor ? 'Color picker' : 'Theme kit'} example">${variants.map((v) => `<button type="button" data-variant="${v.id}" aria-pressed="${v.id === variant}">${v.title}</button>`).join('')}</div><div class="example-description"><p></p><div class="view-tabs" role="group" aria-label="Example display"><button type="button" data-display="preview" aria-pressed="true">Preview</button><button type="button" data-display="code" aria-pressed="false">Code</button></div></div><div class="example-body" data-display="preview"><div class="example-preview"><div class="preview-label">Interactive preview <span>Vanilla adapter</span></div><div class="preview-content"></div></div><div class="example-code"></div></div>`;
   const body = host.querySelector<HTMLElement>('.example-body')!,
     content = host.querySelector<HTMLElement>('.preview-content')!,
     description = host.querySelector('.example-description p')!;
@@ -214,7 +227,16 @@ export function mountExplorer(
     (i) =>
       isColor
         ? colorExample(i, variant as ColorVariant, custom)
-        : themeExample(i, variant as ThemeVariant, custom),
+        : variant === 'palette'
+          ? paletteExample(i, swatchSettings)
+          : themeExample(
+              i,
+              variant as ThemeVariant,
+              custom,
+              variant === 'geometry'
+                ? geometrySelection
+                : themeExampleSelection(variant as ThemeVariant),
+            ),
     {
       label: isColor ? 'Color picker' : 'Theme editor',
       baseName: isColor ? 'ColorPicker' : 'ThemeEditor',
@@ -240,6 +262,8 @@ export function mountExplorer(
       const store = createColorStore(
         '#5268E080',
         variant === 'channels' ? 'rgb' : 'hex',
+        'area',
+        variant === 'disabled',
       );
       const provider =
         content.querySelector<ColorProviderElement>('cp-provider')!;
@@ -251,8 +275,73 @@ export function mountExplorer(
         provider.removeEventListener('color-change', update);
         provider.remove();
       };
+    } else if (variant === 'palette') {
+      content.innerHTML = `<form class="swatch-settings"><label>Swatch shape<select data-swatch-shape><option value="square">Squares</option><option value="circle">Circles</option><option value="joined">Joined strip</option></select></label><label>500 shade label<input data-swatch-label maxlength="40"></label><label>Gap (px)<input type="number" data-swatch-gap min="0" max="24"></label><label>Height (px)<input type="number" data-swatch-size min="24" max="96"></label></form><div class="palette-example"></div>`;
+      const target = content.querySelector<HTMLElement>('.palette-example')!;
+      const options: ThemeOptions = {
+        theme: generateTheme('#5268E0'),
+        modeStorage: false,
+      };
+      const provider = document.createElement(
+        'tk-provider',
+      ) as ThemeProviderElement;
+      provider.setStore(createThemeStore(options), options);
+      const render = () => {
+        provider.innerHTML = themePaletteMarkup('primary', {
+          shape: swatchSettings.shape,
+          classes: {
+            root: 'brand-palette',
+            label: 'brand-shade-label',
+            swatch: 'brand-shade',
+          },
+          labels: { 500: swatchSettings.label },
+        });
+        const style = document.createElement('style');
+        style.textContent = paletteStyle(swatchSettings)
+          .replaceAll(
+            '.brand-palette',
+            `.explorer-${panelSequence} .brand-palette`,
+          )
+          .replaceAll(
+            '.brand-shade-label',
+            `.explorer-${panelSequence} .brand-shade-label`,
+          )
+          .replaceAll(
+            '.brand-shade {',
+            `.explorer-${panelSequence} .brand-shade {`,
+          );
+        provider.className = `explorer-${panelSequence}`;
+        provider.append(style);
+        panel.refresh();
+      };
+      target.append(provider);
+      const shape = content.querySelector<HTMLSelectElement>(
+          '[data-swatch-shape]',
+        )!,
+        label = content.querySelector<HTMLInputElement>('[data-swatch-label]')!,
+        gap = content.querySelector<HTMLInputElement>('[data-swatch-gap]')!,
+        size = content.querySelector<HTMLInputElement>('[data-swatch-size]')!;
+      shape.value = swatchSettings.shape;
+      label.value = swatchSettings.label;
+      gap.value = String(swatchSettings.gap);
+      size.value = String(swatchSettings.size);
+      content
+        .querySelector('form')!
+        .addEventListener('submit', (event) => event.preventDefault());
+      content.querySelector('form')!.addEventListener('input', () => {
+        if (!gap.validity.valid || !size.validity.valid) return;
+        swatchSettings = {
+          shape: shape.value as SwatchSettings['shape'],
+          label: label.value,
+          gap: gap.valueAsNumber,
+          size: size.valueAsNumber,
+        };
+        render();
+      });
+      render();
+      cleanup = () => provider.remove();
     } else {
-      content.innerHTML = `<div class="theme-demo"><div class="theme-controls"></div><div class="sample-host">${sampleMarkup()}</div></div><details class="configuration"><summary>Generated configuration</summary><div class="output-actions"><label>Format<select data-output-format aria-label="Configuration format"><option value="json">JSON</option><option value="css">CSS</option></select></label><button type="button" data-copy-output>Copy output</button><button type="button" data-download>Download</button></div><pre tabindex="0"></pre><p data-output-status aria-live="polite"></p></details>`;
+      content.innerHTML = `<div class="theme-demo"><div class="theme-controls"></div><div class="sample-host">${sampleMarkup(themeExampleSelection(variant as ThemeVariant).roles)}</div></div><details class="configuration"><summary>Generated configuration</summary><div class="output-actions"><label>Format<select data-output-format aria-label="Configuration format"><option value="json">JSON</option><option value="css">CSS</option></select></label><button type="button" data-copy-output>Copy output</button><button type="button" data-download>Download</button></div><pre tabindex="0"></pre><p data-output-status aria-live="polite"></p></details>`;
       const sample = content.querySelector<HTMLElement>('.sample-host')!,
         output = content.querySelector('pre')!,
         controls = content.querySelector<HTMLElement>('.theme-controls')!;
@@ -266,7 +355,7 @@ export function mountExplorer(
       const format = content.querySelector<HTMLSelectElement>(
         '[data-output-format]',
       )!;
-      format.value = variant === 'single' ? 'css' : 'json';
+      format.value = 'json';
       const renderOutput = () => {
         output.textContent = format.value === 'css' ? css : json;
       };
@@ -296,9 +385,13 @@ export function mountExplorer(
         cp.setAttribute('value', '#5268E0');
         controls.append(provider);
         const unsub = store.subscribe(() =>
-          changed(themeConfiguration(store.getSnapshot())),
+          changed(
+            themeConfiguration(store.getSnapshot(), { roles: ['primary'] }),
+          ),
         );
-        changed(themeConfiguration(store.getSnapshot()));
+        changed(
+          themeConfiguration(store.getSnapshot(), { roles: ['primary'] }),
+        );
         cleanup = () => {
           unsub();
           provider.remove();
@@ -327,6 +420,10 @@ export function mountExplorer(
           )
           .join('');
         provider.append(modes);
+        provider.insertAdjacentHTML(
+          'beforeend',
+          `<section class="generated-palettes"><h3>Generated shades</h3>${['primary', 'secondary', 'accent'].map((role) => `<h4>${role}</h4>${themePaletteMarkup(role as 'primary', { shape: 'joined' })}`).join('')}</section>`,
+        );
         controls.append(provider);
         const unsub = store.subscribe(() =>
           changed(themeConfiguration(store.getSnapshot())),
@@ -337,26 +434,102 @@ export function mountExplorer(
           provider.remove();
         };
       } else {
-        const mounted = mountThemeKit(controls, {
+        const selection =
+          variant === 'geometry'
+            ? geometrySelection
+            : themeExampleSelection(variant as ThemeVariant);
+        let currentStore = createThemeStore({
           theme: themes[0],
-          themes,
-          mode: 'light',
+          disabled: variant === 'disabled',
+          mode: selection.modes?.[0] ?? 'light',
           modeStorage: false,
-          picker: {
-            view: variant === 'rectangle' ? 'area' : 'shared-wheel',
-            ...(variant === 'single' ? { roles: ['primary'] as const } : {}),
-          },
-          onChange(config) {
-            changed(
-              variant === 'single'
-                ? themeConfiguration(mountedStore(config), {
-                    roles: ['primary'],
-                  })
-                : config,
-            );
-          },
+          selection,
         });
-        cleanup = mounted.destroy;
+        let mounted: ReturnType<typeof mountThemeKit>;
+        const renderEditor = () => {
+          mounted?.destroy();
+          const configured =
+            variant === 'geometry' ? geometrySelection : selection;
+          currentStore.setSelection(configured);
+          if (configured.modes?.length === 1)
+            currentStore.setMode(configured.modes[0]);
+          mounted = mountThemeKit(controls, {
+            store: currentStore,
+            selection: configured,
+            theme: themes[0],
+            themes,
+            modeStorage: false,
+            disabled: variant === 'disabled',
+            radius: configured.radius ?? [],
+            width: configured.width ?? [],
+            backgroundControl: !!configured.background,
+            picker: {
+              view:
+                variant === 'rectangle' || variant === 'geometry'
+                  ? 'area'
+                  : variant === 'single'
+                    ? 'wheel'
+                    : 'shared-wheel',
+              roles: configured.roles,
+              controls: false,
+            },
+            onChange: changed,
+          });
+          if (variant === 'single' || variant === 'geometry') {
+            mounted.element.querySelector('tk-select')?.remove();
+            mounted.element.querySelector('.tk-harmony')?.remove();
+          }
+          if (variant === 'single' || configured.modes?.length === 1)
+            mounted.element
+              .querySelector('[aria-label="Theme mode"]')
+              ?.remove();
+          mounted.element.querySelector('details')?.remove();
+          const palette = document.createElement('section');
+          palette.className = 'generated-palettes';
+          palette.innerHTML = `<h3>Generated shades</h3>${(configured.roles ?? ['primary']).map((role) => `<h4>${role[0].toUpperCase() + role.slice(1)}</h4>${themePaletteMarkup(role, { shape: 'joined' })}`).join('')}`;
+          mounted.element.append(palette);
+          changed(mounted.getConfiguration());
+        };
+        if (variant === 'geometry') {
+          const form = document.createElement('div');
+          form.className = 'geometry-config';
+          form.innerHTML = `<fieldset><legend>Fields included in this editor</legend><table><thead><tr><th>Target</th><th>Radius <small>rem</small></th><th>Border width <small>px</small></th></tr></thead><tbody>${targets.map((target) => `<tr><th scope="row">${target === 'DEFAULT' ? 'Default' : target[0].toUpperCase() + target.slice(1)}</th>${(['radius', 'width'] as const).map((kind) => `<td><input type="checkbox" data-geometry="${kind}" data-target="${target}" aria-label="Include ${target} ${kind}" ${geometrySelection[kind]?.includes(target) ? 'checked' : ''}></td>`).join('')}</tr>`).join('')}</tbody></table></fieldset><fieldset class="geometry-modes"><legend>Appearance included in the export</legend>${['light', 'dark'].map((mode) => `<label><input type="checkbox" data-export-mode="${mode}" ${geometrySelection.modes?.includes(mode as 'light' | 'dark') ? 'checked' : ''}>${mode === 'light' ? 'Light' : 'Dark'}</label>`).join('')}<label><input type="checkbox" data-export-background ${geometrySelection.background ? 'checked' : ''}>Background and foreground</label></fieldset>`;
+          form.addEventListener('change', () => {
+            const modes = [
+              ...form.querySelectorAll<HTMLInputElement>(
+                '[data-export-mode]:checked',
+              ),
+            ].map((el) => el.dataset.exportMode as 'light' | 'dark');
+            if (!modes.length) {
+              form.querySelector<HTMLInputElement>(
+                `[data-export-mode="${geometrySelection.modes?.[0] ?? 'light'}"]`,
+              )!.checked = true;
+              return;
+            }
+            geometrySelection = {
+              roles: ['primary'],
+              radius: [
+                ...form.querySelectorAll<HTMLInputElement>(
+                  '[data-geometry="radius"]:checked',
+                ),
+              ].map((el) => el.dataset.target as (typeof targets)[number]),
+              width: [
+                ...form.querySelectorAll<HTMLInputElement>(
+                  '[data-geometry="width"]:checked',
+                ),
+              ].map((el) => el.dataset.target as (typeof targets)[number]),
+              modes,
+              background: form.querySelector<HTMLInputElement>(
+                '[data-export-background]',
+              )!.checked,
+            };
+            renderEditor();
+            panel.refresh();
+          });
+          content.prepend(form);
+        }
+        renderEditor();
+        cleanup = () => mounted.destroy();
       }
       content
         .querySelector('[data-copy-output]')!
@@ -366,7 +539,7 @@ export function mountExplorer(
               format.value === 'css' ? css : json,
             );
             content.querySelector('[data-output-status]')!.textContent =
-              'JSON copied.';
+              `${format.value.toUpperCase()} copied.`;
           } catch {
             content.querySelector('[data-output-status]')!.textContent =
               'Select the output and copy it with your keyboard.';
@@ -420,14 +593,15 @@ function mountedStore(
   config: ThemeConfiguration,
 ): import('@sebytza23/theme-kit').ThemeSnapshot {
   return {
-    theme: config.theme,
+    theme: config.sourceTheme,
+    disabled: false,
     mode: config.mode,
     modePreference: config.modePreference,
     systemMode: config.systemMode,
     status: 'ready',
     pending: false,
     error: null,
-    background: config.theme.backgroundMode ?? 'preserve',
+    background: config.sourceTheme.backgroundMode ?? 'preserve',
     style: config.css,
   };
 }
@@ -443,7 +617,7 @@ export function download(value: string, name: string) {
 }
 export function mountRenderingLab(host: HTMLElement) {
   host.classList.add('rendering-lab');
-  host.innerHTML = `<div class="lab-controls" role="group" aria-label="Rendering scenario"><button data-scenario="standalone" aria-pressed="true">Standalone</button><button data-scenario="success" aria-pressed="false">Fetch success</button><button data-scenario="failure" aria-pressed="false">Fetch error</button><button data-scenario="timeout" aria-pressed="false">Timeout</button></div><div class="lab-description"><p data-lab-description></p><p class="muted">The preview simulates a request locally; the source uses /api/theme. Return a Theme object as JSON. HTTP errors, invalid theme data and timeouts apply the fallback.</p></div><div class="lab-grid"><div class="lab-preview"><div class="request-status" role="status"><span data-status></span><span data-lab-name></span></div><div data-lab-loading class="loading-example" hidden><div class="loading-bar"></div><h3>Loading theme</h3><p>This area is custom loading content.</p></div><div data-lab-content>${sampleMarkup()}</div><div class="error-example" data-lab-error hidden><p></p><button type="button" data-retry>Retry successfully</button></div><div class="lab-replay"><button type="button" data-replay>Run again</button><span data-lab-mode></span></div></div><div data-lab-code></div></div>`;
+  host.innerHTML = `<div class="lab-controls" role="group" aria-label="Rendering scenario"><button data-scenario="standalone" aria-pressed="true">Standalone</button><button data-scenario="success" aria-pressed="false">Fetch success</button><button data-scenario="failure" aria-pressed="false">Fetch error</button><button data-scenario="timeout" aria-pressed="false">Timeout</button></div><div class="lab-description"><p data-lab-description></p><p class="muted" data-lab-request-note>The preview simulates a request locally. The source uses /api/theme. Return a Theme object as JSON. HTTP errors, invalid theme data and timeouts apply the fallback.</p></div><div class="view-tabs lab-view-tabs" role="group" aria-label="Loading example display"><button type="button" data-lab-display="preview" aria-pressed="true">Preview</button><button type="button" data-lab-display="code" aria-pressed="false">Code</button></div><div class="lab-grid" data-lab-display="preview"><div class="lab-preview"><div class="request-status" role="status"><span data-status></span><span data-lab-name></span></div><div data-lab-loading class="loading-example" hidden><div class="loading-bar"></div><h3>Loading theme</h3><p>This area is custom loading content.</p></div><div data-lab-content>${sampleMarkup()}</div><div class="error-example" data-lab-error hidden><p></p><button type="button" data-retry>Retry successfully</button></div><div class="lab-replay"><button type="button" data-replay>Run again</button><span data-lab-mode></span></div></div><div data-lab-code></div></div>`;
   let stop: (() => void) | undefined,
     unsubscribe: (() => void) | undefined,
     active = 'standalone',
@@ -509,6 +683,8 @@ export function mountRenderingLab(host: HTMLElement) {
               }),
           };
     const store = createThemeStore(options);
+    host.querySelector<HTMLElement>('[data-lab-request-note]')!.hidden =
+      active === 'standalone';
     const update = () => {
       const state = store.getSnapshot();
       host.querySelector('[data-status]')!.textContent = state.pending
@@ -540,6 +716,19 @@ export function mountRenderingLab(host: HTMLElement) {
       void store.reload();
     };
   };
+  host
+    .querySelectorAll<HTMLButtonElement>('button[data-lab-display]')
+    .forEach((button) =>
+      button.addEventListener('click', () => {
+        host.querySelector<HTMLElement>('.lab-grid')!.dataset.labDisplay =
+          button.dataset.labDisplay;
+        host
+          .querySelectorAll('button[data-lab-display]')
+          .forEach((tab) =>
+            tab.setAttribute('aria-pressed', String(tab === button)),
+          );
+      }),
+    );
   host.querySelectorAll<HTMLButtonElement>('[data-scenario]').forEach((b) =>
     b.addEventListener('click', () => {
       active = b.dataset.scenario!;

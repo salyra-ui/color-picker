@@ -1,4 +1,10 @@
-import { themePickerMarkup, generateTheme } from '@sebytza23/theme-kit-vanilla';
+import {
+  themePickerMarkup,
+  themePaletteMarkup,
+  generateTheme,
+  type TokenSelection,
+  type Target,
+} from '@sebytza23/theme-kit-vanilla';
 export const integrations = [
   'React',
   'Svelte',
@@ -9,9 +15,17 @@ export const integrations = [
 ] as const;
 export type Integration = (typeof integrations)[number];
 export type Kit = 'color-picker' | 'theme-kit';
-export type ColorVariant = 'rectangle' | 'wheel' | 'channels' | 'custom';
+export type ColorVariant =
+  'rectangle' | 'wheel' | 'channels' | 'custom' | 'disabled';
 export type ThemeVariant =
-  'shared' | 'rectangle' | 'single' | 'presets' | 'custom';
+  | 'shared'
+  | 'rectangle'
+  | 'single'
+  | 'geometry'
+  | 'presets'
+  | 'custom'
+  | 'palette'
+  | 'disabled';
 export const colorVariants: {
   id: ColorVariant;
   title: string;
@@ -21,27 +35,33 @@ export const colorVariants: {
     id: 'rectangle',
     title: 'Rectangle',
     description:
-      'Saturation and brightness on a two-axis surface. Hue and alpha stay independent.',
+      'Drag to adjust saturation and brightness. The sliders below change hue and opacity.',
   },
   {
     id: 'wheel',
     title: 'Wheel',
     description:
-      'Hue around the circle, saturation toward the edge. Use brightness for the third dimension.',
+      'Pick a hue around the wheel, then move inward to reduce saturation. Adjust brightness and opacity with the sliders.',
   },
   {
     id: 'channels',
     title: 'Channel inputs',
     description:
-      'No surface required. Compose numeric RGB, HSL, HSV, OKLCH or OKLab fields with alpha.',
+      'Enter each channel separately. Change the format to switch between HEX, RGB, HSL, HSV, OKLCH and OKLab.',
   },
   {
     id: 'custom',
     title: 'Custom controls',
     description:
-      'A square thumb, your own label and thicker tracks. The same store drives every part.',
+      'Change the label inside the dot, the control color and the track size. Copy the updated component and styles.',
   },
 ];
+colorVariants.push({
+  id: 'disabled',
+  title: 'Disabled',
+  description:
+    'A disabled picker keeps its color visible and blocks editing. You can still update it from the store.',
+});
 export const themeVariants: {
   id: ThemeVariant;
   title: string;
@@ -51,33 +71,53 @@ export const themeVariants: {
     id: 'shared',
     title: 'Shared wheel',
     description:
-      'Three markers, one surface. Select a role to edit only its brightness and channels.',
+      'Select a marker to edit primary, secondary or accent. Brightness and the channel fields follow the selected color.',
   },
   {
     id: 'rectangle',
     title: 'Separate role editing',
     description:
-      'Choose primary, secondary or accent, then edit it on a rectangular surface.',
+      'Choose a color role above the rectangle. Editing it keeps the other two colors unchanged.',
   },
   {
     id: 'single',
     title: 'Primary only',
     description:
-      'One anonymous dot. Use a single role and export only the tokens your application needs.',
+      'Edit primary with a single dot. The JSON and CSS contain only the primary palette.',
+  },
+  {
+    id: 'geometry',
+    title: 'Radius & borders',
+    description:
+      'Choose which radius and border width fields to include. Only the enabled fields appear in the editor and its export.',
   },
   {
     id: 'presets',
     title: 'Presets & appearance',
     description:
-      'Apply a theme from a list. System, light and dark share the same persisted context.',
+      'Choose a saved theme and an appearance setting. The appearance setting is remembered after a refresh.',
   },
   {
     id: 'custom',
     title: 'Custom generator',
     description:
-      'Your labels, classes and controls. Compose a brand-color editor and custom appearance buttons in the same theme context.',
+      'Give the editor your own labels, colors and classes. The appearance buttons show how to replace the default text.',
   },
 ];
+themeVariants.push(
+  {
+    id: 'palette',
+    title: 'Shade swatches',
+    description:
+      'Show the generated shades as squares, circles or a joined strip. Change the labels and classes without replacing the theme colors.',
+  },
+  {
+    id: 'disabled',
+    title: 'Disabled',
+    description:
+      'Disable the editor while keeping its values and generated shades visible. Programmatic theme updates still work.',
+  },
+);
 export function packageFor(kit: Kit, integration: Integration) {
   return `@sebytza23/${kit}-${integration.toLowerCase()}`;
 }
@@ -167,16 +207,17 @@ export function colorMarkup(variant: ColorVariant) {
         : `<cp-area><div class="cp-area" data-area data-cp-part="surface" tabindex="0" role="group" aria-label="Saturation and brightness"><span data-cp-part="thumb">${variant === 'custom' ? '<span data-cp-part="thumb-text">C</span>' : ''}</span></div></cp-area>`;
   const slider = (channel: string, label: string) =>
     `<cp-slider channel="${channel}"><label class="cp-slider" data-channel="${channel}">${label}<input type="range" min="0" max="${channel === 'h' ? '359' : '100'}"></label></cp-slider>`;
-  return `<cp-provider value="#5268E080" class="picker-parts${variant === 'custom' ? ' custom-picker' : ''}">\n  ${surface}${surface ? '\n  ' + slider(variant === 'wheel' ? 'v' : 'h', variant === 'wheel' ? 'Brightness' : 'Hue') : ''}\n  ${slider('alpha', 'Alpha')}\n  <cp-format-select><label class="cp-format">Format<select>${['hex', 'rgb', 'hsl', 'hsv', 'oklch', 'oklab'].map((f) => `<option value="${f}">${f.toUpperCase()}</option>`).join('')}</select></label></cp-format-select>\n  <cp-input></cp-input>\n  <cp-alpha-input><label class="cp-channel">Alpha %<input type="number" min="0" max="100" step=".1"></label></cp-alpha-input>\n  <cp-mode><button type="button">Switch format</button></cp-mode>\n  <cp-output format="json"><output hidden></output></cp-output>\n</cp-provider>`;
+  return `<cp-provider value="#5268E080" class="picker-parts${variant === 'custom' ? ' custom-picker' : ''}">\n  ${surface}${surface ? '\n  ' + slider(variant === 'wheel' ? 'v' : 'h', variant === 'wheel' ? 'Brightness' : 'Hue') : ''}\n  ${slider('alpha', 'Alpha')}\n  <cp-format-select><label class="cp-format">Format<select>${['hex', 'rgb', 'hsl', 'hsv', 'oklch', 'oklab'].map((f) => `<option value="${f}">${f.toUpperCase()}</option>`).join('')}</select></label></cp-format-select>\n  <cp-input></cp-input>\n  <cp-alpha-input><label class="cp-channel">Alpha %<input type="number" min="0" max="100" step=".1"></label></cp-alpha-input>\n  ${variant === 'custom' ? '<cp-mode data-custom><button type="button"><span>Change <span data-color-format>HEX</span> format</span></button></cp-mode>' : '<cp-mode><button type="button">Switch format</button></cp-mode>'}\n  <cp-output format="json"><output hidden></output></cp-output>\n</cp-provider>`;
 }
 function baseThemeExample(
   integration: Integration,
   variant: ThemeVariant,
+  selection: TokenSelection,
 ): string {
   if (variant === 'custom') return customThemeExample(integration);
   const pkg = packageFor('theme-kit', integration),
-    view = variant === 'rectangle' ? 'area' : 'shared-wheel';
-  const components =
+    view = variant === 'rectangle' || variant === 'geometry' ? 'area' : 'wheel';
+  let components =
     variant === 'presets'
       ? ['ThemeSelect', 'ThemeMode']
       : [
@@ -189,6 +230,7 @@ function baseThemeExample(
           'ThemeBorderWidth',
           'ThemeMode',
           'ThemeExport',
+          'ThemePalette',
         ];
   const modes = ['system', 'light', 'dark']
     .map(
@@ -196,19 +238,43 @@ function baseThemeExample(
         `<ThemeMode value="${mode}">${mode[0].toUpperCase() + mode.slice(1)}</ThemeMode>`,
     )
     .join('\n    ');
+  const fixedPicker = `<ThemePicker view="${variant === 'shared' ? 'shared-wheel' : view}" roles={${JSON.stringify(selection.roles ?? ['primary']).replaceAll('\"', "'")}} controls={false} />`;
+  const geometry = [
+    ...(selection.radius ?? []).map(
+      (target) => `<ThemeRadius target="${target}" />`,
+    ),
+    ...(selection.width ?? []).map(
+      (target) => `<ThemeBorderWidth target="${target}" />`,
+    ),
+  ].join('\n    ');
+  const exportPart = '<ThemeExport selection={selection} />';
   const parts =
     variant === 'presets'
-      ? `<ThemeSelect themes={themes} />\n    ${modes}`
-      : `<ThemeName />\n    <ThemeSelect themes={themes} />\n    <ThemePicker view="${view}"${variant === 'single' ? " roles={['primary']}" : ''} />\n    <ThemeHarmony /><ThemeBackground />\n    <ThemeRadius target="card" /><ThemeBorderWidth target="card" />\n    ${modes}\n    <ThemeExport${variant === 'single' ? ' format="css" selection={{ roles: [\'primary\'] }}' : ''} />`;
+      ? `<ThemeSelect themes={themes} />\n    ${modes}\n    ${['primary', 'secondary', 'accent'].map((role) => `<ThemePalette role="${role}" shape="joined" />`).join('\n    ')}`
+      : `<ThemeName />\n    ${variant === 'shared' || variant === 'rectangle' || variant === 'disabled' ? '<ThemeSelect themes={themes} />' : ''}\n    ${fixedPicker}\n    ${variant === 'shared' || variant === 'rectangle' ? '<ThemeHarmony />' : ''}\n    ${selection.background ? '<ThemeBackground />' : ''}\n    ${geometry}\n    ${variant === 'single' || selection.modes?.length === 1 ? '' : modes}\n    ${(selection.roles ?? ['primary']).map((role) => `<ThemePalette role="${role}" shape="joined" />`).join('\n    ')}\n    ${exportPart}`;
+  components = [
+    ...new Set(
+      (parts.match(/<Theme[A-Z]\w+/g) ?? []).map((tag) => tag.slice(1)),
+    ),
+  ];
   const helpers = 'generateTheme, browserModeStorage';
   const css = `import '${pkg}/styles.css';`;
-  const setup = `const themes = [generateTheme('#5268E0', { name: 'Indigo' }), generateTheme('#277D59', { name: 'Forest' }), generateTheme('#C25D3D', { name: 'Terracotta' })];`;
+  const setup = `const selection = ${JSON.stringify(selection)} as const;\nconst themes = [generateTheme('#5268E0', { name: 'Indigo' }), generateTheme('#277D59', { name: 'Forest' }), generateTheme('#C25D3D', { name: 'Terracotta' })];`;
   if (integration === 'React')
-    return `import { ThemeProvider, ${components.join(', ')}, ${helpers} } from '${pkg}';\n${css}\n\n${setup}\nexport function ThemeExample() {\n  return <ThemeProvider theme={themes[0]} mode="system"\n    modeStorage={browserModeStorage('app:mode')}>\n    ${parts}\n    <section className="app-preview">Your application content</section>\n  </ThemeProvider>;\n}\n/* .app-preview { background: hsl(var(--background)); color: hsl(var(--foreground)); } */`;
+    return `import { ThemeProvider, ${components.join(', ')}, ${helpers} } from '${pkg}';\n${css}\n\n${setup}\nexport function ThemeExample() {\n  return <ThemeProvider theme={themes[0]} selection={selection} mode="system"\n    modeStorage={browserModeStorage('app:mode')}>\n    ${parts}\n    <section className="app-preview">Your application content</section>\n  </ThemeProvider>;\n}\n/* .app-preview { background: hsl(var(--background)); color: hsl(var(--foreground)); } */`;
   if (integration === 'Svelte')
-    return `<script lang="ts">\n  import { ThemeProvider, ${components.join(', ')}, ${helpers} } from '${pkg}';\n  ${css}\n  ${setup}\n</script>\n\n<ThemeProvider options={{ theme: themes[0], mode: 'system',\n  modeStorage: browserModeStorage('app:mode') }}>\n    ${parts.replace('themes={themes}', '{themes}').replace(/<ThemeMode value="(system|light|dark)">([^<]+)<\/ThemeMode>/g, '<ThemeMode value="$1">{#snippet children()}$2{/snippet}</ThemeMode>')}\n    <section class="app-preview">Your application content</section>\n</ThemeProvider>\n<style>\n  .app-preview { background: hsl(var(--background)); color: hsl(var(--foreground)); }\n</style>`;
+    return `<script lang="ts">\n  import { ThemeProvider, ${components.join(', ')}, ${helpers} } from '${pkg}';\n  ${css}\n  ${setup}\n</script>\n\n<ThemeProvider options={{ theme: themes[0], selection, mode: 'system',\n  modeStorage: browserModeStorage('app:mode') }}>\n    ${parts.replace('themes={themes}', '{themes}').replace(/<ThemeMode value="(system|light|dark)">([^<]+)<\/ThemeMode>/g, '<ThemeMode value="$1">{#snippet children()}$2{/snippet}</ThemeMode>')}\n    <section class="app-preview">Your application content</section>\n</ThemeProvider>\n<style>\n  .app-preview { background: hsl(var(--background)); color: hsl(var(--foreground)); }\n</style>`;
   if (integration === 'Vue')
-    return `<script setup lang="ts">\nimport { ThemeProvider, ${components.join(', ')}, ${helpers} } from '${pkg}';\n${css}\n${setup}\n</script>\n<template>\n  <ThemeProvider :options="{ theme: themes[0], mode: 'system',\n    modeStorage: browserModeStorage('app:mode') }">\n    ${parts.replace('themes={themes}', ':themes="themes"').replace("roles={['primary']}", ':roles="[\'primary\']"').replace("selection={{ roles: ['primary'] }}", ':selection="{ roles: [\'primary\'] }"')}\n    <section class="app-preview">Your application content</section>\n  </ThemeProvider>\n</template>\n<style>\n.app-preview { background: hsl(var(--background)); color: hsl(var(--foreground)); }\n</style>`;
+    return `<script setup lang="ts">\nimport { ThemeProvider, ${components.join(', ')}, ${helpers} } from '${pkg}';\n${css}\n${setup}\n</script>\n<template>\n  <ThemeProvider :options="{ theme: themes[0], selection, mode: 'system',\n    modeStorage: browserModeStorage('app:mode') }">\n    ${parts
+      .replace('themes={themes}', ':themes="themes"')
+      .replace(/roles=\{([^}]+)\}/g, ':roles="$1"')
+      .replace('controls={false}', ':controls="false"')
+      .replace('selection={selection}', ':selection="selection"')
+      .replace("roles={['primary']}", ':roles="[\'primary\']"')
+      .replace(
+        "selection={{ roles: ['primary'] }}",
+        ':selection="{ roles: [\'primary\'] }"',
+      )}\n    <section class="app-preview">Your application content</section>\n  </ThemeProvider>\n</template>\n<style>\n.app-preview { background: hsl(var(--background)); color: hsl(var(--foreground)); }\n</style>`;
   const tags: Record<string, string> = {
     ThemeName: 'tk-name',
     ThemePicker: 'tk-picker',
@@ -219,21 +285,37 @@ function baseThemeExample(
     ThemeMode: 'tk-mode',
     ThemeExport: 'tk-export',
     ThemeSelect: 'tk-select',
+    ThemePalette: 'tk-palette',
   };
   const angular = parts
     .replace(/Theme\w+/g, (v) => tags[v] ?? v)
     .replace('themes={themes}', '[themes]="themes"')
+    .replace(/roles=\{([^}]+)\}/g, '[roles]="$1"')
+    .replace('controls={false}', '[controls]="false"')
+    .replace('selection={selection}', '[selection]="selection"')
     .replace("roles={['primary']}", '[roles]="[\'primary\']"')
     .replace(
       "selection={{ roles: ['primary'] }}",
       '[selection]="{ roles: [\'primary\'] }"',
     );
   if (integration === 'Angular')
-    return `import { Component } from '@angular/core';\nimport { ThemeProvider, ${components.join(', ')}, ${helpers} } from '${pkg}';\n\n@Component({ selector: 'app-theme', standalone: true,\n  imports: [ThemeProvider, ${components.join(', ')}],\n  template: \`<tk-provider [options]="options">\n    ${angular.replace(/<tk-mode value="(system|light|dark)">([^<]+)<\/tk-mode>/g, '<tk-mode value="$1"><ng-template>$2</ng-template></tk-mode>')}\n    <section class="app-preview">Your application content</section>\n  </tk-provider>\`,\n})\nexport class ThemeExample {\n  readonly themes = [generateTheme('#5268E0', { name: 'Indigo' }), generateTheme('#277D59', { name: 'Forest' }), generateTheme('#C25D3D', { name: 'Terracotta' })];\n  readonly options = { theme: this.themes[0], mode: 'system' as const,\n    modeStorage: browserModeStorage('app:mode') };\n}\n/* Global stylesheet: */\n@import '${pkg}/styles.css';\n.app-preview { background: hsl(var(--background)); color: hsl(var(--foreground)); }`;
+    return `import { Component } from '@angular/core';\nimport { ThemeProvider, ${components.join(', ')}, ${helpers} } from '${pkg}';\n\n@Component({ selector: 'app-theme', standalone: true,\n  imports: [ThemeProvider, ${components.join(', ')}],\n  template: \`<tk-provider [options]="options">\n    ${angular.replace(/<tk-mode value="(system|light|dark)">([^<]+)<\/tk-mode>/g, '<tk-mode value="$1"><ng-template>$2</ng-template></tk-mode>')}\n    <section class="app-preview">Your application content</section>\n  </tk-provider>\`,\n})\nexport class ThemeExample {\n  readonly selection = ${JSON.stringify(selection)} as const;\n  readonly themes = [generateTheme('#5268E0', { name: 'Indigo' }), generateTheme('#277D59', { name: 'Forest' }), generateTheme('#C25D3D', { name: 'Terracotta' })];\n  readonly options = { theme: this.themes[0], selection: this.selection, mode: 'system' as const,\n    modeStorage: browserModeStorage('app:mode') };\n}\n/* Global stylesheet: */\n@import '${pkg}/styles.css';\n.app-preview { background: hsl(var(--background)); color: hsl(var(--foreground)); }`;
   if (integration === 'Astro')
-    return `---\nimport { generateTheme } from '${pkg}';\n${['ThemeProvider', ...components].map((c) => `import ${c} from '${pkg}/${c}.astro';`).join('\n')}\n${css}\n${setup}\nconst theme = themes[0];\n---\n<ThemeProvider {theme} mode="system" modeStorageKey="app:mode">\n    ${parts.replace('<ThemeSelect ', '<ThemeSelect {theme} ').replace('<ThemeName />', '<ThemeName {theme} />').replace('<ThemePicker ', '<ThemePicker {theme} ').replace('<ThemeHarmony />', '<ThemeHarmony {theme} />').replace('<ThemeBackground />', '<ThemeBackground {theme} />').replace('<ThemeRadius ', '<ThemeRadius {theme} ').replace('<ThemeBorderWidth ', '<ThemeBorderWidth {theme} ').replace('<ThemeExport', '<ThemeExport {theme}')}\n    <section class="app-preview">Your application content</section>\n</ThemeProvider>\n<style>.app-preview { background: hsl(var(--background)); color: hsl(var(--foreground)); }</style>`;
-  const markup = nativeThemeMarkup(variant);
-  const init = `const options = { theme: ThemeKit.generateTheme('#5268E0', { name: 'Indigo' }), mode: 'system',
+    return `---\nimport { generateTheme } from '${pkg}';\n${['ThemeProvider', ...components].map((c) => `import ${c} from '${pkg}/${c}.astro';`).join('\n')}\n${css}\n${setup}\nconst theme = themes[0];\n---\n<ThemeProvider {theme} {selection} mode="system" modeStorageKey="app:mode">\n    ${parts
+      .replace('<ThemeSelect ', '<ThemeSelect {theme} ')
+      .replace('<ThemeName />', '<ThemeName {theme} />')
+      .replace('<ThemePicker ', '<ThemePicker {theme} ')
+      .replace('<ThemeHarmony />', '<ThemeHarmony {theme} />')
+      .replace('<ThemeBackground />', '<ThemeBackground {theme} />')
+      .replace('<ThemeRadius ', '<ThemeRadius {theme} ')
+      .replace('<ThemeBorderWidth ', '<ThemeBorderWidth {theme} ')
+      .replaceAll('<ThemePalette ', '<ThemePalette {theme} ')
+      .replace(
+        '<ThemeExport',
+        `<ThemeExport {theme} mode="${selection.modes?.length === 1 ? selection.modes[0] : 'light'}"`,
+      )}\n    <section class="app-preview">Your application content</section>\n</ThemeProvider>\n<style>.app-preview { background: hsl(var(--background)); color: hsl(var(--foreground)); }</style>`;
+  const markup = nativeThemeMarkup(variant, selection);
+  const init = `const options = { theme: ThemeKit.generateTheme('#5268E0', { name: 'Indigo' }), selection: ${JSON.stringify(selection)}, mode: 'system',
   modeStorage: ThemeKit.browserModeStorage('app:mode') };
 const provider = document.querySelector('tk-provider');
 provider.setStore(ThemeKit.createThemeStore(options), options);
@@ -338,11 +420,45 @@ export function colorExample(
   variant: ColorVariant,
   settings = defaultCustom,
 ) {
-  const source = withColorLayout(
-    baseColorExample(integration, variant),
+  let source = withColorLayout(
+    baseColorExample(
+      integration,
+      variant === 'disabled' ? 'rectangle' : variant,
+    ),
     integration,
   );
+  if (variant === 'disabled') return disableExample(source, integration, false);
   if (variant !== 'custom') return source;
+  if (integration === 'React')
+    source = source.replace(
+      '<ColorMode />',
+      '<ColorMode>{format => <span>Change {format.toUpperCase()} format</span>}</ColorMode>',
+    );
+  if (integration === 'Svelte')
+    source = source.replace(
+      '<ColorMode />',
+      '<ColorMode>{#snippet children(format)}<span>Change {format.toUpperCase()} format</span>{/snippet}</ColorMode>',
+    );
+  if (integration === 'Vue')
+    source = source.replace(
+      '<ColorMode />',
+      '<ColorMode v-slot="{ format }"><span>Change {{ format.toUpperCase() }} format</span></ColorMode>',
+    );
+  if (integration === 'Angular')
+    source = source.replace(
+      '<cp-mode />',
+      '<cp-mode><ng-template let-format><span>Change {{ format.toUpperCase() }} format</span></ng-template></cp-mode>',
+    );
+  if (integration === 'Astro')
+    source = source.replace(
+      '<ColorMode />',
+      '<ColorMode><span>Change <span data-color-format>HEX</span> format</span></ColorMode>',
+    );
+  if (integration === 'Vanilla')
+    source = source.replace(
+      '<cp-mode><button type="button">Switch format</button></cp-mode>',
+      '<cp-mode data-custom><button type="button"><span>Change <span data-color-format>HEX</span> format</span></button></cp-mode>',
+    );
   const text = settings.text
     .replace(/&/g, '&amp;')
     .replace(/"/g, '&quot;')
@@ -367,7 +483,7 @@ export function colorExample(
     );
 }
 export function customThemeMarkup() {
-  return `<div class="custom-theme">\n  <h3 class="generator-title">Brand color</h3>\n  <label>Theme title<input data-tk-name maxlength="200"></label>\n  <cp-provider data-theme-generator data-role="primary" class="picker-parts">\n    <cp-area><div class="cp-area" data-area data-cp-part="surface" tabindex="0" role="group" aria-label="Brand color"><span data-cp-part="thumb"><span data-cp-part="thumb-text">B</span></span></div></cp-area>\n    <cp-slider channel="h"><label class="cp-slider" data-channel="h">Color tone<input type="range" min="0" max="359"></label></cp-slider>\n    <cp-input></cp-input>\n  </cp-provider>\n  <div class="custom-mode-bar">\n    <button type="button" data-tk-mode="system">Use device</button>\n    <button type="button" data-tk-mode="light">Day</button>\n    <button type="button" data-tk-mode="dark">Night</button>\n  </div>\n</div>`;
+  return `<div class="custom-theme">\n  <h3 class="generator-title">Brand color</h3>\n  <label>Theme title<input data-tk-name maxlength="200"></label>\n  <cp-provider data-theme-generator data-role="primary" class="picker-parts">\n    <cp-area><div class="cp-area" data-area data-cp-part="surface" tabindex="0" role="group" aria-label="Brand color"><span data-cp-part="thumb"><span data-cp-part="thumb-text">B</span></span></div></cp-area>\n    <cp-slider channel="h"><label class="cp-slider" data-channel="h">Color tone<input type="range" min="0" max="359"></label></cp-slider>\n    <cp-input></cp-input>\n  </cp-provider>\n  <div class="custom-mode-bar">\n    <button type="button" data-tk-mode="system">Use device</button>\n    <button type="button" data-tk-mode="light">Day</button>\n    <button type="button" data-tk-mode="dark">Night</button>\n  </div>\n  ${themePaletteMarkup('primary', { shape: 'joined' })}\n</div>`;
 }
 function customThemeExample(i: Integration) {
   const pkg = packageFor('theme-kit', i),
@@ -377,8 +493,8 @@ function customThemeExample(i: Integration) {
     { ...defaultCustom, text: 'B', size: 26 },
     '.custom-theme',
   );
-  const body = `<ThemeName label="Theme title" />\n    <h3>Brand color</h3>\n    <ThemeGenerator role="primary">\n      <ColorArea thumbText="B" classes={{ root: 'brand-surface', thumb: 'brand-thumb' }} />\n      <ColorSlider channel="h" label="Color tone" /><ColorInput />\n    </ThemeGenerator>\n    <ThemeMode value="system">Use device</ThemeMode>\n    <ThemeMode value="light">Day</ThemeMode>\n    <ThemeMode value="dark">Night</ThemeMode>`;
-  const imports = `ThemeProvider, ThemeGenerator, ThemeName, ThemeMode, generateTheme`;
+  const body = `<ThemeName label="Theme title" />\n    <h3>Brand color</h3>\n    <ThemeGenerator role="primary">\n      <ColorArea thumbText="B" classes={{ root: 'brand-surface', thumb: 'brand-thumb' }} />\n      <ColorSlider channel="h" label="Color tone" /><ColorInput />\n    </ThemeGenerator>\n    <ThemeMode value="system">Use device</ThemeMode>\n    <ThemeMode value="light">Day</ThemeMode>\n    <ThemeMode value="dark">Night</ThemeMode>\n    <ThemePalette role="primary" shape="joined" />`;
+  const imports = `ThemeProvider, ThemeGenerator, ThemeName, ThemeMode, ThemePalette, generateTheme`;
   const cpImports = `ColorArea, ColorSlider, ColorInput`;
   if (i === 'React')
     return `import { ${imports} } from '${pkg}';\nimport { ${cpImports} } from '${cp}';\n${css}\n\nexport function CustomGenerator() {\n  return <ThemeProvider theme={generateTheme('#5268E0')} modeStorage={false}>\n  <div className="custom-theme">\n    ${body}\n  </div>\n  </ThemeProvider>;\n}\n/* Global stylesheet */\n${style}`;
@@ -390,9 +506,9 @@ function customThemeExample(i: Integration) {
   if (i === 'Vue')
     return `<script setup lang="ts">\nimport { ${imports} } from '${pkg}';\nimport { ${cpImports} } from '${cp}';\n${css}\n</script>\n<template>\n<ThemeProvider :options="{ theme: generateTheme('#5268E0'), modeStorage: false }">\n  <div class="custom-theme">\n    ${body.replace("classes={{ root: 'brand-surface', thumb: 'brand-thumb' }}", ":classes=\"{ root: 'brand-surface', thumb: 'brand-thumb' }\"")}\n  </div>\n</ThemeProvider>\n</template>\n<style>\n${style}\n</style>`;
   if (i === 'Angular')
-    return `import { Component } from '@angular/core';\nimport { ${imports} } from '${pkg}';\nimport { ${cpImports} } from '${cp}';\n@Component({ selector: 'app-custom-theme', standalone: true,\n  imports: [ThemeProvider, ThemeGenerator, ThemeName, ThemeMode, ${cpImports}],\n  template: \`<tk-provider [options]="options"><div class="custom-theme">\n    <tk-name label="Theme title" /><h3>Brand color</h3>\n    <tk-generator role="primary" [custom]="true">\n      <cp-area thumbText="B" [classes]="{ root: 'brand-surface', thumb: 'brand-thumb' }" />\n      <cp-slider channel="h" label="Color tone" /><cp-input />\n    </tk-generator>\n    <tk-mode value="system"><ng-template>Use device</ng-template></tk-mode>\n    <tk-mode value="light"><ng-template>Day</ng-template></tk-mode>\n    <tk-mode value="dark"><ng-template>Night</ng-template></tk-mode>\n  </div></tk-provider>\` })\nexport class CustomGenerator {\n readonly options = {theme: generateTheme('#5268E0'), modeStorage: false as const};\n}\n/* Global stylesheet */\n@import '${pkg}/styles.css';\n${style}`;
+    return `import { Component } from '@angular/core';\nimport { ${imports} } from '${pkg}';\nimport { ${cpImports} } from '${cp}';\n@Component({ selector: 'app-custom-theme', standalone: true,\n  imports: [ThemeProvider, ThemeGenerator, ThemeName, ThemeMode, ThemePalette, ${cpImports}],\n  template: \`<tk-provider [options]="options"><div class="custom-theme">\n    <tk-name label="Theme title" /><h3>Brand color</h3>\n    <tk-generator role="primary" [custom]="true">\n      <cp-area thumbText="B" [classes]="{ root: 'brand-surface', thumb: 'brand-thumb' }" />\n      <cp-slider channel="h" label="Color tone" /><cp-input />\n    </tk-generator>\n    <tk-mode value="system"><ng-template>Use device</ng-template></tk-mode>\n    <tk-mode value="light"><ng-template>Day</ng-template></tk-mode>\n    <tk-mode value="dark"><ng-template>Night</ng-template></tk-mode>\n    <tk-palette role="primary" shape="joined" />\n  </div></tk-provider>\` })\nexport class CustomGenerator {\n readonly options = {theme: generateTheme('#5268E0'), modeStorage: false as const};\n}\n/* Global stylesheet */\n@import '${pkg}/styles.css';\n${style}`;
   if (i === 'Astro')
-    return `---\nimport { generateTheme } from '${pkg}';\n${['ThemeProvider', 'ThemeGenerator', 'ThemeName', 'ThemeMode'].map((c) => `import ${c} from '${pkg}/${c}.astro';`).join('\n')}\n${['ColorArea', 'ColorSlider', 'ColorInput'].map((c) => `import ${c} from '${cp}/${c}.astro';`).join('\n')}\n${css}\nconst theme=generateTheme('#5268E0');\n---\n<ThemeProvider {theme} modeStorage={false}>\n <div class="custom-theme">\n  <ThemeName {theme} label="Theme title" /><h3>Brand color</h3>\n  <ThemeGenerator {theme} role="primary">\n   <ColorArea value="#5268E0" thumbText="B" />\n   <ColorSlider channel="h" label="Color tone" /><ColorInput value="#5268E0" />\n  </ThemeGenerator>\n  <ThemeMode value="system">Use device</ThemeMode>\n  <ThemeMode value="light">Day</ThemeMode>\n  <ThemeMode value="dark">Night</ThemeMode>\n </div>\n</ThemeProvider>\n<style is:global>\n${style}\n</style>`;
+    return `---\nimport { generateTheme } from '${pkg}';\n${['ThemeProvider', 'ThemeGenerator', 'ThemeName', 'ThemeMode', 'ThemePalette'].map((c) => `import ${c} from '${pkg}/${c}.astro';`).join('\n')}\n${['ColorArea', 'ColorSlider', 'ColorInput'].map((c) => `import ${c} from '${cp}/${c}.astro';`).join('\n')}\n${css}\nconst theme=generateTheme('#5268E0');\n---\n<ThemeProvider {theme} modeStorage={false}>\n <div class="custom-theme">\n  <ThemeName {theme} label="Theme title" /><h3>Brand color</h3>\n  <ThemeGenerator {theme} role="primary">\n   <ColorArea value="#5268E0" thumbText="B" />\n   <ColorSlider channel="h" label="Color tone" /><ColorInput value="#5268E0" />\n  </ThemeGenerator>\n  <ThemeMode value="system">Use device</ThemeMode>\n  <ThemeMode value="light">Day</ThemeMode>\n  <ThemeMode value="dark">Night</ThemeMode>\n </div>\n</ThemeProvider>\n<style is:global>\n${style}\n</style>`;
   const markup = `<tk-provider class="tk-scope" data-config='{"mode":"system","modeStorage":false}'>\n${customThemeMarkup()}\n</tk-provider>`;
   return `<link rel="stylesheet" href="/assets/theme-kit.css">
 <link rel="stylesheet" href="/assets/color-picker.css">
@@ -412,10 +528,13 @@ export function themeExample(
   integration: Integration,
   variant: ThemeVariant,
   settings: CustomSettings = { ...defaultCustom, text: 'B', size: 26 },
+  selection: TokenSelection = themeExampleSelection(variant),
 ) {
+  if (variant === 'palette') return paletteExample(integration);
   let source = withApplicationPreview(
-    baseThemeExample(integration, variant),
+    baseThemeExample(integration, variant, selection),
     integration,
+    selection.roles,
   );
   if (variant !== 'presets' && variant !== 'custom')
     source = source
@@ -428,6 +547,16 @@ export function themeExample(
       .replace('modeStorageKey="app:mode"', 'modeStorage={false}')
       .replaceAll('mode="system"', 'mode="light"')
       .replaceAll("mode: 'system'", "mode: 'light'");
+  if (variant === 'disabled')
+    source = disableExample(source, integration, true);
+  if (
+    variant === 'geometry' &&
+    selection.modes?.length === 1 &&
+    selection.modes[0] === 'dark'
+  )
+    source = source
+      .replaceAll('mode="light"', 'mode="dark"')
+      .replaceAll("mode: 'light'", "mode: 'dark'");
   if (variant !== 'custom') return source;
   const text = settings.text
     .replace(/&/g, '&amp;')
@@ -462,10 +591,34 @@ export function themeExample(
       ' :global(button[aria-pressed="true"])',
     );
 }
-function nativeThemeMarkup(variant: ThemeVariant) {
+export function themeExampleSelection(variant: ThemeVariant): TokenSelection {
+  if (variant === 'single' || variant === 'custom')
+    return { roles: ['primary'] };
+  if (variant === 'geometry')
+    return {
+      roles: ['primary'],
+      radius: ['card'],
+      width: ['button'],
+      modes: ['light'],
+    };
+  return {
+    roles: ['primary', 'secondary', 'accent'],
+    radius: ['card'],
+    width: ['card'],
+    background: true,
+    modes: ['light', 'dark'],
+  };
+}
+function nativeThemeMarkup(variant: ThemeVariant, selection: TokenSelection) {
   const options = {
-    view: variant === 'rectangle' ? 'area' : 'shared-wheel',
-    ...(variant === 'single' ? { roles: ['primary'] } : {}),
+    view:
+      variant === 'rectangle' || variant === 'geometry'
+        ? 'area'
+        : variant === 'single'
+          ? 'wheel'
+          : 'shared-wheel',
+    roles: selection.roles,
+    controls: false,
   };
   const picker = themePickerMarkup.replace(
     '<tk-picker>',
@@ -477,7 +630,17 @@ function nativeThemeMarkup(variant: ThemeVariant) {
     generateTheme('#C25D3D', { name: 'Terracotta' }),
   ];
   const presets = `<tk-select data-themes='${JSON.stringify(themes)}'><label class="cp-format">Theme<select><option value="" disabled>Custom theme</option>${themes.map((t) => `<option value="${t.id}">${t.name}</option>`).join('')}</select></label></tk-select>`;
-  return `<tk-provider class="tk-scope" data-config='{"mode":"system","modeStorage":false}'>\n  <div class="mode-buttons"><button data-tk-mode="system">System</button><button data-tk-mode="light">Light</button><button data-tk-mode="dark">Dark</button></div>\n  ${variant === 'presets' ? presets : `<label>Theme name<input data-tk-name maxlength="200"></label>\n  ${presets}\n  ${picker}\n  <label>Harmony<select data-tk-harmony><option value="analogous">Analogous</option><option value="triadic">Triadic</option><option value="split-complementary">Split complementary</option></select></label><button data-tk-generate-harmony>Generate accent &amp; secondary</button>\n  <label>Card radius (rem)<input type="number" min="0" step=".125" data-tk-border="radius" data-target="card"></label>\n  <label>Card border (px)<input type="number" min="0" step="1" data-tk-border="width" data-target="card"></label>\n  <label><input type="checkbox" data-tk-background>Tint background with primary</label>`}\n  <tk-export${variant === 'single' ? ` data-selection='{"roles":["primary"]}'` : ''} format="${variant === 'single' ? 'css' : 'json'}"><pre></pre></tk-export>\n</tk-provider>`;
+  const geometry = [
+    ...(selection.radius ?? []).map(
+      (target) =>
+        `<label>${target} radius (rem)<input type="number" min="0" max="1000" step=".125" data-tk-border="radius" data-target="${target}"></label>`,
+    ),
+    ...(selection.width ?? []).map(
+      (target) =>
+        `<label>${target} border width (px)<input type="number" min="0" max="1000" step="1" data-tk-border="width" data-target="${target}"></label>`,
+    ),
+  ].join('\n  ');
+  return `<tk-provider class="tk-scope" data-config='${JSON.stringify({ mode: 'light', modeStorage: false, selection })}'>\n  ${variant === 'single' || selection.modes?.length === 1 ? '' : '<div class="mode-buttons"><button data-tk-mode="system">System</button><button data-tk-mode="light">Light</button><button data-tk-mode="dark">Dark</button></div>'}\n  ${variant === 'presets' ? presets : `<label>Theme name<input data-tk-name maxlength="200"></label>\n  ${picker}\n  ${variant === 'shared' || variant === 'rectangle' ? '<label>Harmony<select data-tk-harmony><option value="analogous">Analogous</option><option value="triadic">Triadic</option><option value="split-complementary">Split complementary</option></select></label><button data-tk-generate-harmony>Generate accent &amp; secondary</button>' : ''}\n  ${geometry}\n  ${selection.background ? '<label><input type="checkbox" data-tk-background>Tint background with primary</label>' : ''}`}\n  <tk-export format="json"><pre></pre></tk-export>\n</tk-provider>`;
 }
 export function modeExample(integration: Integration) {
   const pkg = packageFor('theme-kit', integration);
@@ -556,13 +719,14 @@ const applicationStyles = `.app-preview { display: grid; gap: 16px; padding: 24p
 .app-actions button { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); padding: 10px 16px; border: 0; border-radius: var(--border-radius-button); }
 .app-actions .secondary { background: hsl(var(--secondary)); color: hsl(var(--secondary-foreground)); }
 .app-preview aside { background: hsl(var(--accent)); color: hsl(var(--accent-foreground)); padding: 16px; border-radius: var(--border-radius-card); }`;
-function withApplicationPreview(source: string, integration: Integration) {
+function withApplicationPreview(source: string, integration: Integration, roles: readonly string[] = ['primary', 'secondary', 'accent']) {
+  const markup = roles.includes('accent') ? applicationContent : applicationContent.replace('<aside>Accent surface</aside>', '');
   const content =
     integration === 'React'
-      ? applicationContent
+      ? markup
           .replaceAll('class=', 'className=')
           .replace('input value=', 'input defaultValue=')
-      : applicationContent;
+      : markup;
   let result = source.replace('Your application content', content);
   if (!result.includes('app-preview')) {
     const close =
@@ -613,4 +777,77 @@ export function loaderExample(integration: Integration) {
       : source,
     integration,
   );
+}
+
+function disableExample(
+  source: string,
+  integration: Integration,
+  theme: boolean,
+) {
+  if (!theme) {
+    if (
+      integration === 'React' ||
+      integration === 'Svelte' ||
+      integration === 'Astro'
+    )
+      return source.replace('<ColorProvider ', '<ColorProvider disabled ');
+    if (integration === 'Vue')
+      return source.replace(
+        '<ColorProvider ',
+        '<ColorProvider :disabled="true" ',
+      );
+    if (integration === 'Angular')
+      return source.replace('<cp-provider ', '<cp-provider [disabled]="true" ');
+    return source.replace('<cp-provider ', '<cp-provider disabled ');
+  }
+  if (integration === 'React' || integration === 'Astro')
+    return source.replace('<ThemeProvider ', '<ThemeProvider disabled ');
+  return source
+    .replace('theme: themes[0]', 'disabled: true, theme: themes[0]')
+    .replace('theme: this.themes[0]', 'disabled: true, theme: this.themes[0]')
+    .replace(
+      'theme: ThemeKit.generateTheme(',
+      'disabled: true, theme: ThemeKit.generateTheme(',
+    );
+}
+export interface SwatchSettings {
+  shape: 'square' | 'circle' | 'joined';
+  label: string;
+  gap: number;
+  size: number;
+}
+export const defaultSwatch: SwatchSettings = {
+  shape: 'joined',
+  label: '500',
+  gap: 4,
+  size: 48,
+};
+export function paletteStyle(settings: SwatchSettings) {
+  return `.brand-palette { --tk-palette-gap: ${settings.gap}px; --tk-swatch-height: ${settings.size}px; --tk-swatch-radius: 10px; }\n.brand-shade-label { font-size: 11px; font-weight: 600; }\n.brand-shade { outline: 1px solid rgb(0 0 0 / 8%); outline-offset: -1px; }`;
+}
+export function paletteExample(
+  i: Integration,
+  settings: SwatchSettings = defaultSwatch,
+) {
+  const pkg = packageFor('theme-kit', i);
+  const classes =
+    "{ root: 'brand-palette', label: 'brand-shade-label', swatch: 'brand-shade' }";
+  const labels = JSON.stringify({ 500: settings.label }).replaceAll(
+    '<',
+    '\\u003c',
+  );
+  const setup = `const classes = ${classes};\nconst labels = ${labels};`;
+  const props = `role="primary" shape="${settings.shape}" classes={classes} labels={labels}`;
+  const css = paletteStyle(settings);
+  if (i === 'React')
+    return `import { ThemeProvider, ThemePalette, generateTheme } from '${pkg}';\nimport '${pkg}/styles.css';\n${setup}\nexport function Shades() {\n  return <ThemeProvider theme={generateTheme('#5268E0')}><ThemePalette ${props} /></ThemeProvider>;\n}\n/* Global stylesheet */\n${css}`;
+  if (i === 'Svelte')
+    return `<script lang="ts">\nimport { ThemeProvider, ThemePalette, generateTheme } from '${pkg}';\nimport '${pkg}/styles.css';\n${setup}\n</script>\n<ThemeProvider options={{ theme: generateTheme('#5268E0') }}><ThemePalette ${props} /></ThemeProvider>\n<style>\n${css.replace('.brand-palette', ':global(.brand-palette)').replace('.brand-shade-label', ':global(.brand-shade-label)').replace('.brand-shade {', ':global(.brand-shade) {')}\n</style>`;
+  if (i === 'Vue')
+    return `<script setup lang="ts">\nimport { ThemeProvider, ThemePalette, generateTheme } from '${pkg}';\nimport '${pkg}/styles.css';\n${setup}\n</script>\n<template><ThemeProvider :options="{ theme: generateTheme('#5268E0') }"><ThemePalette role="primary" shape="${settings.shape}" :classes="classes" :labels="labels" /></ThemeProvider></template>\n<style>\n${css}\n</style>`;
+  if (i === 'Angular')
+    return `import { Component } from '@angular/core';\nimport { ThemeProvider, ThemePalette, generateTheme } from '${pkg}';\n@Component({ selector: 'app-shades', standalone: true, imports: [ThemeProvider, ThemePalette], template: \`<tk-provider [options]="options"><tk-palette role="primary" shape="${settings.shape}" [classes]="classes" [labels]="labels" /></tk-provider>\` })\nexport class Shades { readonly options = { theme: generateTheme('#5268E0') }; readonly classes = ${classes}; readonly labels = ${labels}; }\n/* Global stylesheet */\n@import '${pkg}/styles.css';\n${css}`;
+  if (i === 'Astro')
+    return `---\nimport { generateTheme } from '${pkg}';\nimport ThemeProvider from '${pkg}/ThemeProvider.astro';\nimport ThemePalette from '${pkg}/ThemePalette.astro';\nimport '${pkg}/styles.css';\nconst theme = generateTheme('#5268E0');\n${setup}\n---\n<ThemeProvider {theme}><ThemePalette {theme} ${props} /></ThemeProvider>\n<style is:global>\n${css}\n</style>`;
+  return `<link rel="stylesheet" href="/assets/theme-kit.css">\n<link rel="stylesheet" href="/assets/color-picker.css">\n<script src="/assets/theme-kit.js"></script>\n<tk-provider class="tk-scope"><div id="palette"></div></tk-provider>\n<script>\n${setup}\nconst provider = document.querySelector('tk-provider');\nprovider.setStore(ThemeKit.createThemeStore({ theme: ThemeKit.generateTheme('#5268E0') }));\ndocument.querySelector('#palette').innerHTML = ThemeKit.themePaletteMarkup('primary', { shape: '${settings.shape}', classes, labels });\n</script>\n<style>\n${css}\n</style>`;
 }

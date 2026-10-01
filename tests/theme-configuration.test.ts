@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import {
   themeConfiguration,
+  mergeThemeConfiguration,
   themeList,
   selectedThemeId,
   generateTheme,
@@ -33,6 +34,133 @@ describe('current configuration and lists', () => {
         themeConfiguration(store.getSnapshot(), { roles: ['accent'] }).tokens,
       ).every((k) => k.startsWith('--accent')),
     ).toBe(true);
+  });
+  it('exports only primary and the active mode, without geometry or sibling palettes', () => {
+    const store = createThemeStore({
+      theme: red,
+      mode: 'system',
+      systemMode: 'dark',
+      selection: { roles: ['primary'], background: true },
+    });
+    const config = themeConfiguration(store.getSnapshot()),
+      saved = JSON.parse(config.json);
+    expect(Object.keys(config.theme.structure.userPreset!)).toEqual([
+      'primary',
+    ]);
+    expect(saved.theme.structure.websitePreset).not.toHaveProperty('border');
+    expect(Object.keys(saved.theme.structure.websitePreset.background)).toEqual(
+      ['dark'],
+    );
+    expect(Object.keys(saved.theme.structure.websitePreset.foreground)).toEqual(
+      ['dark'],
+    );
+    expect(saved.mode).toBe('dark');
+    expect(saved).not.toHaveProperty('systemMode');
+    expect(config.sourceTheme).toBe(store.getSnapshot().theme);
+    expect(
+      mergeThemeConfiguration(green, config.json).structure.userPreset
+        .secondary,
+    ).toEqual(green.structure.userPreset.secondary);
+  });
+  it('keeps exactly two geometry fields in both JSON and CSS and restores them over a base', () => {
+    const store = createThemeStore({
+      theme: red,
+      selection: { roles: [], radius: ['card'], width: ['button'] },
+    });
+    store.setBorder('radius', 'card', 1.5);
+    store.setBorder('width', 'button', 3);
+    const config = themeConfiguration(store.getSnapshot()),
+      saved = JSON.parse(config.json);
+    expect(saved.theme.structure).not.toHaveProperty('userPreset');
+    expect(saved.theme.structure.websitePreset).toEqual({
+      border: { radius: { card: 1.5 }, width: { button: 3 } },
+    });
+    expect(config.tokens).toEqual({
+      '--border-width-button': '3px',
+      '--border-radius-card': '1.5rem',
+    });
+    const restored = mergeThemeConfiguration(green, config.json);
+    expect(restored.structure.websitePreset.border.radius.card).toBe(1.5);
+    expect(restored.structure.websitePreset.border.width.button).toBe(3);
+    expect(restored.structure.websitePreset.border.radius.input).toBe(
+      green.structure.websitePreset.border.radius.input,
+    );
+    expect(restored.structure.userPreset).toEqual(green.structure.userPreset);
+  });
+  it('updates selections without editing the context and exports both modes only when requested', () => {
+    const store = createThemeStore({
+      theme: red,
+      selection: { roles: ['primary'] },
+    });
+    const initial = store.getSnapshot().theme;
+    store.setSelection({
+      roles: ['accent'],
+      background: true,
+      modes: ['light', 'dark'],
+    });
+    const config = themeConfiguration(store.getSnapshot()),
+      saved = JSON.parse(config.json);
+    expect(store.getSnapshot().theme).toBe(initial);
+    expect(Object.keys(saved.theme.structure.userPreset)).toEqual(['accent']);
+    expect(Object.keys(saved.theme.structure.websitePreset.background)).toEqual(
+      ['light', 'dark'],
+    );
+    expect(Object.isFrozen(config.theme.structure.userPreset)).toBe(true);
+    expect(() =>
+      themeConfiguration(store.getSnapshot(), { modes: [] }),
+    ).toThrow();
+    expect(() =>
+      mergeThemeConfiguration(green, {
+        theme: {
+          ...config.theme,
+          structure: { websitePreset: { border: { width: { card: -1 } } } },
+        },
+      }),
+    ).toThrow();
+  });
+  it('tracks mounted editor fields and removes them on unmount without mutating the theme', () => {
+    const store = createThemeStore({ theme: red });
+    const primary = store.registerFields({ roles: ['primary'] });
+    const card = store.registerFields({ roles: [], radius: ['card'] });
+    const button = store.registerFields({ roles: [], width: ['button'] });
+    expect(
+      Object.keys(
+        JSON.parse(themeConfiguration(store.getSnapshot()).json).theme.structure
+          .userPreset,
+      ),
+    ).toEqual(['primary']);
+    expect(themeConfiguration(store.getSnapshot()).tokens).toHaveProperty(
+      '--border-radius-card',
+    );
+    card.destroy();
+    expect(themeConfiguration(store.getSnapshot()).tokens).not.toHaveProperty(
+      '--border-radius-card',
+    );
+    primary.update({ roles: ['accent'] });
+    expect(
+      Object.keys(
+        JSON.parse(themeConfiguration(store.getSnapshot()).json).theme.structure
+          .userPreset,
+      ),
+    ).toEqual(['accent']);
+    button.destroy();
+    primary.destroy();
+    expect(store.getSnapshot().selection).toBeUndefined();
+    expect(store.getSnapshot().theme).toEqual(red);
+    const seeded = createThemeStore({
+      theme: red,
+      selection: { roles: ['primary'] },
+    });
+    seeded.registerFields({ roles: ['secondary'], radius: ['card'] });
+    expect(
+      Object.keys(
+        JSON.parse(themeConfiguration(seeded.getSnapshot()).json).theme
+          .structure.userPreset,
+      ),
+    ).toEqual(['primary']);
+    expect(
+      themeConfiguration(seeded.getSnapshot()).theme.structure,
+    ).not.toHaveProperty('websitePreset');
   });
   it('validates unique lists and identifies edited copies as custom themes', () => {
     expect(themeList([red, green])).toEqual([red, green]);

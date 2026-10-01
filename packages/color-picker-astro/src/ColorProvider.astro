@@ -3,12 +3,13 @@ import type { ColorView } from '@sebytza23/color-picker';
 interface Props {
   view?: ColorView;
   value?: string;
+  disabled?: boolean;
   class?: string;
 }
 const { value = '#6366F1', class: className } = Astro.props;
 ---
 
-<cp-provider value={value} view={Astro.props.view ?? 'area'} class={className}>
+<cp-provider disabled={Astro.props.disabled} aria-disabled={Astro.props.disabled} inert={Astro.props.disabled} value={value} view={Astro.props.view ?? 'area'} class={className}>
   <slot />
 </cp-provider>
 <script>

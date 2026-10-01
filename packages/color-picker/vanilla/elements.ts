@@ -29,6 +29,11 @@ import {
   type ColorStore,
 } from '../core';
 export class ColorProviderElement extends HTMLElement {
+  static observedAttributes = ['disabled'];
+  attributeChangedCallback() {
+    if (this.store) this.store.setDisabled(this.hasAttribute('disabled'));
+  }
+
   store?: ColorStore;
   private unsubscribe?: () => void;
   setStore(store: ColorStore) {
@@ -43,8 +48,43 @@ export class ColorProviderElement extends HTMLElement {
       this.getAttribute('value') ?? '#6366F1',
       'hex',
       (this.getAttribute('view') ?? 'area') as ColorView,
+      this.hasAttribute('disabled'),
     );
-    this.unsubscribe = subscribeColor(this.store, () =>
+    if (this.hasAttribute('disabled')) this.store.setDisabled(true);
+    const updateDisabled = () => {
+      const disabled = this.store!.getSnapshot().disabled;
+      this.toggleAttribute('inert', disabled);
+      this.setAttribute('aria-disabled', String(disabled));
+      this.dataset.disabled = String(disabled);
+      this.querySelectorAll<
+        HTMLInputElement | HTMLSelectElement | HTMLButtonElement
+      >('input, select, button').forEach((control) => {
+        if (control.closest('cp-provider') !== this) return;
+        if (disabled) {
+          if (!control.disabled) {
+            control.dataset.cpDisabled = '';
+            control.disabled = true;
+          }
+        } else if (control.hasAttribute('data-cp-disabled')) {
+          control.disabled = false;
+          delete control.dataset.cpDisabled;
+        }
+      });
+    };
+    let previousDisabled = this.store.getSnapshot().disabled;
+    const states = this.store.subscribe(() => {
+      const disabled = this.store!.getSnapshot().disabled;
+      if (disabled !== previousDisabled) {
+        previousDisabled = disabled;
+        updateDisabled();
+      }
+    });
+    const observer = new this.ownerDocument.defaultView!.MutationObserver(
+      updateDisabled,
+    );
+    observer.observe(this, { childList: true, subtree: true });
+    updateDisabled();
+    const colors = subscribeColor(this.store, () =>
       this.dispatchEvent(
         new CustomEvent('color-change', {
           detail: this.store!.getSnapshot().value,
@@ -52,6 +92,11 @@ export class ColorProviderElement extends HTMLElement {
         }),
       ),
     );
+    this.unsubscribe = () => {
+      states();
+      colors();
+      observer.disconnect();
+    };
     this.dispatchEvent(new Event('color-context'));
   }
   disconnectedCallback() {
@@ -423,11 +468,15 @@ class ColorModeElement extends HTMLElement {
   private cleanup?: () => void;
   connectedCallback() {
     const button = this.querySelector('button')!;
+    const custom = this.hasAttribute('data-custom');
     this.cleanup = connect(
       this,
       (store) => {
         const format = store.getSnapshot().format;
-        button.textContent = `${format.toUpperCase()} ↔`;
+        if (!custom) button.textContent = `${format.toUpperCase()} ↔`;
+        button
+          .querySelectorAll<HTMLElement>('[data-color-format]')
+          .forEach((label) => (label.textContent = format.toUpperCase()));
         button.setAttribute(
           'aria-label',
           `Next color format (${format.toUpperCase()})`,
@@ -543,11 +592,22 @@ export class ColorOutputElement extends HTMLElement {
       this.color = store.getColor();
       const target = this.querySelector('output');
       const format = this.getAttribute('format');
-      if (target) target.textContent = format === 'name' ? this.color.name : format === 'json' ? JSON.stringify(this.color, null, 2) : store.getSnapshot().value;
-      this.dispatchEvent(new CustomEvent('color-values', { detail: this.color, bubbles: true }));
+      if (target)
+        target.textContent =
+          format === 'name'
+            ? this.color.name
+            : format === 'json'
+              ? JSON.stringify(this.color, null, 2)
+              : store.getSnapshot().value;
+      this.dispatchEvent(
+        new CustomEvent('color-values', { detail: this.color, bubbles: true }),
+      );
     });
   }
-  disconnectedCallback() { this.cleanup?.(); this.cleanup = undefined; }
+  disconnectedCallback() {
+    this.cleanup?.();
+    this.cleanup = undefined;
+  }
 }
 for (const [name, element] of [
   ['cp-provider', ColorProviderElement],

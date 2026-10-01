@@ -16,6 +16,11 @@ try {
     assert(a.includes('#EF4444'));
     assert(b.includes('#22C55E'));
     assert(!b.includes('#EF4444'));
+    assert(a.includes('SSR disabled'));
+    assert(a.includes('RGB'));
+    assert(/class="cp-provider-controls"[^>]*disabled/.test(a));
+    assert(a.includes('inert'));
+
     console.log(
       `${framework}: SSR variables, initial picker value and concurrent request isolation passed`,
     );

@@ -1,6 +1,8 @@
 import { JSDOM, VirtualConsole } from 'jsdom';
 const nativeErrors: Error[] = [];
-const virtualConsole = new VirtualConsole().on('jsdomError', error => nativeErrors.push(error));
+const virtualConsole = new VirtualConsole().on('jsdomError', (error) =>
+  nativeErrors.push(error),
+);
 import ts from 'typescript';
 import { compile } from 'svelte/compiler';
 import { parse, compileTemplate } from '@vue/compiler-sfc';
@@ -29,6 +31,9 @@ const {
   modeExample,
   standaloneExample,
   renderingExample,
+  paletteExample,
+  defaultSwatch,
+  defaultCustom,
 } = await import('../examples/docs/snippets');
 const nativeColor = await import('@sebytza23/color-picker-vanilla');
 const nativeTheme = await import('@sebytza23/theme-kit-vanilla');
@@ -43,6 +48,25 @@ for (const integration of integrations) {
     modeExample(integration),
     standaloneExample(integration),
     renderingExample(integration, 'timeout'),
+    themeExample(integration, 'geometry', defaultCustom, {
+      roles: ['primary'],
+      radius: nativeTheme.targets,
+      width: nativeTheme.targets,
+      background: true,
+      modes: ['dark'],
+    }),
+    themeExample(integration, 'geometry', defaultCustom, {
+      roles: ['primary'],
+      radius: ['input', 'card'],
+      width: [],
+      background: true,
+      modes: ['light', 'dark'],
+    }),
+    paletteExample(integration, {
+      ...defaultSwatch,
+      shape: 'circle',
+      label: "Brand's <500>",
+    }),
   ];
   for (const [index, sample] of samples.entries()) {
     const files = sourceFiles(sample, integration);
@@ -106,17 +130,24 @@ for (const integration of integrations) {
           )) {
             new Function(script.textContent ?? '');
           }
-          if (integration === 'Vanilla' && (index < 9 || index === 11)) {
+          if (
+            integration === 'Vanilla' &&
+            doc.window.document.querySelector('tk-provider, cp-provider') &&
+            [...doc.window.document.querySelectorAll('script:not([src])')].some(
+              (script) => script.textContent?.includes('.setStore('),
+            )
+          ) {
             dom.window.document.body.innerHTML =
               doc.window.document.body.innerHTML;
             for (const script of dom.window.document.querySelectorAll(
               'script:not([src])',
             ))
-              new Function('ColorPicker', 'ThemeKit', 'console', script.textContent ?? '')(
-                nativeColor,
-                nativeTheme,
-                { log() {} },
-              );
+              new Function(
+                'ColorPicker',
+                'ThemeKit',
+                'console',
+                script.textContent ?? '',
+              )(nativeColor, nativeTheme, { log() {} });
             const provider = dom.window.document.querySelector(
               'tk-provider, cp-provider',
             ) as (HTMLElement & { store?: { getSnapshot(): unknown } }) | null;

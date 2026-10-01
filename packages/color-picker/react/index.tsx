@@ -59,17 +59,29 @@ export function ColorProvider({
   view = 'area',
   onChange,
   children,
+  disabled,
   store: provided,
 }: {
   value?: string;
+  disabled?: boolean;
   view?: ColorView;
   onChange?: (hex: string) => void;
   children: ReactNode;
   store?: ColorStore;
 }) {
-  const [store] = useState(
-    () => provided ?? createColorStore(value, 'hex', view),
+  const [store] = useState(() => {
+    const initial = provided ?? createColorStore(value, 'hex', view, disabled);
+    if (disabled !== undefined) initial.setDisabled(disabled);
+    return initial;
+  });
+  const state = useSyncExternalStore(
+    store.subscribe,
+    store.getSnapshot,
+    store.getServerSnapshot,
   );
+  useEffect(() => {
+    if (disabled !== undefined) store.setDisabled(disabled);
+  }, [store, disabled]);
   const callback = useRef(onChange);
   callback.current = onChange;
   useEffect(() => {
@@ -79,7 +91,19 @@ export function ColorProvider({
     () => subscribeColor(store, (hex) => callback.current?.(hex)),
     [store],
   );
-  return <Context.Provider value={store}>{children}</Context.Provider>;
+  return (
+    <Context.Provider value={store}>
+      <fieldset
+        className="cp-provider-controls"
+        disabled={state.disabled}
+        {...(state.disabled ? { inert: '' } : {})}
+        aria-disabled={state.disabled}
+        data-disabled={state.disabled}
+      >
+        {children}
+      </fieldset>
+    </Context.Provider>
+  );
 }
 export function ColorArea({
   className = '',
@@ -277,7 +301,13 @@ export function ColorPreview({ className = '' }: { className?: string }) {
   );
 }
 
-export function ColorMode({ className = '' }: { className?: string }) {
+export function ColorMode({
+  className = '',
+  children,
+}: {
+  className?: string;
+  children?: ReactNode | ((format: ColorFormat) => ReactNode);
+}) {
   const store = useColorStore(),
     state = useColor();
   return (
@@ -293,7 +323,9 @@ export function ColorMode({ className = '' }: { className?: string }) {
         )
       }
     >
-      {state.format.toUpperCase()} ↔
+      {typeof children === 'function'
+        ? children(state.format)
+        : (children ?? `${state.format.toUpperCase()} ↔`)}
     </button>
   );
 }
