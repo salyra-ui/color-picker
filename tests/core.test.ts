@@ -10,7 +10,7 @@ import {
   normalizeHex,
   contrast,
   foreground,
-} from '@sebytza23/color-picker';
+} from '@salyra-ui/color-picker';
 import {
   createThemeStore,
   defaultTheme,
@@ -21,7 +21,7 @@ import {
   toLegacyTheme,
   themeStyle,
   mountThemeStore,
-} from '@sebytza23/theme-kit';
+} from '@salyra-ui/theme-studio';
 const red = generateTheme('#ef4444'),
   green = generateTheme('#22c55e');
 function deferred<T>() {

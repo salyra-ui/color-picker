@@ -9,7 +9,7 @@ import {
   createHttpThemeLoader,
   mountThemeStore,
   parseTheme,
-} from '@sebytza23/theme-kit';
+} from '@salyra-ui/theme-studio';
 const red = generateTheme('#f00', { name: 'Red' }),
   green = generateTheme('#0f0', { name: 'Green' });
 describe('current configuration and lists', () => {

@@ -18,8 +18,8 @@ import {
   ThemeBorderWidth,
   ThemeGenerator,
   ThemePalette,
-} from '@sebytza23/theme-kit-react';
-import { generateTheme, createThemeStore } from '@sebytza23/theme-kit';
+} from '@salyra-ui/theme-studio/react';
+import { generateTheme, createThemeStore } from '@salyra-ui/theme-studio';
 import {
   ColorAlphaInput,
   ColorMode,
@@ -28,8 +28,8 @@ import {
   ColorArea,
   ColorInput,
   ColorSlider,
-} from '@sebytza23/color-picker-react';
-import { createColorStore } from '@sebytza23/color-picker';
+} from '@salyra-ui/color-picker/react';
+import { createColorStore } from '@salyra-ui/color-picker';
 (
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
 ).IS_REACT_ACT_ENVIRONMENT = true;

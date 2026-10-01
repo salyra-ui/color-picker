@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import {
   mountColorPicker,
   type ColorProviderElement,
-} from '@sebytza23/color-picker-vanilla';
+} from '@salyra-ui/color-picker/vanilla';
 import {
   mountThemeKit,
   themePaletteMarkup,
@@ -12,7 +12,7 @@ import {
   generateTheme,
   createThemeStore,
   type ThemeProviderElement,
-} from '@sebytza23/theme-kit-vanilla';
+} from '@salyra-ui/theme-studio/vanilla';
 describe('native HTML adapters', () => {
   it('initializes a declarative picker when its children arrive after the parent connects', async () => {
     const host = document.createElement('div');

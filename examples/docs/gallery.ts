@@ -3,7 +3,7 @@ import {
   createColorStore,
   type ColorProviderElement,
   type ColorInfo,
-} from '@sebytza23/color-picker-vanilla';
+} from '@salyra-ui/color-picker/vanilla';
 import {
   mountThemeKit,
   createThemeStore,
@@ -17,7 +17,7 @@ import {
   type TokenSelection,
   targets,
   themePaletteMarkup,
-} from '@sebytza23/theme-kit-vanilla';
+} from '@salyra-ui/theme-studio/vanilla';
 import {
   integrations,
   colorVariants,
@@ -222,7 +222,7 @@ export function mountExplorer(
     modes: ['light'],
   };
   host.classList.add('explorer');
-  host.innerHTML = `<div class="example-toolbar">${variants.length === 1 ? `<span class="example-select">${escape(variants[0].title)}</span>` : `<label class="example-select">${section === 'customization' ? 'Customize' : 'Example'}<select data-example aria-label="${isColor ? 'Color picker' : 'Theme kit'} ${section === 'customization' ? 'customization' : 'example'}">${variants.map((v) => `<option value="${v.id}" ${v.id === variant ? 'selected' : ''}>${escape(v.title)}</option>`).join('')}</select></label>`}<div class="view-tabs" role="group" aria-label="Example display"><button type="button" data-display="preview" aria-pressed="true">Preview</button><button type="button" data-display="code" aria-pressed="false">Code</button></div></div><div class="example-description"><p></p></div><div class="example-body" data-display="preview"><div class="example-preview"><div class="preview-label">Interactive preview <span>Vanilla adapter</span></div><div class="preview-content"></div></div><div class="example-code"></div></div>`;
+  host.innerHTML = `<div class="example-toolbar">${variants.length === 1 ? `<span class="example-select">${escape(variants[0].title)}</span>` : `<label class="example-select">${section === 'customization' ? 'Customize' : 'Example'}<select data-example aria-label="${isColor ? 'Color picker' : 'Theme studio'} ${section === 'customization' ? 'customization' : 'example'}">${variants.map((v) => `<option value="${v.id}" ${v.id === variant ? 'selected' : ''}>${escape(v.title)}</option>`).join('')}</select></label>`}<div class="view-tabs" role="group" aria-label="Example display"><button type="button" data-display="preview" aria-pressed="true">Preview</button><button type="button" data-display="code" aria-pressed="false">Code</button></div></div><div class="example-description"><p></p></div><div class="example-body" data-display="preview"><div class="example-preview"><div class="preview-label">Interactive preview <span>Vanilla adapter</span></div><div class="preview-content"></div></div><div class="example-code"></div></div>`;
   const body = host.querySelector<HTMLElement>('.example-body')!,
     content = host.querySelector<HTMLElement>('.preview-content')!,
     description = host.querySelector('.example-description p')!,
@@ -590,7 +590,7 @@ export function mountExplorer(
 }
 function mountedStore(
   config: ThemeConfiguration,
-): import('@sebytza23/theme-kit').ThemeSnapshot {
+): import('@salyra-ui/theme-studio').ThemeSnapshot {
   return {
     theme: config.sourceTheme,
     disabled: false,

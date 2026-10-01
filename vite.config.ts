@@ -4,7 +4,7 @@ import { svelte } from '@sveltejs/vite-plugin-svelte';
 import vue from '@vitejs/plugin-vue';
 export default defineConfig({
   base: process.env.PAGES_BASE ?? "/",
-  ssr: { noExternal: [/^@sebytza23\//] },
+  ssr: { noExternal: [/^@salyra-ui\//] },
   plugins: [react(), svelte(), vue()],
   server: { port: 4317, strictPort: true },
   build: {

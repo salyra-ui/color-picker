@@ -1,6 +1,6 @@
 import { performance } from 'node:perf_hooks';
-import { colorAtPoint, hsvToHex } from '@sebytza23/color-picker';
-import { generateTheme } from '@sebytza23/theme-kit';
+import { colorAtPoint, hsvToHex } from '@salyra-ui/color-picker';
+import { generateTheme } from '@salyra-ui/theme-studio';
 const start = performance.now();
 let result = '';
 for (let i = 0; i < 100000; i++)

@@ -1,6 +1,6 @@
 {
-  "name": "@sebytza23/color-picker",
-  "version": "0.1.2",
+  "name": "@salyra-ui/color-picker",
+  "version": "0.2.0",
   "type": "module",
   "private": true,
   "sideEffects": [
@@ -18,27 +18,23 @@
     "./styles.css": "./styles.css",
     "./astro/client": "./astro/client.ts",
     "./vanilla": "./vanilla/index.ts",
-    "./browser/*": "./browser/*"
+    "./browser/*": "./browser/*",
+    "./astro": "./astro/client.ts",
+    "./styles.min.css": "./styles.css",
+    "./styles.standard.css": "./styles.css"
   },
   "files": [
-    "core",
-    "react",
-    "svelte",
-    "vue",
-    "angular",
-    "astro",
-    "styles.css",
     "dist",
     "README.md",
-    "THIRD_PARTY_NOTICES.md",
-    "vanilla",
-    "browser"
+    "THIRD_PARTY_NOTICES.md"
   ],
   "peerDependencies": {
     "react": ">=18",
     "svelte": ">=5",
     "vue": ">=3.5",
-    "@angular/core": ">=19"
+    "@angular/core": ">=19",
+    "@angular/common": ">=19",
+    "astro": ">=5"
   },
   "peerDependenciesMeta": {
     "react": {
@@ -52,8 +48,14 @@
     },
     "@angular/core": {
       "optional": true
+    },
+    "@angular/common": {
+      "optional": true
+    },
+    "astro": {
+      "optional": true
     }
   },
   "dependencies": {},
-  "homepage": "https://sebytza23.github.io/color-picker/docs.html?kit=color-picker"
+  "homepage": "https://salyra-ui.github.io/color-picker/docs.html?kit=color-picker"
 }

@@ -11,7 +11,7 @@
     ColorSlider,
     ColorInput,
     ColorSwatch,
-  } from '@sebytza23/color-picker-svelte';
+  } from '@salyra-ui/color-picker/svelte';
   import {
     ThemeSelect,
     ThemeExport,
@@ -30,8 +30,8 @@
     ThemeSwatch,
     ThemeMode,
   ThemeName,
-  } from '@sebytza23/theme-kit-svelte';
-  import { createThemeStore, generateTheme } from '@sebytza23/theme-kit';
+  } from '@salyra-ui/theme-studio/svelte';
+  import { createThemeStore, generateTheme } from '@salyra-ui/theme-studio';
   const indigo = generateTheme('#6366f1', { name: 'Indigo' }),
     coral = generateTheme('#ef6b52', { name: 'Coral' }),
     forest = generateTheme('#277d59', { name: 'Forest' });

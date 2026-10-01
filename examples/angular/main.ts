@@ -14,7 +14,7 @@ import {
   ColorPreview,
   ColorInput,
   ColorSlider,
-} from '@sebytza23/color-picker-angular';
+} from '@salyra-ui/color-picker/angular';
 import {
   ThemeSelect,
   ThemeExport,
@@ -31,8 +31,8 @@ import {
   ThemeLoading,
   ThemeReady,
   ThemeError,
-} from '@sebytza23/theme-kit-angular';
-import { createThemeStore, generateTheme, type ThemeOptions } from '@sebytza23/theme-kit';
+} from '@salyra-ui/theme-studio/angular';
+import { createThemeStore, generateTheme, type ThemeOptions } from '@salyra-ui/theme-studio';
 import '../demo.css';
 @Component({
   selector: 'demo-root',

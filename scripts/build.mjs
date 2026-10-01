@@ -16,7 +16,7 @@ execFileSync(
   { stdio: 'inherit' },
 );
 const availableKits = await readdir('packages');
-for (const name of ['color-picker', 'theme-kit'].filter(name => availableKits.includes(name))) {
+for (const name of ['color-picker', 'theme-studio'].filter(name => availableKits.includes(name))) {
   const root = `packages/${name}`,
     out = `${root}/dist`;
   await rm(out, { recursive: true, force: true });
@@ -52,7 +52,7 @@ for (const name of ['color-picker', 'theme-kit'].filter(name => availableKits.in
   await build({ entryPoints: [`${root}/vanilla/index.ts`], outfile: `${out}/vanilla/index.min.js`, bundle: true,
     format: 'esm', platform: 'browser', target: 'es2022', packages: 'external', external: ['../core'], sourcemap: false, minify: true });
   for (const minify of [false, true]) await build({ entryPoints: [`${root}/vanilla/index.ts`], outfile: `${out}/browser/${name}${minify ? '.min' : ''}.js`, bundle: true,
-    format: 'iife', globalName: name === 'color-picker' ? 'ColorPicker' : 'ThemeKit', platform: 'browser', target: 'es2022', sourcemap: false, minify });
+    format: 'iife', globalName: name === 'color-picker' ? 'ColorPicker' : 'ThemeStudio', platform: 'browser', target: 'es2022', sourcemap: false, minify });
   await cp(`.types-build/${name}/vanilla`, `${out}/vanilla`, { recursive: true });
   await cp(`.types-build/${name}/core`, `${out}/core`, { recursive: true });
   await cp(`.types-build/${name}/react`, `${out}/react`, { recursive: true });

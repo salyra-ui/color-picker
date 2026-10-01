@@ -2,13 +2,13 @@
 import assert from 'node:assert/strict';
 import { createElement as h } from 'react';
 import { renderToString } from 'react-dom/server';
-import { getColor, createColorStore, setColorChannel } from '@sebytza23/color-picker';
+import { getColor, createColorStore, setColorChannel } from '@salyra-ui/color-picker';
 import {
   ColorProvider,
   ColorInput,
   ColorAlphaInput,
   ColorWheel,
-} from '@sebytza23/color-picker-react';
+} from '@salyra-ui/color-picker/react';
 import {
   themeConfiguration,
   createHttpThemeLoader,
@@ -18,14 +18,14 @@ import {
   generateTheme,
   createThemePickerStore,
   themePickerMarkers,
-} from '@sebytza23/theme-kit';
+} from '@salyra-ui/theme-studio';
 import {
   ThemeProvider,
   ThemeGenerator,
   ThemePicker,
   ThemeSelect,
   ThemeExport,
-} from '@sebytza23/theme-kit-react';
+} from '@salyra-ui/theme-studio/react';
 
 const color = createColorStore('#123456', 'rgb');
 setColorChannel(color, 'rgb', 0, 120);

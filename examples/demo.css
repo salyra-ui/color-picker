@@ -1,5 +1,5 @@
-@import '@sebytza23/color-picker/styles.css';
-@import '@sebytza23/theme-kit/styles.css';
+@import '@salyra-ui/color-picker/styles.css';
+@import '@salyra-ui/theme-studio/styles.css';
 * {
   box-sizing: border-box;
 }

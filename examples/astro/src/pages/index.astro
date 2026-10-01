@@ -1,28 +1,28 @@
 ---
-import ThemeSelect from '@sebytza23/theme-kit-astro/ThemeSelect.astro';
-import ThemeExport from '@sebytza23/theme-kit-astro/ThemeExport.astro';
-import ThemePicker from '@sebytza23/theme-kit-astro/ThemePicker.astro';
-import ColorSurface from '@sebytza23/color-picker-astro/ColorSurface.astro';
-import ColorViewSelect from '@sebytza23/color-picker-astro/ColorViewSelect.astro';
-import ThemeHarmony from '@sebytza23/theme-kit-astro/ThemeHarmony.astro';
-import ThemeRadius from '@sebytza23/theme-kit-astro/ThemeRadius.astro';
-import ThemeBorderWidth from '@sebytza23/theme-kit-astro/ThemeBorderWidth.astro';
-import ThemeBackground from '@sebytza23/theme-kit-astro/ThemeBackground.astro';
-import ThemeProvider from '@sebytza23/theme-kit-astro/ThemeProvider.astro';
-import ThemePalette from '@sebytza23/theme-kit-astro/ThemePalette.astro';
-import ThemeMode from '@sebytza23/theme-kit-astro/ThemeMode.astro';
-import ThemeName from '@sebytza23/theme-kit-astro/ThemeName.astro';
-import ThemeLoading from '@sebytza23/theme-kit-astro/ThemeLoading.astro';
-import ThemeReady from '@sebytza23/theme-kit-astro/ThemeReady.astro';
-import ThemeError from '@sebytza23/theme-kit-astro/ThemeError.astro';
-import ColorProvider from '@sebytza23/color-picker-astro/ColorProvider.astro';
-import ColorAlphaInput from '@sebytza23/color-picker-astro/ColorAlphaInput.astro';
-import ColorPreview from '@sebytza23/color-picker-astro/ColorPreview.astro';
-import ColorSlider from '@sebytza23/color-picker-astro/ColorSlider.astro';
-import ColorFormatSelect from '@sebytza23/color-picker-astro/ColorFormatSelect.astro';
-import ColorMode from '@sebytza23/color-picker-astro/ColorMode.astro';
-import ColorInput from '@sebytza23/color-picker-astro/ColorInput.astro';
-import { generateTheme } from '@sebytza23/theme-kit';
+import ThemeSelect from '@salyra-ui/theme-studio/astro/ThemeSelect.astro';
+import ThemeExport from '@salyra-ui/theme-studio/astro/ThemeExport.astro';
+import ThemePicker from '@salyra-ui/theme-studio/astro/ThemePicker.astro';
+import ColorSurface from '@salyra-ui/color-picker/astro/ColorSurface.astro';
+import ColorViewSelect from '@salyra-ui/color-picker/astro/ColorViewSelect.astro';
+import ThemeHarmony from '@salyra-ui/theme-studio/astro/ThemeHarmony.astro';
+import ThemeRadius from '@salyra-ui/theme-studio/astro/ThemeRadius.astro';
+import ThemeBorderWidth from '@salyra-ui/theme-studio/astro/ThemeBorderWidth.astro';
+import ThemeBackground from '@salyra-ui/theme-studio/astro/ThemeBackground.astro';
+import ThemeProvider from '@salyra-ui/theme-studio/astro/ThemeProvider.astro';
+import ThemePalette from '@salyra-ui/theme-studio/astro/ThemePalette.astro';
+import ThemeMode from '@salyra-ui/theme-studio/astro/ThemeMode.astro';
+import ThemeName from '@salyra-ui/theme-studio/astro/ThemeName.astro';
+import ThemeLoading from '@salyra-ui/theme-studio/astro/ThemeLoading.astro';
+import ThemeReady from '@salyra-ui/theme-studio/astro/ThemeReady.astro';
+import ThemeError from '@salyra-ui/theme-studio/astro/ThemeError.astro';
+import ColorProvider from '@salyra-ui/color-picker/astro/ColorProvider.astro';
+import ColorAlphaInput from '@salyra-ui/color-picker/astro/ColorAlphaInput.astro';
+import ColorPreview from '@salyra-ui/color-picker/astro/ColorPreview.astro';
+import ColorSlider from '@salyra-ui/color-picker/astro/ColorSlider.astro';
+import ColorFormatSelect from '@salyra-ui/color-picker/astro/ColorFormatSelect.astro';
+import ColorMode from '@salyra-ui/color-picker/astro/ColorMode.astro';
+import ColorInput from '@salyra-ui/color-picker/astro/ColorInput.astro';
+import { generateTheme } from '@salyra-ui/theme-studio';
 import '../../../demo.css';
 const theme = generateTheme('#6366F1', { name: 'Indigo' }),
   themes = [
@@ -36,7 +36,7 @@ const theme = generateTheme('#6366F1', { name: 'Indigo' }),
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
-    <title>Theme kit · Astro</title>
+    <title>Theme studio · Astro</title>
   </head>
   <body>
     <nav>
@@ -160,8 +160,8 @@ const theme = generateTheme('#6366F1', { name: 'Indigo' }),
 </html>
 
 <script>
-  import { createThemeStore } from '@sebytza23/theme-kit';
-  import type { ThemeProviderElement } from '@sebytza23/theme-kit-astro/client';
+  import { createThemeStore } from '@salyra-ui/theme-studio';
+  import type { ThemeProviderElement } from '@salyra-ui/theme-studio/astro/client';
   const editor = document.querySelector<ThemeProviderElement>(
       '[data-editor] tk-provider',
     )!,

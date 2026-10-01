@@ -20,8 +20,8 @@ import {
   ThemeGenerator,
   ThemeLoading,
   ThemeReady,
-} from '@sebytza23/theme-kit-angular';
-import { generateTheme, type Theme } from '@sebytza23/theme-kit';
+} from '@salyra-ui/theme-studio/angular';
+import { generateTheme, type Theme } from '@salyra-ui/theme-studio';
 const INITIAL = new InjectionToken<Theme>('ssr-test-theme');
 @Component({
   selector: 'ssr-test',

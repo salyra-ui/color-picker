@@ -5,7 +5,7 @@ import {
   bindColorArea,
   createColorStore,
   type ColorMarker,
-} from '@sebytza23/color-picker';
+} from '@salyra-ui/color-picker';
 
 describe('generic marker wheel gestures', () => {
   it('blocks keyboard edits on a disabled color surface and inert marker wheel', () => {

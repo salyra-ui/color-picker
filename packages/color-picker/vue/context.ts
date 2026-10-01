@@ -6,7 +6,7 @@ import {
   type InjectionKey,
 } from 'vue';
 import type { ColorStore } from '../core';
-const key: InjectionKey<ColorStore> = Symbol('@sebytza23/color-picker');
+const key: InjectionKey<ColorStore> = Symbol('@salyra-ui/color-picker');
 export function provideColor(store: ColorStore) {
   provide(key, store);
   return store;

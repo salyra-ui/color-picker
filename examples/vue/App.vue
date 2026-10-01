@@ -12,7 +12,7 @@ import {
   ColorSlider,
   ColorInput,
   ColorSwatch,
-} from '@sebytza23/color-picker-vue';
+} from '@salyra-ui/color-picker/vue';
 import {
   ThemeSelect,
   ThemeExport,
@@ -31,8 +31,8 @@ import {
   ThemeSwatch,
   ThemeMode,
   ThemeName,
-} from '@sebytza23/theme-kit-vue';
-import { createThemeStore, generateTheme } from '@sebytza23/theme-kit';
+} from '@salyra-ui/theme-studio/vue';
+import { createThemeStore, generateTheme } from '@salyra-ui/theme-studio';
 const indigo = generateTheme('#6366f1', { name: 'Indigo' }),
   coral = generateTheme('#ef6b52', { name: 'Coral' }),
   forest = generateTheme('#277d59', { name: 'Forest' });

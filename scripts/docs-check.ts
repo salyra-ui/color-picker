@@ -35,8 +35,8 @@ const {
   defaultSwatch,
   defaultCustom,
 } = await import('../examples/docs/snippets');
-const nativeColor = await import('@sebytza23/color-picker-vanilla');
-const nativeTheme = await import('@sebytza23/theme-kit-vanilla');
+const nativeColor = await import('@salyra-ui/color-picker/vanilla');
+const nativeTheme = await import('@salyra-ui/theme-studio/vanilla');
 let nativeCount = 0;
 let count = 0;
 const typedSources = new Map<string, string>();
@@ -144,7 +144,7 @@ for (const integration of integrations) {
             ))
               new Function(
                 'ColorPicker',
-                'ThemeKit',
+                'ThemeStudio',
                 'console',
                 script.textContent ?? '',
               )(nativeColor, nativeTheme, { log() {} });
@@ -170,7 +170,7 @@ for (const integration of integrations) {
 }
 const { referenceEntries } = await import('../examples/docs/reference-data');
 let referenceCount = 0;
-for (const kit of ['color-picker', 'theme-kit'] as const) {
+for (const kit of ['color-picker', 'theme-studio'] as const) {
   const referenceIds = new Set<string>();
   for (const entry of referenceEntries(kit)) {
     if (referenceIds.has(entry.id)) throw new Error(`Duplicate API reference anchor: ${kit}/${entry.id}`);

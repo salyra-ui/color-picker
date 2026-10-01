@@ -9,7 +9,7 @@ import {
   colorFormats,
   wheelAtPoint,
   hexToHsv,
-} from '@sebytza23/color-picker';
+} from '@salyra-ui/color-picker';
 import {
   createThemeStore,
   generateTheme,
@@ -19,7 +19,7 @@ import {
   themeColor,
   fromLegacyTheme,
   harmonyColors,
-} from '@sebytza23/theme-kit';
+} from '@salyra-ui/theme-studio';
 
 describe('color values and names', () => {
   it('matches names from the original color-namer 1.4.0 default lookup', () => {

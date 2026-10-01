@@ -11,14 +11,14 @@ import {
   subscribeColor,
   contrast,
   channelsToHex,
-} from '@sebytza23/color-picker';
+} from '@salyra-ui/color-picker';
 import {
   generateTheme,
   createThemeStore,
   withThemeBackground,
   fromLegacyTheme,
   toLegacyTheme,
-} from '@sebytza23/theme-kit';
+} from '@salyra-ui/theme-studio';
 describe('formats', () => {
   it.each(colorFormats)('round trips sRGB samples through %s', (format) => {
     for (const hex of [

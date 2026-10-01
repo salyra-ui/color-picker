@@ -5,7 +5,7 @@ import {
   browserStorage,
   createThemeStore,
   generateTheme,
-} from '@sebytza23/theme-kit';
+} from '@salyra-ui/theme-studio';
 describe('mounted cache invalidation', () => {
   it('revalidates on focus and coalesces notifications during a request', async () => {
     let resolve!: () => void, notify!: () => void;

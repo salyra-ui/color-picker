@@ -10,14 +10,14 @@ import {
   getColor,
   setColorChannel,
   subscribeColor,
-} from '@sebytza23/color-picker';
+} from '@salyra-ui/color-picker';
 import {
   createThemeStore,
   createThemePickerStore,
   generateTheme,
   themeColor,
   themePickerMarkers,
-} from '@sebytza23/theme-kit';
+} from '@salyra-ui/theme-studio';
 
 describe('standalone alpha', () => {
   it('normalizes CSS short and long RGBA without changing opaque normalization', () => {

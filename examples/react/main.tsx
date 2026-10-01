@@ -11,7 +11,7 @@ import {
   ColorSlider,
   ColorInput,
   ColorSwatch,
-} from '@sebytza23/color-picker-react';
+} from '@salyra-ui/color-picker/react';
 import {
   ThemeSelect,
   ThemeExport,
@@ -31,14 +31,14 @@ import {
   ThemeMode,
   ThemeName,
   useTheme,
-} from '@sebytza23/theme-kit-react';
+} from '@salyra-ui/theme-studio/react';
 import {
   createThemeStore,
   generateTheme,
   targets,
   type ThemeStore,
   type ThemeOptions,
-} from '@sebytza23/theme-kit';
+} from '@salyra-ui/theme-studio';
 import '../demo.css';
 const indigo = generateTheme('#6366f1', { name: 'Indigo' }),
   coral = generateTheme('#ef6b52', { name: 'Coral' }),

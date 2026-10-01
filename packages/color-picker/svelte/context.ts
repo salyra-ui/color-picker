@@ -1,6 +1,6 @@
 import { getContext, setContext } from 'svelte';
 import type { ColorStore, ColorSnapshot } from '../core';
-const key = Symbol('@sebytza23/color-picker');
+const key = Symbol('@salyra-ui/color-picker');
 export const provideColor = (store: ColorStore) => setContext(key, store);
 export function useColorStore(): ColorStore {
   const store = getContext<ColorStore>(key);

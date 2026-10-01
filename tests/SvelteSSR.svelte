@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { ColorProvider, ColorMode, createColorStore } from '@sebytza23/color-picker-svelte';
+  import { ColorProvider, ColorMode, createColorStore } from '@salyra-ui/color-picker/svelte';
   const disabledColor = createColorStore('#123456', 'rgb', 'area', true);
-  import type { Theme } from '@sebytza23/theme-kit';
+  import type { Theme } from '@salyra-ui/theme-studio';
   import {
     ThemeSelect,
     ThemeExport,
@@ -12,7 +12,7 @@
     ThemeHarmony,
     ThemeRadius,
     ThemeGenerator,
-  } from '@sebytza23/theme-kit-svelte';
+  } from '@salyra-ui/theme-studio/svelte';
   let { theme }: { theme: Theme } = $props();
 </script>
 

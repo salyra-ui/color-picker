@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { browserModeStorage, createThemeStore, generateTheme, mountThemeMode, themeConfiguration, themeModeActions, suggestedThemeName, parseTheme } from '@sebytza23/theme-kit';
+import { browserModeStorage, createThemeStore, generateTheme, mountThemeMode, themeConfiguration, themeModeActions, suggestedThemeName, parseTheme } from '@salyra-ui/theme-studio';
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); localStorage.clear(); });
 function media(dark: boolean) {
   let listener: (() => void) | undefined;

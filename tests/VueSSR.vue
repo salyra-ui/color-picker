@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ColorProvider, ColorMode, createColorStore } from '@sebytza23/color-picker-vue';
+import { ColorProvider, ColorMode, createColorStore } from '@salyra-ui/color-picker/vue';
 const disabledColor = createColorStore('#123456', 'rgb', 'area', true);
-import type { Theme } from '@sebytza23/theme-kit';
+import type { Theme } from '@salyra-ui/theme-studio';
 import {
   ThemeSelect,
   ThemeExport,
@@ -12,7 +12,7 @@ import {
   ThemeHarmony,
   ThemeRadius,
   ThemeGenerator,
-} from '@sebytza23/theme-kit-vue';
+} from '@salyra-ui/theme-studio/vue';
 defineProps<{ theme: Theme }>();
 </script>
 <template>

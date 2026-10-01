@@ -3,7 +3,7 @@ import { createSSRApp } from 'vue';
 import { renderToString } from '@vue/server-renderer';
 import SvelteSSR from './SvelteSSR.svelte';
 import VueSSR from './VueSSR.vue';
-import { generateTheme } from '@sebytza23/theme-kit';
+import { generateTheme } from '@salyra-ui/theme-studio';
 export async function renderFramework(framework: string, hex: string) {
   const theme = generateTheme(hex);
   return framework === 'svelte'

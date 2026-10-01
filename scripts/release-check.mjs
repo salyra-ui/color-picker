@@ -1,46 +1,45 @@
-import { readFile, readdir } from 'node:fs/promises';
+import { readFile, readdir, stat } from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import { compile as compileSvelte } from 'svelte/compiler';
 import { parse as parseVue, compileScript, compileTemplate } from '@vue/compiler-sfc';
 import { transform as compileAstro } from '@astrojs/compiler';
-
 let components = 0;
-for (const name of (await readdir('release')).sort()) {
-  const root = `release/${name}`;
-  const manifest = JSON.parse(await readFile(`${root}/package.json`, 'utf8'));
-  assert.equal(manifest.exports['./styles.css'], './styles.min.css');
-  const css = await readFile(`${root}/styles.min.css`, 'utf8');
-  assert.ok(!css.includes('sourceMappingURL'));
-  if (name.endsWith('-react')) assert.ok((await readFile(`${root}/react/index.min.js`, 'utf8')).startsWith('"use client";'));
-  if (name.endsWith('-vanilla')) {
-    const kit = name.replace(/-vanilla$/, '');
-    const standard = await readFile(`${root}/browser/${kit}.js`, 'utf8');
-    const minified = await readFile(`${root}/browser/${kit}.min.js`, 'utf8');
-    assert.ok(minified.length < standard.length);
-    assert.ok((await readFile(`${root}/styles.css`, 'utf8')).length > css.length);
-    assert.equal(manifest.exports['./standard'].default, './vanilla/index.js');
+const kits = await readdir('release');
+assert.ok(kits.length >= 1 && kits.length <= 2);
+for (const kit of kits) {
+ const root = `release/${kit}`;
+ const manifest = JSON.parse(await readFile(`${root}/package.json`, 'utf8'));
+ assert.equal(manifest.name, `@salyra-ui/${kit}`);
+ assert.equal(manifest.exports['./styles.min.css'], './dist/styles.min.css');
+ assert.equal(manifest.exports['./styles.css'], './dist/styles.min.css');
+ for (const framework of ['react','svelte','vue','angular','astro','vanilla']) {
+  assert.ok(manifest.exports[`./${framework}`]);
+  const exp = manifest.exports[`./${framework}`];
+  for (const file of typeof exp === 'string' ? [exp] : Object.values(exp)) assert.ok((await stat(`${root}/${file}`)).isFile());
+ }
+ for (const [peer, meta] of Object.entries(manifest.peerDependenciesMeta)) assert.equal(meta.optional, true, peer);
+ assert.deepEqual(Object.keys(manifest.dependencies), kit === 'color-picker' ? [] : ['@salyra-ui/color-picker']);
+ const css = await readFile(`${root}/dist/styles.min.css`, 'utf8');
+ assert.ok((await readFile(`${root}/dist/styles.css`, 'utf8')).length > css.length);
+ assert.ok(css.includes('.cp-'));
+ if (kit === 'theme-studio') assert.ok(css.includes('.tk-'));
+ assert.ok((await readFile(`${root}/dist/react/index.min.js`, 'utf8')).startsWith('"use client";'));
+ const standard = await readFile(`${root}/dist/browser/${kit}.js`, 'utf8');
+ assert.ok((await readFile(`${root}/dist/browser/${kit}.min.js`, 'utf8')).length < standard.length);
+ assert.equal(manifest.exports['./vanilla/standard'].default, './dist/vanilla/index.js');
+ for (const framework of ['svelte','vue','astro']) for (const file of await readdir(`${root}/dist/${framework}`)) {
+  if (!file.endsWith(`.${framework}`)) continue;
+  const filename = `${root}/dist/${framework}/${file}`, source = await readFile(filename, 'utf8');
+  if (framework === 'svelte') for (const generate of ['client','server']) compileSvelte(source, {filename, generate});
+  else if (framework === 'vue') {
+   const {descriptor, errors} = parseVue(source, {filename}); assert.deepEqual(errors, []);
+   compileScript(descriptor, {id:filename});
+   assert.deepEqual(compileTemplate({source:descriptor.template.content, filename, id:filename}).errors, []);
+  } else {
+   const result = await compileAstro(source, {filename}); assert.ok(result.code.length > 0);
+   assert.ok(!result.diagnostics?.some(d => d.severity === 1));
   }
-  for (const framework of ['svelte', 'vue', 'astro']) {
-    if (!name.endsWith(`-${framework}`)) continue;
-    for (const file of await readdir(`${root}/${framework}`)) {
-      if (!file.endsWith(`.${framework}`)) continue;
-      const filename = `${root}/${framework}/${file}`;
-      const source = await readFile(filename, 'utf8');
-      if (framework === 'svelte') {
-        for (const generate of ['client', 'server']) compileSvelte(source, { filename, generate });
-      } else if (framework === 'vue') {
-        const { descriptor, errors } = parseVue(source, { filename });
-        assert.deepEqual(errors, [], filename);
-        compileScript(descriptor, { id: filename });
-        const template = compileTemplate({ source: descriptor.template.content, filename, id: filename });
-        assert.deepEqual(template.errors, [], filename);
-      } else {
-        const result = await compileAstro(source, { filename });
-        assert.ok(result.code.length > 0, filename);
-        assert.ok(!result.diagnostics?.some(diagnostic => diagnostic.severity === 1), filename);
-      }
-      components++;
-    }
-  }
+  components++;
+ }
 }
-console.log(`Release exports, minified CSS, Vanilla variants and ${components} framework components passed.`);
+console.log(`${kits.length} package exports, optional peers, minified files, Vanilla variants and ${components} framework components passed.`);
