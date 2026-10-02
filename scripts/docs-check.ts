@@ -1,3 +1,5 @@
+import { draftScopeExample } from '../examples/docs/scope-recipes';
+import { checkComponentCoverage } from './docs-coverage';
 import { JSDOM, VirtualConsole } from 'jsdom';
 const nativeErrors: Error[] = [];
 const virtualConsole = new VirtualConsole().on('jsdomError', (error) =>
@@ -42,8 +44,13 @@ let count = 0;
 const typedSources = new Map<string, string>();
 for (const integration of integrations) {
   const samples = [
-    ...colorVariants.filter(v => v.id !== 'form').map((v) => colorExample(integration, v.id)),
-    ...themeVariants.filter(v => v.id !== 'editing').map((v) => themeExample(integration, v.id)),
+    ...colorVariants
+      .filter((v) => v.id !== 'form')
+      .map((v) => colorExample(integration, v.id)),
+    ...themeVariants
+      .filter((v) => v.id !== 'editing')
+      .map((v) => themeExample(integration, v.id)),
+    draftScopeExample(integration),
     loaderExample(integration),
     modeExample(integration),
     standaloneExample(integration),
@@ -157,6 +164,58 @@ for (const integration of integrations) {
             if (nativeErrors.length) throw nativeErrors.shift();
             nativeCount++;
           }
+          if (doc.window.document.getElementById('draft-preview')) {
+            dom.window.document.body.innerHTML =
+              doc.window.document.body.innerHTML;
+            const script =
+              doc.window.document.querySelector(
+                'script:not([src])',
+              )!.textContent!;
+            const { applied, editor } = new Function(
+              'ThemeStudio',
+              script + '\nreturn {applied, editor};',
+            )(nativeTheme) as {
+              applied: ReturnType<typeof nativeTheme.createThemeStore>;
+              editor: ReturnType<typeof nativeTheme.createThemeEditor>;
+            };
+            const field = dom.window.document.querySelector<HTMLInputElement>(
+              '#draft-preview input',
+            )!;
+            const initial =
+              applied.getSnapshot().theme.structure.userPreset.primary.DEFAULT;
+            field.value = '#277D59';
+            field.dispatchEvent(
+              new dom.window.Event('input', { bubbles: true }),
+            );
+            if (
+              applied.getSnapshot().theme.structure.userPreset.primary
+                .DEFAULT !== initial ||
+              editor.store.getSnapshot().theme.structure.userPreset.primary
+                .DEFAULT === initial
+            )
+              throw new Error(
+                'Nested draft must edit independently of the application',
+              );
+            dom.window.document.getElementById('save-draft')!.click();
+            const saved =
+              applied.getSnapshot().theme.structure.userPreset.primary.DEFAULT;
+            if (saved === initial)
+              throw new Error('Save did not apply the draft');
+            field.value = '#123456';
+            field.dispatchEvent(
+              new dom.window.Event('input', { bubbles: true }),
+            );
+            dom.window.document.getElementById('cancel-draft')!.click();
+            if (
+              editor.store.getSnapshot().theme.structure.userPreset.primary
+                .DEFAULT !== saved
+            )
+              throw new Error('Cancel did not restore the applied theme');
+            dom.window.dispatchEvent(new dom.window.Event('pagehide'));
+            dom.window.document.body.replaceChildren();
+            if (nativeErrors.length) throw nativeErrors.shift();
+            nativeCount++;
+          }
           doc.window.close();
         }
       } catch (error) {
@@ -168,14 +227,19 @@ for (const integration of integrations) {
     count++;
   }
 }
+checkComponentCoverage();
 const { referenceEntries } = await import('../examples/docs/reference-data');
 let referenceCount = 0;
 for (const kit of ['color-picker', 'theme-studio'] as const) {
   const referenceIds = new Set<string>();
   for (const entry of referenceEntries(kit)) {
-    if (referenceIds.has(entry.id)) throw new Error(`Duplicate API reference anchor: ${kit}/${entry.id}`);
+    if (referenceIds.has(entry.id))
+      throw new Error(`Duplicate API reference anchor: ${kit}/${entry.id}`);
     referenceIds.add(entry.id);
-    typedSources.set(`${process.cwd()}/examples/docs/check-api-${kit}-${entry.id}.${entry.example.file.endsWith('tsx') ? 'tsx' : 'ts'}`, entry.example.code);
+    typedSources.set(
+      `${process.cwd()}/examples/docs/check-api-${kit}-${entry.id}.${entry.example.file.endsWith('tsx') ? 'tsx' : 'ts'}`,
+      entry.example.code,
+    );
     referenceCount++;
   }
 }
@@ -218,4 +282,6 @@ console.log(
   `Executed ${nativeCount} supplied-store Vanilla examples against the native adapters.`,
 );
 
-console.log(`Type-checked ${referenceCount} copyable API reference examples against the actual package exports.`);
+console.log(
+  `Type-checked ${referenceCount} copyable API reference examples against the actual package exports.`,
+);

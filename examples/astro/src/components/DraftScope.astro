@@ -1,0 +1,37 @@
+---
+import ThemeProvider from '@salyra-ui/theme-studio/astro/ThemeProvider.astro';
+import ThemeRoot from '@salyra-ui/theme-studio/astro/ThemeRoot.astro';
+import ThemeVariableScope from '@salyra-ui/theme-studio/astro/ThemeVariableScope.astro';
+import ThemePickerRoot from '@salyra-ui/theme-studio/astro/ThemePickerRoot.astro';
+import ColorField from '@salyra-ui/color-picker/astro/ColorField.astro';
+import { generateTheme } from '@salyra-ui/theme-studio';
+const value = '#5268E0';
+const options = {theme:generateTheme(value),modeStorage:false as const};
+---
+<ThemeProvider {...options} scopeProps={{id:'applied-preview'}}>
+  <button style="background:hsl(var(--primary));color:hsl(var(--primary-foreground))">Applied theme</button>
+  <ThemeRoot id="draft-root" {options}>
+    <ThemeVariableScope {options} class="draft-preview">
+      <ThemePickerRoot roles={['primary']}>
+        <label>Draft primary<ColorField {value} format="hex" /></label>
+      </ThemePickerRoot>
+      <button style="background:hsl(var(--primary));color:hsl(var(--primary-foreground))">Draft theme</button>
+      <button id="save-draft">Save</button><button id="cancel-draft">Cancel</button>
+      <p id="draft-error" role="status"></p>
+    </ThemeVariableScope>
+  </ThemeRoot>
+</ThemeProvider>
+<script>
+  import { createThemeEditor, type ThemeRootElement } from '@salyra-ui/theme-studio/vanilla';
+  const applied = document.querySelector('#applied-preview')!.closest('tk-root') as ThemeRootElement;
+  const root = document.querySelector('#draft-root') as ThemeRootElement;
+  if (!applied.store) throw new Error('The app theme root has not initialized');
+  const editor = createThemeEditor(applied.store);
+  root.setStore(editor.store,{modeStorage:false});
+  const error = document.querySelector('#draft-error')!;
+  document.querySelector('#save-draft')!.addEventListener('click',() => {
+    try {editor.apply();error.textContent='';} catch(e) {error.textContent=String(e);}
+  });
+  document.querySelector('#cancel-draft')!.addEventListener('click',() => {editor.cancel();error.textContent='';});
+  window.addEventListener('pagehide',event => {if (!event.persisted) editor.destroy();});
+</script>

@@ -6,7 +6,14 @@ const field = (
   defaultValue: string,
   description: string,
   example: string,
-): ApiField => ({ key, type, default: defaultValue, description, example });
+): ApiField => ({
+  key,
+  type,
+  default: defaultValue,
+  description,
+  example,
+  required: defaultValue === 'Required',
+});
 const entry = (
   name: string,
   description: string,
@@ -90,6 +97,13 @@ export function compositionReferenceEntries(kit: Kit): ApiEntry[] {
         [
           native,
           field(
+            'view (Area / ColorPlane only)',
+            "'area' | 'wheel'",
+            "'area'",
+            'Changes the surface geometry. ColorPicker.Wheel and ColorWheelSurface always use wheel geometry.',
+            'view="wheel"',
+          ),
+          field(
             'children',
             'Framework content',
             'No thumb',
@@ -124,6 +138,13 @@ export function compositionReferenceEntries(kit: Kit): ApiEntry[] {
             'Receives pointer and keyboard edits for one marker. Update the source markers.',
             'onMarkerChange={updateMarker}',
           ),
+          field(
+            'Astro value',
+            'HEX string',
+            "'#6366F1'",
+            'Seeds the server-rendered surface. Pass the same value to ColorRoot, ColorPlane and ColorThumb. The browser follows the root store. Astro surfaces do not accept the React multi-marker callbacks.',
+            'value="#5268E080"',
+          ),
         ],
         '<ColorPicker.Root><ColorPicker.Wheel style={{width:240}}><ColorPicker.Thumb style={{width:16,height:16,border:"2px solid white"}} /></ColorPicker.Wheel></ColorPicker.Root>',
         kit,
@@ -133,6 +154,13 @@ export function compositionReferenceEntries(kit: Kit): ApiEntry[] {
         'Positions your own selection element. Thumb follows the nearest surface. Marker represents an explicitly supplied color.',
         [
           native,
+          field(
+            'Astro value / view',
+            "HEX string / 'area' | 'wheel'",
+            "'#6366F1' / 'area'",
+            'Seeds the position of ColorThumb.astro during SSR. Match the parent surface. Browser bindings update the thumb from context.',
+            'value="#5268E080" view="wheel"',
+          ),
           field(
             'marker',
             'ColorMarker',
@@ -244,14 +272,14 @@ export function compositionReferenceEntries(kit: Kit): ApiEntry[] {
           'store',
           'ThemeStore',
           'Created internally',
-          'Uses the supplied store. Keep its identity stable for the lifetime of Root.',
+          'Root only. Uses the supplied store. Keep its identity stable for the lifetime of Root. Scope uses the nearest Root context and has no store prop in React, Svelte or Vue.',
           'store={store}',
         ),
         field(
           'options',
           'ThemeOptions',
           '{}',
-          'Initial theme, fallback, loader, storage, appearance and selection options. Root options initialize the store. Use its methods for subsequent updates.',
+          'Root only. Uses the same ThemeOptions documented under ThemeProvider. Initial theme, fallback, loader, storage, appearance and selection options initialize the store. Use its methods for subsequent updates.',
           'options={{theme,mode:"dark",modeStorage:false}}',
         ),
         native,
@@ -305,6 +333,27 @@ export function compositionReferenceEntries(kit: Kit): ApiEntry[] {
           'Disables the active color controls and wheel. Theme-level disabled also applies.',
           'disabled={true}',
         ),
+        field(
+          'view',
+          "'area' | 'wheel' | 'shared-wheel'",
+          "'shared-wheel'",
+          'Keeps picker view state for your own layout. PickerRoot never renders or switches surfaces by itself.',
+          'view="wheel"',
+        ),
+        field(
+          'controls',
+          'boolean',
+          'No rendering effect',
+          'Preset option accepted for compatibility with ThemePickerOptions. PickerRoot renders no controls regardless of this value. Arrange your own primitives in its children.',
+          'controls={false}',
+        ),
+        field(
+          'children',
+          'Framework content',
+          'Required',
+          'Receives the picker context and active color context. ColorPicker.Input and Slider inside it edit only the active theme role.',
+          '<ColorPicker.Input format="hex" />',
+        ),
       ],
       '<ThemeStudio.Root><ThemeStudio.PickerRoot roles={["primary"]}><ThemeStudio.Wheel /></ThemeStudio.PickerRoot></ThemeStudio.Root>',
       kit,
@@ -338,6 +387,13 @@ export function compositionReferenceEntries(kit: Kit): ApiEntry[] {
       [
         native,
         field(
+          'Astro theme / roles',
+          "Theme / readonly ('primary' | 'secondary' | 'accent')[]",
+          'Default theme / all three roles',
+          'ThemePickerWheel.astro uses these seeds to render initial markers. Pass the same theme and roles as Root and PickerRoot. React, Svelte and Vue read them from context instead.',
+          'theme={theme} roles={["primary"]}',
+        ),
+        field(
           'children',
           'Framework content',
           'Markers for the selected roles',
@@ -366,6 +422,13 @@ export function compositionReferenceEntries(kit: Kit): ApiEntry[] {
           "'DEFAULT'",
           'Selects the component token edited by this input. Mounting card radius does not register other radius or width tokens.',
           'target="card"',
+        ),
+        field(
+          'Astro theme',
+          'Theme',
+          'Generated default theme',
+          'ThemeGeometryInput.astro reads this seed for its initial value. Pass the same theme used by ThemeRoot options. Browser updates follow context.',
+          'theme={theme}',
         ),
       ],
       '<ThemeStudio.Root><label>Card corners<ThemeStudio.GeometryInput kind="radius" target="card" /></label></ThemeStudio.Root>',

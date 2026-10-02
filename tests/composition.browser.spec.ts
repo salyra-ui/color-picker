@@ -141,3 +141,66 @@ for (const path of ['/svelte.html', '/vue.html'])
     );
     expect(gaps.every((gap) => gap >= 7.5)).toBe(true);
   });
+
+for (const [kit, alias, anchor] of [
+  ['color-picker', 'ColorRange', 'colorpicker-slider'],
+  ['theme-studio', 'ThemePickerWheel', 'themestudio-wheel'],
+]) {
+  test(`${kit}: named exports are searchable and API deep links reach their entry`, async ({
+    page,
+  }) => {
+    await page.goto(`${base}/docs.html?kit=${kit}#api-${anchor}`);
+    const entry = page.locator(`#api-${anchor}`);
+    await expect(entry).toBeInViewport();
+    await page.locator('[data-api-search]').fill(alias);
+    await expect(page.locator('[data-api-entry]:visible')).toHaveCount(1);
+    await expect(entry).toContainText(alias);
+    await expect(entry).toContainText('Type / accepted values');
+    await expect(entry).toContainText('Default');
+    await expect(entry).toContainText('Behavior & example');
+    await entry.locator('summary').click();
+    await expect(entry.locator('pre code')).toContainText(
+      kit === 'color-picker' ? 'ColorPicker.Slider' : 'ThemeStudio.Wheel',
+    );
+    await page.setViewportSize({ width: 390, height: 844 });
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth > innerWidth,
+      ),
+    ).toBe(false);
+  });
+}
+
+test('nested draft recipe has all six adapters without changing other example tabs', async ({
+  page,
+}) => {
+  await page.goto(`${base}/docs.html?kit=theme-studio#draft-scope-code`);
+  const recipe = page.locator('#draft-scope-code');
+  await expect(recipe).toBeInViewport();
+  for (const integration of [
+    'React',
+    'Svelte',
+    'Vue',
+    'Angular',
+    'Astro',
+    'Vanilla',
+  ]) {
+    await recipe.getByRole('tab', { name: integration, exact: true }).click();
+    await expect(recipe.locator('pre code')).toContainText('createThemeEditor');
+    await expect(recipe.locator('pre code')).toContainText('editor.apply()');
+    await expect(recipe.locator('pre code')).toContainText('editor.cancel()');
+    await expect(recipe.locator('pre code')).toContainText(/(?:editor|next)\.destroy\(\)/);
+  }
+  await page
+    .locator('#composition-example')
+    .getByRole('tab', { name: 'Code', exact: true })
+    .click();
+  await expect(
+    page
+      .locator('#composition-example')
+      .getByRole('tab', { name: 'React', exact: true }),
+  ).toHaveAttribute('aria-selected', 'true');
+  await expect(
+    recipe.getByRole('tab', { name: 'Vanilla', exact: true }),
+  ).toHaveAttribute('aria-selected', 'true');
+});

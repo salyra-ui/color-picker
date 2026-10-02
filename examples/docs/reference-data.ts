@@ -1,5 +1,7 @@
+import { withAdapterFields } from './primitive-adapters';
 import { compositionReferenceEntries } from './composition-reference';
 import { featureReferenceEntries } from './features-reference';
+import { contextReferenceEntries, componentAliases } from './context-reference';
 import type { Kit } from './snippets';
 export interface ApiField {
   key: string;
@@ -22,6 +24,7 @@ export interface ApiEntry {
     | 'Styling';
   description: string;
   note?: string;
+  exports?: string[];
   fields: ApiField[];
   example: { file: string; code: string };
 }
@@ -2772,5 +2775,64 @@ export function referenceEntries(kit: Kit): ApiEntry[] {
     ...compositionReferenceEntries(kit),
     ...(kit === 'color-picker' ? colorEntries : themeEntries),
     ...featureReferenceEntries(kit),
-  ];
+    ...contextReferenceEntries(kit),
+  ].map((entry) => {
+    if (
+      [
+        'ColorArea',
+        'ColorWheel',
+        'ColorSlider',
+        'ColorTextInput',
+        'ColorChannelInput',
+      ].includes(entry.name)
+    ) {
+      entry = {
+        ...entry,
+        fields: [
+          ...entry.fields,
+          f(
+            'native attributes',
+            'HTML attributes, events and ref',
+            'No extra attributes',
+            'The React wrapper forwards native attributes to its primitive surface or input. Use aria-describedby, id, name or placeholder as appropriate. Input disabled is local and combines with root disabled. Other adapters follow their own declared props. For fully owned markup use the composition primitives.',
+            'aria-describedby="color-help"',
+          ),
+        ],
+      };
+    }
+    if (entry.name === 'createThemePickerStore / ThemePickerStore') {
+      entry = {
+        ...entry,
+        fields: [
+          ...entry.fields,
+          f(
+            'setDisabled(disabled)',
+            'boolean',
+            'Initial options.disabled or theme disabled',
+            'Disables the picker color controls independently. Theme disabled still applies. Programmatic picker updates remain available.',
+            'picker.setDisabled(true)',
+          ),
+        ],
+      };
+    }
+    if (entry.name === 'ColorArea') {
+      const wheel = colorEntries.find((item) => item.name === 'ColorWheel')!;
+      entry = {
+        ...entry,
+        fields: [
+          ...entry.fields,
+          ...wheel.fields.filter((item) =>
+            ['markers', 'activeId', 'onSelect', 'onMarkerChange'].includes(
+              item.key,
+            ),
+          ),
+        ],
+        note: 'This preset renders its own thumb and does not use children for layout. React also accepts marker callbacks inherited from ColorPlane, but use ColorPicker.Wheel with explicit Marker children for a custom multi-marker layout.',
+      };
+    }
+    return {
+      ...withAdapterFields(entry),
+      exports: componentAliases[kit][entry.name] ?? [],
+    };
+  });
 }

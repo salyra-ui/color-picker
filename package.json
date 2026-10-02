@@ -6,7 +6,7 @@
   "description": "Copy-first theme engine and composable framework components",
   "scripts": {
     "test": "vitest run",
-    "check": "tsc --noEmit && svelte-check --tsconfig ./tsconfig.svelte.json && vue-tsc --noEmit -p tsconfig.vue.json && ngc -p tsconfig.angular.json && astro check --root examples/astro",
+    "check": "tsx scripts/generate-scope-recipes.ts && tsc --noEmit && svelte-check --tsconfig ./tsconfig.svelte.json && vue-tsc --noEmit -p tsconfig.vue.json && ngc -p tsconfig.angular.json && astro check --root examples/astro",
     "dev": "vite --host 127.0.0.1",
     "build": "node scripts/build.mjs && vite build",
     "test:browser": "playwright test",
