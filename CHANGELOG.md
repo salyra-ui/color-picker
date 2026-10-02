@@ -2,6 +2,7 @@
 
 ## 1.0.0 (unreleased)
 
+- Compose ThemeProvider over Root lifecycle and Scope styling in all six integrations. Add native tk-root/tk-scope and Astro ThemeVariableScope with matching SSR seeds.
 - Context roots no longer prescribe a layout in the composition API. Theme context and the CSS variable scope are separate parts.
 - Color controls expose native attributes, element references and custom children. Layout, labels, format button content and thumb decoration belong to the application.
 - The shared theme wheel uses Color Picker surface behavior. Role controls select a marker without changing its color.

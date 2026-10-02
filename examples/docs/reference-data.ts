@@ -1005,7 +1005,7 @@ const themeEntries: ApiEntry[] = [
   entry(
     'ThemeProvider',
     'Component',
-    'Creates a shared theme context and scopes its CSS variables to the content inside it.',
+    'Ready composition of ThemeStudio.Root and ThemeStudio.Scope with a disabled controls boundary.',
     [
       ...themeOptions,
       f(
@@ -1016,6 +1016,13 @@ const themeEntries: ApiEntry[] = [
         'store={store}',
       ),
       themeClass,
+      f(
+        'scopeProps',
+        'React HTMLAttributes<HTMLDivElement> | Astro HTMLAttributes<div>',
+        '{}',
+        'Native id, ARIA attributes, events, classes and style for the actual scope. Svelte and Vue accept these attributes directly on ThemeProvider. React ref and Svelte bind:ref target the scope element.',
+        'scopeProps={{ id: "app-theme", "aria-label": "Themed app" }}',
+      ),
       f(
         'style',
         'React.CSSProperties',
@@ -1037,7 +1044,7 @@ const themeEntries: ApiEntry[] = [
       ['ThemePicker', 'ThemePalette', 'ThemeExport'],
       '<ThemePicker roles={["primary"]} controls={false} /><ThemePalette /><ThemeExport />',
     ),
-    'React passes ThemeOptions directly as props. Svelte, Vue and Angular pass an options object. Initial options seed the store once. For later edits use store methods. Astro replaces loader and cache functions with src, storageKey and modeStorageKey.',
+    'React passes ThemeOptions directly as props. Svelte, Vue and Angular pass an options object. Initial options seed the store once. Root owns loading, storage and cleanup. Scope owns CSS variables. For later edits use store methods. Use Root and Scope directly when you want your own markup. Astro replaces loader and cache functions with src, storageKey and modeStorageKey.',
   ),
   entry(
     'Astro provider options',
@@ -1076,7 +1083,7 @@ const themeEntries: ApiEntry[] = [
         'class',
         'string',
         "''",
-        'Adds a class to the generated tk-provider element.',
+        'Adds a class to the generated Astro theme scope.',
         'class="brand-theme"',
       ),
     ],

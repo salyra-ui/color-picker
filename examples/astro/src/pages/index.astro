@@ -196,12 +196,12 @@ const theme = generateTheme('#6366F1', { name: 'Indigo' }),
 
 <script>
   import { createThemeStore } from '@salyra-ui/theme-studio';
-  import type { ThemeProviderElement } from '@salyra-ui/theme-studio/astro/client';
-  const editor = document.querySelector<ThemeProviderElement>(
-      '[data-editor] tk-provider',
+  import type { ThemeRootElement } from '@salyra-ui/theme-studio/astro/client';
+  const editor = document.querySelector<ThemeRootElement>(
+      '[data-editor] tk-root',
     )!,
-    simulation = document.querySelector<ThemeProviderElement>(
-      '[data-simulation] tk-provider',
+    simulation = document.querySelector<ThemeRootElement>(
+      '[data-simulation] tk-root',
     )!;
   for (const button of document.querySelectorAll<HTMLElement>(
     '[data-simulate]',

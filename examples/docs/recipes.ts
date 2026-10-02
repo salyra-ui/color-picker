@@ -271,10 +271,10 @@ export class App {
         ? "const picker = mountThemeKit(root.querySelector<HTMLElement>('[data-editor]')!, { store: demo.editor.store, modeStorage: false });"
         : "const picker = mountColorPicker(root.querySelector<HTMLElement>('[data-picker]')!, { store: demo.store });",
       studio
-        ? "const provider = root.querySelector<ThemeProviderElement>('[data-editor] tk-provider')!; provider.setStore(demo.editor.store, {modeStorage:false}); const picker = {destroy: () => provider.remove()};"
+        ? "const provider = root.querySelector<ThemeRootElement>('[data-editor] tk-root')!; provider.setStore(demo.editor.store, {modeStorage:false}); const picker = {destroy: () => provider.remove()};"
         : "const provider = root.querySelector<ColorProviderElement>('[data-picker] cp-provider')!; provider.setStore(demo.store); const picker = {destroy: () => provider.remove()};",
     );
-    return `---\n${imports}\nimport '@salyra-ui/${kit}/styles.min.css';\nimport './recipe.css';\n---\n<${nativeRoot} class="recipe" data-recipe="${kit}">${serverMarkup}<p data-contrast></p></${nativeRoot}>\n<script>\nimport type { ${studio ? 'ThemeProviderElement' : 'ColorProviderElement'} } from '@salyra-ui/${kit}/astro/client';\n${client}\n</script>`;
+    return `---\n${imports}\nimport '@salyra-ui/${kit}/styles.min.css';\nimport './recipe.css';\n---\n<${nativeRoot} class="recipe" data-recipe="${kit}">${serverMarkup}<p data-contrast></p></${nativeRoot}>\n<script>\nimport type { ${studio ? 'ThemeRootElement' : 'ColorProviderElement'} } from '@salyra-ui/${kit}/astro/client';\n${client}\n</script>`;
   }
   return `<${nativeRoot} class="recipe" data-recipe="${kit}">${nativeMarkup}<p data-contrast></p></${nativeRoot}>
 <script type="module">

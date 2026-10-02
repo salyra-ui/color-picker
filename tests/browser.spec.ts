@@ -65,16 +65,16 @@ test('Astro SSR and client controls', async ({ page }) => {
     '#EF6B52',
   );
   await page.getByLabel('HEX', { exact: true }).nth(1).fill('#123456');
-  await expect(page.locator('tk-provider').first()).toHaveAttribute(
+  await expect(page.locator('tk-root').first()).toHaveAttribute(
     'data-theme',
     'custom-123456',
   );
   await page.getByRole('button', { name: 'Toggle light / dark' }).click();
-  await expect(page.locator('tk-provider').first()).toHaveAttribute(
+  await expect(page.locator('tk-root').first()).toHaveAttribute(
     'data-mode',
     'dark',
   );
-  await expect(page.locator('tk-provider').last()).toHaveAttribute(
+  await expect(page.locator('tk-root').last()).toHaveAttribute(
     'data-theme-status',
     'fallback',
   );

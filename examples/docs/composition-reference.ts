@@ -28,7 +28,7 @@ const native = field(
   'native attributes',
   'HTML attributes, events and ref',
   'No extra attributes',
-  'Forwards classes, style, id, name, ARIA attributes and events to the actual element. Root is context only and accepts no HTML attributes. Svelte uses class and bind:ref, React uses className and ref, Vue exposes element on the component ref.',
+  'Forwards classes, style, id, name, ARIA attributes and events to the actual control or scope. React, Svelte and Vue context roots render no element. Angular uses a directive on your element, while Astro uses a custom element. Svelte uses class and bind:ref, React uses className and ref, Vue exposes element on the component ref.',
   'id="brand" aria-describedby="brand-help"',
 );
 export function compositionReferenceEntries(kit: Kit): ApiEntry[] {
@@ -238,7 +238,7 @@ export function compositionReferenceEntries(kit: Kit): ApiEntry[] {
   return [
     entry(
       'ThemeStudio.Root / Scope',
-      'Root provides theme state and lifecycle without markup. Scope applies variables to a container you can style.',
+      'Root provides theme state and lifecycle. Scope applies variables to a container you can style. ThemeProvider composes both with a disabled controls boundary.',
       [
         field(
           'store',
@@ -255,6 +255,13 @@ export function compositionReferenceEntries(kit: Kit): ApiEntry[] {
           'options={{theme,mode:"dark",modeStorage:false}}',
         ),
         native,
+        field(
+          'Astro Scope options',
+          'AstroThemeOptions',
+          '{}',
+          'Pass the same serializable options to ThemeRoot and ThemeVariableScope for matching server-rendered variables and loading state. Browser Scope follows the nearest Root. Vanilla uses tk-root and tk-scope, or bindThemeScope(element, store) for ordinary HTML.',
+          '<ThemeRoot options={options}><ThemeVariableScope options={options}>...</ThemeVariableScope></ThemeRoot>',
+        ),
         field(
           'Scope children',
           'Framework content',

@@ -1,4 +1,5 @@
 ---
+import ThemeVariableScope from '@salyra-ui/theme-studio/astro/ThemeVariableScope.astro';
 import ThemeRoot from '@salyra-ui/theme-studio/astro/ThemeRoot.astro';
 import ThemePickerRoot from '@salyra-ui/theme-studio/astro/ThemePickerRoot.astro';
 import ThemeRoleTrigger from '@salyra-ui/theme-studio/astro/ThemeRoleTrigger.astro';
@@ -20,39 +21,41 @@ const options = {
 ---
 
 <ThemeRoot {options}>
-  <ThemePickerRoot {roles}>
-    <div class="composition-editor" data-composition="theme">
-      <ThemeWheel {theme} {roles} class="composition-wheel" />
-      <div class="composition-fields">
-        <div class="composition-roles">
-          <ThemeRoleTrigger role="primary">Brand color</ThemeRoleTrigger>
-          <ThemeRoleTrigger role="accent">Highlight</ThemeRoleTrigger>
+  <ThemeVariableScope {options}>
+    <ThemePickerRoot {roles}>
+      <div class="composition-editor" data-composition="theme">
+        <ThemeWheel {theme} {roles} class="composition-wheel" />
+        <div class="composition-fields">
+          <div class="composition-roles">
+            <ThemeRoleTrigger role="primary">Brand color</ThemeRoleTrigger>
+            <ThemeRoleTrigger role="accent">Highlight</ThemeRoleTrigger>
+          </div>
+          <label>
+            <span>Brightness</span>
+            <ColorSlider {value} channel="v" />
+          </label>
+          <label>
+            <span>Active color</span>
+            <ColorInput {value} format="hex" />
+          </label>
+          <label>
+            <span>Card corners in rem</span>
+            <ThemeGeometryInput {theme} kind="radius" target="card" />
+          </label>
+          <label>
+            <span>Button border in px</span>
+            <ThemeGeometryInput {theme} kind="width" target="button" />
+          </label>
+          <article class="composition-preview">
+            <h3>Live theme</h3>
+            <button type="button">Continue</button>
+          </article>
         </div>
-        <label>
-          <span>Brightness</span>
-          <ColorSlider {value} channel="v" />
-        </label>
-        <label>
-          <span>Active color</span>
-          <ColorInput {value} format="hex" />
-        </label>
-        <label>
-          <span>Card corners in rem</span>
-          <ThemeGeometryInput {theme} kind="radius" target="card" />
-        </label>
-        <label>
-          <span>Button border in px</span>
-          <ThemeGeometryInput {theme} kind="width" target="button" />
-        </label>
-        <article class="composition-preview">
-          <h3>Live theme</h3>
-          <button type="button">Continue</button>
-        </article>
       </div>
-    </div>
-    <details>
-      <summary>Selected configuration</summary>
-      <ThemeExport {theme} selection={options.selection} />
-    </details>
-  </ThemePickerRoot>
+      <details>
+        <summary>Selected configuration</summary>
+        <ThemeExport {theme} selection={options.selection} />
+      </details>
+    </ThemePickerRoot>
+  </ThemeVariableScope>
 </ThemeRoot>
