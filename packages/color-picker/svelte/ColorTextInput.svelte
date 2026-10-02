@@ -1,70 +1,27 @@
 <script lang="ts">
-  import { untrack } from 'svelte';
-  import { parseColor, formatColor, type ColorFormat } from '../core';
-  import type { ColorPartClasses } from '../core';
-  import { useColor, useColorStore } from './context';
+  import type { HTMLInputAttributes } from 'svelte/elements';
+  import type { ColorFormat, ColorPartClasses } from '../core';
+  import { useColor } from './context';
+  import ColorField from './ColorField.svelte';
   let {
     format: override,
     label,
     class: className = '',
     classes = {},
-  }: {
+    ...attributes
+  }: Omit<HTMLInputAttributes, 'value'> & {
     format?: ColorFormat;
     label?: string;
     classes?: ColorPartClasses;
-    class?: string;
   } = $props();
-  const store = useColorStore(),
-    color = useColor();
+  const color = useColor();
   const format = $derived(override ?? $color.format);
-  let draft = $state(
-      untrack(() =>
-        formatColor(store.getSnapshot().hex, format, store.getSnapshot().alpha),
-      ),
-    ),
-    invalid = $state(false),
-    focused = $state(false);
-  $effect(() => {
-    if (!focused) {
-      draft = formatColor($color.hex, format, $color.alpha);
-      invalid = false;
-    }
-  });
-  function change(text: string) {
-    draft = text;
-    try {
-      store.setHex(parseColor(text, format));
-      invalid = false;
-    } catch {
-      invalid = true;
-    }
-  }
-  function reset() {
-    draft = formatColor(
-      store.getSnapshot().hex,
-      format,
-      store.getSnapshot().alpha,
-    );
-    invalid = false;
-  }
 </script>
 
 <label class="cp-input {className} {classes.root ?? ''} {classes.label ?? ''}"
-  >{label ?? format.toUpperCase()}<input
-    data-cp-part="input"
+  >{label ?? format.toUpperCase()}<ColorField
+    {...attributes}
+    {format}
     class={classes.input}
-    value={draft}
-    spellcheck="false"
-    maxlength={format === 'hex' ? 9 : 64}
-    aria-invalid={invalid}
-    onfocus={() => (focused = true)}
-    oninput={(e) => change(e.currentTarget.value)}
-    onblur={() => {
-      focused = false;
-      reset();
-    }}
-    onkeydown={(e) => {
-      if (e.key === 'Enter') reset();
-    }}
   /></label
 >

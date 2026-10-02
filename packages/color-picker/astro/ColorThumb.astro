@@ -1,0 +1,23 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+import {
+  createColorStore,
+  thumbPosition,
+  styleText,
+  type ColorView,
+} from '../core';
+interface Props extends HTMLAttributes<'span'> {
+  value?: string;
+  view?: ColorView;
+}
+const { value, view = 'area', style = '', ...attributes } = Astro.props;
+---
+
+<span
+  {...attributes}
+  data-cp-part="thumb"
+  aria-hidden="true"
+  style={`${styleText(thumbPosition(createColorStore(value).getSnapshot(), view))};${style}`}
+>
+  <slot />
+</span>

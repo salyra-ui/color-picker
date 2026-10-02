@@ -1,42 +1,28 @@
 <script lang="ts">
-  import {
-    sliderLabels,
-    sliderValue,
-    setSliderValue,
-    sliderTrackStyle,
-    type SliderChannel,
-    type ColorPartClasses,
-  } from '../core';
-  import { useColor, useColorStore } from './context';
+  import type { ComponentProps } from 'svelte';
+  import { sliderLabels, type ColorPartClasses } from '../core';
+  import ColorRange from './ColorRange.svelte';
   let {
     channel = 'h',
     label,
     class: className = '',
     classes = {},
-  }: {
-    channel?: SliderChannel;
+    ...attributes
+  }: ComponentProps<typeof ColorRange> & {
     label?: string;
-    class?: string;
     classes?: ColorPartClasses;
   } = $props();
-  const store = useColorStore(),
-    color = useColor();
 </script>
 
 <label
   class="cp-slider {className} {classes.root ?? ''} {classes.label ?? ''}"
   data-cp-part="slider"
   data-channel={channel}
-  style={sliderTrackStyle($color)}
-  >{label ?? sliderLabels[channel]}<input
-    data-cp-part="track"
-    class="{classes.track ?? ''} {classes.input ?? ''}"
-    type="range"
-    min="0"
-    max={channel === 'h' ? 359 : 100}
-    step="1"
-    value={sliderValue($color, channel)}
-    oninput={(e) =>
-      setSliderValue(store, channel, Number(e.currentTarget.value))}
-  /></label
 >
+  {label ?? sliderLabels[channel]}<ColorRange
+    {...attributes}
+    {channel}
+    aria-label={label ?? sliderLabels[channel]}
+    class="{classes.track ?? ''} {classes.input ?? ''}"
+  />
+</label>

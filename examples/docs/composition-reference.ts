@@ -1,0 +1,368 @@
+import type { ApiEntry, ApiField } from './reference-data';
+import type { Kit } from './snippets';
+const field = (
+  key: string,
+  type: string,
+  defaultValue: string,
+  description: string,
+  example: string,
+): ApiField => ({ key, type, default: defaultValue, description, example });
+const entry = (
+  name: string,
+  description: string,
+  fields: ApiField[],
+  code: string,
+  kit: Kit,
+): ApiEntry => ({
+  id: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+  name,
+  kind: 'Component',
+  description,
+  fields,
+  example: {
+    file: 'Composition.tsx',
+    code: `import { ${kit === 'color-picker' ? 'ColorPicker' : 'ThemeStudio'}, create${kit === 'color-picker' ? 'Color' : 'Theme'}Store } from '@salyra-ui/${kit}/react';\n\n${code}`,
+  },
+});
+const native = field(
+  'native attributes',
+  'HTML attributes, events and ref',
+  'No extra attributes',
+  'Forwards classes, style, id, name, ARIA attributes and events to the actual element. Root is context only and accepts no HTML attributes. Svelte uses class and bind:ref, React uses className and ref, Vue exposes element on the component ref.',
+  'id="brand" aria-describedby="brand-help"',
+);
+export function compositionReferenceEntries(kit: Kit): ApiEntry[] {
+  if (kit === 'color-picker')
+    return [
+      entry(
+        'ColorPicker.Root',
+        'Shares one color store without rendering a wrapper or fieldset.',
+        [
+          field(
+            'store',
+            'ColorStore',
+            'Created internally',
+            'Uses an existing store. Keep its identity stable for the lifetime of the root.',
+            'store={store}',
+          ),
+          field(
+            'value',
+            'HEX string',
+            'Uses defaultValue',
+            'Synchronizes external value changes. React uses value/onValueChange, Svelte supports bind:value, Vue supports v-model. The value includes alpha when present.',
+            'value="#5268E080"',
+          ),
+          field(
+            'defaultValue',
+            'HEX string',
+            "'#6366F1'",
+            'Seeds an internally created store once. Use this for uncontrolled editing.',
+            'defaultValue="#277D59"',
+          ),
+          field(
+            'disabled',
+            'boolean',
+            'Store setting',
+            'Disables the native primitive controls and pointer surfaces. Does not prevent programmatic store changes.',
+            'disabled={true}',
+          ),
+          field(
+            'onValueChange',
+            '(value: string) => void',
+            'No callback',
+            'Receives actual color/alpha changes, excluding format and view changes. Vue emits valueChange as well as update:modelValue.',
+            'onValueChange={setValue}',
+          ),
+          field(
+            'children',
+            'Framework content',
+            'Required',
+            'Arrange any elements and primitive controls inside this context.',
+            '<ColorPicker.Input />',
+          ),
+        ],
+        'const store=createColorStore("#5268E080");\n<ColorPicker.Root store={store}><label>Brand<ColorPicker.Input /></label></ColorPicker.Root>',
+        kit,
+      ),
+      entry(
+        'ColorPicker.Area / Wheel',
+        'Interactive color surface. Add a Thumb yourself or supply Marker components for a multi-color wheel.',
+        [
+          native,
+          field(
+            'children',
+            'Framework content',
+            'No thumb',
+            'Owns the complete surface content. No selection dot is inserted automatically. Give the surface dimensions and the thumb a visible size.',
+            '<ColorPicker.Thumb className="my-dot" />',
+          ),
+          field(
+            'markers',
+            'readonly ColorMarker[]',
+            'Single store color',
+            'Enables generic multi-marker interaction. Supply marker nodes with matching ids. Theme roles are not part of color picker.',
+            'markers={markers}',
+          ),
+          field(
+            'activeId',
+            'string',
+            'First marker id',
+            'Identifies the marker moved by an empty-surface interaction.',
+            'activeId="brand"',
+          ),
+          field(
+            'onSelect',
+            '(id: string) => void',
+            'No callback',
+            'Selects the clicked marker without relocating either color.',
+            'onSelect={setActiveId}',
+          ),
+          field(
+            'onMarkerChange',
+            '(id: string, hsv: Partial<HSV>) => void',
+            'No callback',
+            'Receives pointer and keyboard edits for one marker. Update the source markers.',
+            'onMarkerChange={updateMarker}',
+          ),
+        ],
+        '<ColorPicker.Root><ColorPicker.Wheel style={{width:240}}><ColorPicker.Thumb style={{width:16,height:16,border:"2px solid white"}} /></ColorPicker.Wheel></ColorPicker.Root>',
+        kit,
+      ),
+      entry(
+        'ColorPicker.Thumb / Marker',
+        'Positions your own selection element. Thumb follows the nearest surface. Marker represents an explicitly supplied color.',
+        [
+          native,
+          field(
+            'marker',
+            'ColorMarker',
+            'Required for Marker',
+            'Object with id, color: {h,s,v,hex}, optional label and ariaLabel. Marker emits no color updates by itself.',
+            'marker={markers[0]}',
+          ),
+          field(
+            'active',
+            'boolean',
+            'false',
+            'Sets aria-pressed and data-state on a Marker.',
+            'active={activeId === marker.id}',
+          ),
+          field(
+            'children',
+            'Framework content',
+            'No content for Thumb, marker.label for Marker',
+            'Use text, an icon or any custom content inside the element. Classes control its shape and decoration.',
+            '<span>Brand</span>',
+          ),
+        ],
+        '<ColorPicker.Root><ColorPicker.Area style={{height:180}}><ColorPicker.Thumb className="square-dot">Pick</ColorPicker.Thumb></ColorPicker.Area></ColorPicker.Root>',
+        kit,
+      ),
+      entry(
+        'ColorPicker.Slider',
+        'A native range input with color-store behavior. Labels and layout belong to your application.',
+        [
+          native,
+          field(
+            'channel',
+            "'h' | 's' | 'v' | 'alpha'",
+            "'h'",
+            'Hue uses degrees from 0 to 359. Saturation and brightness use 0 to 100. Alpha uses 0 to 100 percent with a 0.1 step. The store keeps alpha from 0 to 1.',
+            'channel="alpha"',
+          ),
+          field(
+            'disabled',
+            'boolean',
+            'false',
+            'Disables this input independently of the root. A disabled root also disables it.',
+            'disabled={true}',
+          ),
+        ],
+        '<ColorPicker.Root><label>Opacity<ColorPicker.Slider channel="alpha" /></label></ColorPicker.Root>',
+        kit,
+      ),
+      entry(
+        'ColorPicker.Input / ChannelInput',
+        'A native input with validated local drafts. Invalid or incomplete text never enters the store.',
+        [
+          native,
+          field(
+            'format',
+            "'hex' | 'rgb' | 'hsl' | 'hsv' | 'oklch' | 'oklab'",
+            'Current store format',
+            'Chooses the text syntax. Changing the store format updates inputs without a fixed format.',
+            'format="hsl"',
+          ),
+          field(
+            'index',
+            '0 | 1 | 2',
+            'Formatted text input',
+            'Enables a numeric channel field. Requires an explicit non-hex format. RGB channels use 0–255, HSL/HSV use degrees and percentages, OKLCH/OKLab lightness uses percentages.',
+            'format="rgb" index={0}',
+          ),
+        ],
+        '<ColorPicker.Root><label>Red<ColorPicker.ChannelInput format="rgb" index={0} /></label><label>HEX<ColorPicker.Input format="hex" /></label></ColorPicker.Root>',
+        kit,
+      ),
+      entry(
+        'ColorPicker.FormatTrigger',
+        'A native button for changing format, with your own content and events.',
+        [
+          native,
+          field(
+            'format',
+            "'hex' | 'rgb' | 'hsl' | 'hsv' | 'oklch' | 'oklab'",
+            'Next supported format',
+            'Selects a fixed format when supplied, otherwise cycles through all formats.',
+            'format="oklch"',
+          ),
+          field(
+            'children / render',
+            'Framework content / React render callback',
+            'Current format in uppercase',
+            'React supports render(snapshot), Svelte accepts a children(snapshot) snippet, Vue exposes state in its default slot.',
+            'render={state => `Next after ${state.format}`}',
+          ),
+          field(
+            'event cancellation',
+            'event.preventDefault()',
+            'Changes format after your handler',
+            'Cancel the click to keep the current format.',
+            'onClick={event => event.preventDefault()}',
+          ),
+        ],
+        '<ColorPicker.Root><ColorPicker.FormatTrigger format="rgb">RGB channels</ColorPicker.FormatTrigger></ColorPicker.Root>',
+        kit,
+      ),
+    ];
+  return [
+    entry(
+      'ThemeStudio.Root / Scope',
+      'Root provides theme state and lifecycle without markup. Scope applies variables to a container you can style.',
+      [
+        field(
+          'store',
+          'ThemeStore',
+          'Created internally',
+          'Uses the supplied store. Keep its identity stable for the lifetime of Root.',
+          'store={store}',
+        ),
+        field(
+          'options',
+          'ThemeOptions',
+          '{}',
+          'Initial theme, fallback, loader, storage, appearance and selection options. Root options initialize the store. Use its methods for subsequent updates.',
+          'options={{theme,mode:"dark",modeStorage:false}}',
+        ),
+        native,
+        field(
+          'Scope children',
+          'Framework content',
+          'No content',
+          'Place themed elements inside Scope. You can use more than one Scope under a Root. Portalled content needs its own scope or copied variables.',
+          '<ThemeStudio.Scope className="application">...</ThemeStudio.Scope>',
+        ),
+      ],
+      'const store=createThemeStore({modeStorage:false});\n<ThemeStudio.Root store={store}><ThemeStudio.Scope><button>Continue</button></ThemeStudio.Scope></ThemeStudio.Root>',
+      kit,
+    ),
+    entry(
+      'ThemeStudio.PickerRoot',
+      'Connects color-picker primitives to the selected theme roles. Renders no role selectors, labels or surfaces.',
+      [
+        field(
+          'roles',
+          "readonly ('primary' | 'secondary' | 'accent')[]",
+          'All three roles',
+          'Registers only these roles for exports and limits role selection to them. Requires at least one unique role.',
+          'roles={["primary","accent"]}',
+        ),
+        field(
+          'activeRole',
+          "'primary' | 'secondary' | 'accent'",
+          'First selected role',
+          'Chooses which color feeds the shared slider and input controls. It must be included in roles.',
+          'activeRole="accent"',
+        ),
+        field(
+          'picker',
+          'ThemePickerStore',
+          'Created internally',
+          'Shares an existing picker controller.',
+          'picker={picker}',
+        ),
+        field(
+          'disabled',
+          'boolean',
+          'false',
+          'Disables the active color controls and wheel. Theme-level disabled also applies.',
+          'disabled={true}',
+        ),
+      ],
+      '<ThemeStudio.Root><ThemeStudio.PickerRoot roles={["primary"]}><ThemeStudio.Wheel /></ThemeStudio.PickerRoot></ThemeStudio.Root>',
+      kit,
+    ),
+    entry(
+      'ThemeStudio.RoleTrigger',
+      'A native button that selects one theme role without moving its color.',
+      [
+        native,
+        field(
+          'role',
+          "'primary' | 'secondary' | 'accent'",
+          'Required',
+          'Role to select. A role outside PickerRoot.roles is disabled.',
+          'role="accent"',
+        ),
+        field(
+          'children',
+          'Framework content',
+          'Role name',
+          'Use your own label or icon. Selection is exposed through aria-pressed and data-state.',
+          'Highlight',
+        ),
+      ],
+      '<ThemeStudio.Root><ThemeStudio.PickerRoot><ThemeStudio.RoleTrigger role="accent">Highlight</ThemeStudio.RoleTrigger></ThemeStudio.PickerRoot></ThemeStudio.Root>',
+      kit,
+    ),
+    entry(
+      'ThemeStudio.Wheel',
+      'A color-picker wheel connected to the current theme picker, with optional custom marker markup.',
+      [
+        native,
+        field(
+          'children',
+          'Framework content',
+          'Markers for the selected roles',
+          'Supply ColorPicker.Marker elements to replace the default markers. useThemePicker() exposes their colors and active role. One selected role uses an unlabeled small dot.',
+          '<CustomThemeMarkers />',
+        ),
+      ],
+      '<ThemeStudio.Root><ThemeStudio.PickerRoot roles={["primary","accent"]}><ThemeStudio.Wheel className="my-wheel" /></ThemeStudio.PickerRoot></ThemeStudio.Root>',
+      kit,
+    ),
+    entry(
+      'ThemeStudio.GeometryInput',
+      'A native numeric input that registers only its own geometry field for export.',
+      [
+        native,
+        field(
+          'kind',
+          "'radius' | 'width'",
+          "'radius'",
+          'Radius is measured in rem. Border width is measured in px. Valid values are from 0 to 1000.',
+          'kind="width"',
+        ),
+        field(
+          'target',
+          "'DEFAULT' | 'input' | 'card' | 'popover' | 'button' | 'table' | 'picker'",
+          "'DEFAULT'",
+          'Selects the component token edited by this input. Mounting card radius does not register other radius or width tokens.',
+          'target="card"',
+        ),
+      ],
+      '<ThemeStudio.Root><label>Card corners<ThemeStudio.GeometryInput kind="radius" target="card" /></label></ThemeStudio.Root>',
+      kit,
+    ),
+  ];
+}

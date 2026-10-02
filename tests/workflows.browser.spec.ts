@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { resolve, join } from 'node:path';
 import { build, preview } from 'vite';
 import { workflows } from '../examples/docs/workflow-data';
-const demoUrl = process.env.SALYRA_DEMO_URL ?? 'http://127.0.0.1:4317';
+const demoUrl = process.env.SALYRA_DEMO_URL ?? 'http://127.0.0.1:4321';
 
 async function openWorkflow(
   page: Page,
@@ -209,7 +209,7 @@ for (const path of ['/', '/svelte.html', '/vue.html', '/angular.html']) {
     page.on('console', (msg) => {
       if (msg.type() === 'error') runtimeErrors.push(msg.text());
     });
-    await page.goto(`${demoUrl}${path}`);
+    await page.goto(`${demoUrl}${path === '/' ? '/react.html' : path}`);
     const cards = page.locator('.native-workflow-card');
     await expect(cards)
       .toHaveCount(2)

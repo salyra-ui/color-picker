@@ -1,0 +1,17 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+interface Props extends HTMLAttributes<'div'> {
+  value?: string;
+  disabled?: boolean;
+}
+const { value = '#6366F1', disabled, ...attributes } = Astro.props;
+---
+
+<cp-provider {...attributes} value={value} disabled={disabled}>
+  <cp-compose>
+    <slot />
+  </cp-compose>
+</cp-provider>
+<script>
+  import './client';
+</script>

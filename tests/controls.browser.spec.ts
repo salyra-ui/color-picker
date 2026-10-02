@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-const demoUrl = process.env.SALYRA_DEMO_URL ?? 'http://127.0.0.1:4317';
+const demoUrl = process.env.SALYRA_DEMO_URL ?? 'http://127.0.0.1:4321';
 
 for (const width of [390, 1280]) {
   test(`Vanilla picker controls keep their spacing at ${width}px`, async ({

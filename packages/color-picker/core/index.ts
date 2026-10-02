@@ -12,3 +12,5 @@ export * from './history';
 export * from './contrast';
 export * from './form';
 export * from './collection';
+
+export * from './controls';

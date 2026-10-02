@@ -1,0 +1,43 @@
+name: Validate changes
+on:
+  push:
+    branches-ignore: [main]
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm run prepare:peer
+      - run: npm ci
+      - run: npm test
+      - run: npm run check
+      - run: npm run check:docs
+      - run: npm run test:ssr
+      - run: npm run pack:all
+      - run: npm run test:consumer
+      - run: npm run check:release
+      - run: npm run check:bundles
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:recipes
+      - run: npm run build:site
+      - run: npm exec vite preview -- --host 127.0.0.1 --port 4321 > /tmp/preview.log 2>&1 &
+      - run: npm run test:performance
+        env:
+          SALYRA_DEMO_URL: http://127.0.0.1:4321
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: validation-results
+          path: |
+            artifacts/performance/
+            test-results/

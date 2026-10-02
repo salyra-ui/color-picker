@@ -425,9 +425,7 @@ class ColorPreviewElement extends HTMLElement {
     const output = this.querySelector('output')!;
     this.cleanup = connect(this, (store) => {
       const value = store.getSnapshot().value;
-      for (const [property, color] of Object.entries(
-        colorPreviewStyles(value),
-      ))
+      for (const [property, color] of Object.entries(colorPreviewStyles(value)))
         output.style.setProperty(property, color);
       output.textContent = value;
       output.setAttribute('aria-label', `Selected color ${value}`);

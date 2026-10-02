@@ -23,7 +23,7 @@
 .cp-input,
 .cp-channel {
   display: grid;
-  gap: 0.5rem;
+  gap: var(--cp-label-gap, 8px);
   min-width: 0;
   font: inherit;
   font-size: var(--cp-label-size, 0.8rem);
@@ -282,4 +282,12 @@ cp-surface [hidden] {
   .cp-swatch {
     border: 1px solid ButtonText;
   }
+}
+
+/* The complete surface presets use this decoration. Headless Thumb has only positioning. */
+.cp-thumb {
+ width:var(--cp-thumb-size,12px);height:var(--cp-thumb-size,12px);
+ border:var(--cp-thumb-border,2px solid white);border-radius:var(--cp-thumb-radius,50%);
+ box-shadow:var(--cp-thumb-shadow,0 0 0 1px #000);display:grid;place-items:center;
+ color:var(--cp-thumb-text-color,white);font-size:var(--cp-thumb-text-size,10px);
 }

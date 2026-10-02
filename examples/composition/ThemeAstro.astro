@@ -1,0 +1,58 @@
+---
+import ThemeRoot from '@salyra-ui/theme-studio/astro/ThemeRoot.astro';
+import ThemePickerRoot from '@salyra-ui/theme-studio/astro/ThemePickerRoot.astro';
+import ThemeRoleTrigger from '@salyra-ui/theme-studio/astro/ThemeRoleTrigger.astro';
+import ThemeWheel from '@salyra-ui/theme-studio/astro/ThemePickerWheel.astro';
+import ThemeGeometryInput from '@salyra-ui/theme-studio/astro/ThemeGeometryInput.astro';
+import ThemeExport from '@salyra-ui/theme-studio/astro/ThemeExport.astro';
+import ColorSlider from '@salyra-ui/color-picker/astro/ColorRange.astro';
+import ColorInput from '@salyra-ui/color-picker/astro/ColorField.astro';
+import { generateTheme } from '@salyra-ui/theme-studio';
+const value = '#5268E0',
+  theme = generateTheme(value),
+  roles = ['primary', 'accent'] as const;
+const options = {
+  theme,
+  mode: 'dark' as const,
+  modeStorage: false as const,
+  selection: { roles, radius: ['card'] as const, width: ['button'] as const },
+};
+---
+
+<ThemeRoot {options}>
+  <ThemePickerRoot {roles}>
+    <div class="composition-editor" data-composition="theme">
+      <ThemeWheel {theme} {roles} class="composition-wheel" />
+      <div class="composition-fields">
+        <div class="composition-roles">
+          <ThemeRoleTrigger role="primary">Brand color</ThemeRoleTrigger>
+          <ThemeRoleTrigger role="accent">Highlight</ThemeRoleTrigger>
+        </div>
+        <label>
+          <span>Brightness</span>
+          <ColorSlider {value} channel="v" />
+        </label>
+        <label>
+          <span>Active color</span>
+          <ColorInput {value} format="hex" />
+        </label>
+        <label>
+          <span>Card corners in rem</span>
+          <ThemeGeometryInput {theme} kind="radius" target="card" />
+        </label>
+        <label>
+          <span>Button border in px</span>
+          <ThemeGeometryInput {theme} kind="width" target="button" />
+        </label>
+        <article class="composition-preview">
+          <h3>Live theme</h3>
+          <button type="button">Continue</button>
+        </article>
+      </div>
+    </div>
+    <details>
+      <summary>Selected configuration</summary>
+      <ThemeExport {theme} selection={options.selection} />
+    </details>
+  </ThemePickerRoot>
+</ThemeRoot>

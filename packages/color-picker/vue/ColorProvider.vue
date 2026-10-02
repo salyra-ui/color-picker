@@ -7,12 +7,15 @@ import {
   type ColorStore,
 } from '../core';
 import { provideColor, watchColor } from './context';
-const props = withDefaults(defineProps<{
-  value?: string;
-  disabled?: boolean;
-  store?: ColorStore;
-  view?: ColorView;
-}>(), { disabled: undefined });
+const props = withDefaults(
+  defineProps<{
+    value?: string;
+    disabled?: boolean;
+    store?: ColorStore;
+    view?: ColorView;
+  }>(),
+  { disabled: undefined },
+);
 const emit = defineEmits<{ change: [hex: string] }>();
 const store = provideColor(
   props.store ??

@@ -21,6 +21,44 @@ store.setAlpha(0.5);
 
 The store supports HEX, RGB, HSL, HSV, OKLCH and OKLab. Color names come from the bundled list and include an exact-match indicator. Each picker has independent state and can be initialized during server rendering.
 
+## V1 composition
+
+Version 1.0.0 is being developed on `composable-primitives`. The examples in this section use that branch.
+
+A root owns state and context. It does not render a wrapper or load a stylesheet. Each part renders one native control and forwards its HTML attributes. Put labels, spacing, icons and any extra content in your own markup.
+
+```tsx
+import { ColorPicker } from '@salyra-ui/color-picker/react';
+import './color-editor.css';
+
+<ColorPicker.Root defaultValue="#5268E080">
+  <ColorPicker.Wheel className="color-wheel">
+    <ColorPicker.Thumb className="color-thumb">Pick</ColorPicker.Thumb>
+  </ColorPicker.Wheel>
+  <label>
+    Opacity
+    <ColorPicker.Slider channel="alpha" className="color-slider" />
+  </label>
+  <ColorPicker.ChannelInput format="rgb" index={0} aria-label="Red" />
+  <ColorPicker.ChannelInput format="rgb" index={1} aria-label="Green" />
+  <ColorPicker.ChannelInput format="rgb" index={2} aria-label="Blue" />
+  <ColorPicker.Input className="color-value" />
+  <ColorPicker.FormatTrigger>Change format</ColorPicker.FormatTrigger>
+</ColorPicker.Root>;
+```
+
+Use `Area` instead of `Wheel` for a rectangular surface. Give an area a width and height in your CSS. A wheel needs a width and keeps a square aspect ratio. Thumb positioning follows the selected color, while its size, shape and content come from your classes. Sliders use native range inputs.
+
+React, Svelte and Vue export the `ColorPicker` composition object and individual parts. React supports `ref` and `onValueChange`, Svelte supports `bind:ref` and `bind:value`, and Vue supports `v-model` and exposes the native element. Angular uses directives such as `cpRoot`, `cpWheel`, `cpThumb`, `cpSlider` and `cpInput` on your own HTML. Astro components are imported individually, such as `/astro/ColorRoot.astro`.
+
+For plain HTML, connect existing controls with `mountColorControls(root, store)`. Add `data-cp-control="wheel"`, `"slider"`, `"input"` or `"format"` to the controls, and use `data-channel`, `data-format` and `data-index` for their options. Call the returned `destroy()` when removing the editor. The wheel thumb uses `data-cp-part="thumb"`.
+
+Incomplete input stays in the focused field. Valid edits update the store. Blur, Enter and Escape restore the current valid value when the draft is invalid. `disabled` on the root disables its controls, while a disabled individual control stays disabled when the context is enabled again.
+
+The composition API needs no default stylesheet. Ready-made controls such as `ColorArea`, `ColorWheel` and `ColorInput` remain available as styled compositions and use the optional package CSS. For extensive visual changes, build a local composition from the primitives instead of overriding preset internals.
+
+[Full examples for all six integrations](https://salyra-ui.github.io/color-picker/docs.html?kit=color-picker#composition)
+
 ## Framework entries
 
 Install one package, then import the entry for your application:
@@ -53,9 +91,15 @@ Replace `@sebytza23/color-picker-FRAMEWORK` with `@salyra-ui/color-picker/FRAMEW
 All framework entries re-export these helpers. Create stores per component or server request. Browser bindings begin on mount.
 
 ```ts
-import { createColorStore, createColorHistory, mountHistory,
-  bindColorForm, createColorCollection, browserColorStorage,
-  colorContrast } from '@salyra-ui/color-picker';
+import {
+  createColorStore,
+  createColorHistory,
+  mountHistory,
+  bindColorForm,
+  createColorCollection,
+  browserColorStorage,
+  colorContrast,
+} from '@salyra-ui/color-picker';
 
 const store = createColorStore('#5268E080');
 const history = createColorHistory(store, { limit: 50 });

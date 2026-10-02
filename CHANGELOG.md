@@ -1,5 +1,16 @@
 # Salyra UI changelog
 
+## 1.0.0 (unreleased)
+
+- Context roots no longer prescribe a layout in the composition API. Theme context and the CSS variable scope are separate parts.
+- Color controls expose native attributes, element references and custom children. Layout, labels, format button content and thumb decoration belong to the application.
+- The shared theme wheel uses Color Picker surface behavior. Role controls select a marker without changing its color.
+- React and Angular sources are split by component. Ready-made editors compose the same public controls.
+- Native DOM bindings attach to existing HTML, with lifecycle wrappers for Astro.
+- Shared input controllers preserve focused drafts, normalize invalid values on blur and respect disabled state.
+- Theme geometry controls register only their own radius or border width target. Configuration exports contain the roles and targets selected by the editor.
+- New composition examples and API reference entries cover all six integrations.
+
 ## 0.3.1
 
 ### Editor controls

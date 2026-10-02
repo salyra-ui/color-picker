@@ -59,7 +59,7 @@ export function workflowFiles(kit: WorkflowKit, id: string) {
           private: true,
           type: 'module',
           scripts: { dev: 'vite', build: 'vite build' },
-          dependencies: { [`@salyra-ui/${kit}`]: '^0.3.0' },
+          dependencies: { [`@salyra-ui/${kit}`]: '^1.0.0' },
           devDependencies: { vite: '^6.1.0', typescript: '~5.8.3' },
         },
         null,

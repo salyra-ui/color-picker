@@ -28,15 +28,9 @@ describe('shared editor controls', () => {
     });
   });
   it('uses readable preview text for dark, light and transparent colors', () => {
-    expect(colorPreviewStyles('#000000')['color']).toBe(
-      '#FFFFFF',
-    );
-    expect(colorPreviewStyles('#FFFFFF')['color']).toBe(
-      '#000000',
-    );
-    expect(colorPreviewStyles('#00000000')['color']).toBe(
-      '#000000',
-    );
+    expect(colorPreviewStyles('#000000')['color']).toBe('#FFFFFF');
+    expect(colorPreviewStyles('#FFFFFF')['color']).toBe('#000000');
+    expect(colorPreviewStyles('#00000000')['color']).toBe('#000000');
   });
   it('edits the focused marker when the framework defers selection', () => {
     const surface = document.createElement('div');

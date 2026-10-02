@@ -129,3 +129,6 @@ export function mountColorCollection(
     },
   };
 }
+
+export * from './composition';
+export * from './composition-element';

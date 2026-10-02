@@ -360,8 +360,8 @@ export function recipeFiles(kit: Kit, integration: Integration) {
     files.push({ name: 'main.ts', code: script });
   }
   const dependencies: Record<string, string> = {
-    '@salyra-ui/color-picker': '^0.3.0',
-    ...(kit === 'theme-studio' ? { '@salyra-ui/theme-studio': '^0.3.0' } : {}),
+    '@salyra-ui/color-picker': '^1.0.0',
+    ...(kit === 'theme-studio' ? { '@salyra-ui/theme-studio': '^1.0.0' } : {}),
   };
   const devDependencies: Record<string, string> = {
     typescript: '~5.8.3',
