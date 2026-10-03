@@ -1,0 +1,42 @@
+---
+import ColorRoot from '@salyra-ui/color-picker/astro/ColorRoot.astro';
+import ColorWheel from '@salyra-ui/color-picker/astro/ColorWheelSurface.astro';
+import ColorThumb from '@salyra-ui/color-picker/astro/ColorThumb.astro';
+import ColorSlider from '@salyra-ui/color-picker/astro/ColorRange.astro';
+import ColorInput from '@salyra-ui/color-picker/astro/ColorField.astro';
+import ColorFormatTrigger from '@salyra-ui/color-picker/astro/ColorFormatTrigger.astro';
+const value = '#5268E080';
+---
+
+<ColorRoot {value}>
+  <div class="composition-editor" data-composition="color">
+    <ColorWheel {value} class="composition-wheel">
+      <ColorThumb {value} view="wheel" class="composition-dot">
+        <span class="composition-dot-text">Pick</span>
+      </ColorThumb>
+    </ColorWheel>
+    <div class="composition-fields">
+      <label>
+        <span>Brightness</span>
+        <ColorSlider {value} channel="v" />
+      </label>
+      <label>
+        <span>Opacity</span>
+        <ColorSlider {value} channel="alpha" />
+      </label>
+      <div class="composition-channels">
+        {['Red', 'Green', 'Blue'].map((label, index) => (
+          <label>
+            <span>{label}</span>
+            <ColorInput {value} format="rgb" index={index as 0 | 1 | 2} />
+          </label>
+        ))}
+      </div>
+      <label>
+        <span>Color value</span>
+        <ColorInput {value} />
+      </label>
+      <ColorFormatTrigger>Show next format</ColorFormatTrigger>
+    </div>
+  </div>
+</ColorRoot>

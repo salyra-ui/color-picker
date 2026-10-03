@@ -74,7 +74,7 @@ import './workflow.css';
   <p data-contrast></p>
 </div>
 <script>
-  import type { ThemeProviderElement } from '@salyra-ui/theme-studio/astro/client';
+  import type { ThemeRootElement } from '@salyra-ui/theme-studio/astro/client';
   import {
     mountThemeKit,
     themeConfiguration,
@@ -88,8 +88,8 @@ import './workflow.css';
     const demo = createDemo();
     const button = (name: string) =>
       root.querySelector<HTMLButtonElement>('[data-' + name + ']')!;
-    const provider = root.querySelector<ThemeProviderElement>(
-      '[data-editor] tk-provider',
+    const provider = root.querySelector<ThemeRootElement>(
+      '[data-editor] tk-root',
     )!;
     provider.setStore(demo.editor.store, { modeStorage: false });
     const picker = { destroy: () => provider.remove() };

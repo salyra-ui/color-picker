@@ -1,0 +1,30 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+import {
+  createColorStore,
+  surfaceStyles,
+  styleText,
+  type ColorView,
+} from '../core';
+interface Props extends HTMLAttributes<'div'> {
+  value?: string;
+  view?: ColorView;
+}
+const { value, view = 'area', style = '', ...attributes } = Astro.props;
+const state = createColorStore(value).getSnapshot();
+---
+
+<div
+  role="group"
+  tabindex="0"
+  aria-label={
+    view === 'wheel' ? 'Hue and saturation' : 'Saturation and brightness'
+  }
+  {...attributes}
+  data-cp-part="surface"
+  data-cp-control={view}
+  data-view={view}
+  style={`${styleText(surfaceStyles(state, view))};${style}`}
+>
+  <slot />
+</div>

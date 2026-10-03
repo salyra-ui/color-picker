@@ -6,7 +6,24 @@ const field = (
   fallback: string,
   description: string,
   example: string,
-): ApiField => ({ key, type, default: fallback, description, example, required: fallback === "Required", readOnly: fallback !== "Required" && ["ratio / aa / aaa", "suggestedForeground", "history", "Theme.schemaVersion", "ThemeConfiguration.schemaVersion"].includes(key) || (key === "store" && fallback === "Isolated draft") });
+): ApiField => ({
+  key,
+  type,
+  default: fallback,
+  description,
+  example,
+  required: fallback === 'Required',
+  readOnly:
+    (fallback !== 'Required' &&
+      [
+        'ratio / aa / aaa',
+        'suggestedForeground',
+        'history',
+        'Theme.schemaVersion',
+        'ThemeConfiguration.schemaVersion',
+      ].includes(key)) ||
+    (key === 'store' && fallback === 'Isolated draft'),
+});
 const item = (
   name: string,
   description: string,
@@ -15,7 +32,10 @@ const item = (
   names: string,
   body: string,
 ): ApiEntry => ({
-  id: name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-$/, ""),
+  id: name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/-$/, ''),
   name,
   kind: 'Function',
   description,
@@ -311,6 +331,13 @@ colors.push({
       'classes={{ root: "brand-list", item: "brand-swatch", label: "brand-label" }}',
     ),
     field(
+      'renderLabel',
+      '(color: string) => ReactNode',
+      'No item text',
+      'React only. Supplies custom content for each color button. Vanilla mountColorCollection accepts a callback returning text. The Svelte, Vue and Angular presets support classes but do not accept a custom item renderer. Compose your own list with ColorSwatch when you need custom content.',
+      'renderLabel={value => value}',
+    ),
+    field(
       'Astro colors',
       'readonly HEX string[]',
       '[]',
@@ -363,9 +390,27 @@ const themes: ApiEntry[] = [
         'Use existing picker, name, mode and geometry components against this store. Draft persistence is disabled by default.',
         '<ThemeProvider store={editor.store}>...</ThemeProvider>',
       ),
-      field('history', 'HistoryController', 'One initial entry', 'Undo or redo draft edits. Use mountHistory(root, editor.history) to group drags and field edits.', 'editor.history.undo()'),
-      field('setLive(live)', '(boolean) => void', 'false', 'Enable immediate application or return to draft editing. Enabling commits the current draft.', 'editor.setLive(true)'),
-      field('subscribe(listener)', '(listener: () => void) => () => void', 'Explicit subscription', 'Observe dirty, conflict, live and locked state. The returned function unsubscribes.', 'const unsubscribe = editor.subscribe(renderButtons)'),
+      field(
+        'history',
+        'HistoryController',
+        'One initial entry',
+        'Undo or redo draft edits. Use mountHistory(root, editor.history) to group drags and field edits.',
+        'editor.history.undo()',
+      ),
+      field(
+        'setLive(live)',
+        '(boolean) => void',
+        'false',
+        'Enable immediate application or return to draft editing. Enabling commits the current draft.',
+        'editor.setLive(true)',
+      ),
+      field(
+        'subscribe(listener)',
+        '(listener: () => void) => () => void',
+        'Explicit subscription',
+        'Observe dirty, conflict, live and locked state. The returned function unsubscribes.',
+        'const unsubscribe = editor.subscribe(renderButtons)',
+      ),
       field(
         'apply({ force? })',
         '({ force?: boolean }) => void',

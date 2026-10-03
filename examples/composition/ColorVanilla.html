@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="stylesheet" href="./styles.css" />
+    <title>Custom color picker</title>
+  </head>
+  <body>
+    <div class="composition-editor" data-composition="color">
+      <div
+        class="composition-wheel"
+        data-cp-control="wheel"
+        role="group"
+        aria-label="Brand color"
+      >
+        <span data-cp-part="thumb" class="composition-dot"
+          ><span class="composition-dot-text">Pick</span></span
+        >
+      </div>
+      <div class="composition-fields">
+        <label
+          ><span>Brightness</span
+          ><input
+            type="range"
+            min="0"
+            max="100"
+            data-cp-control="slider"
+            data-channel="v" /></label
+        ><label
+          ><span>Opacity</span
+          ><input
+            type="range"
+            min="0"
+            max="100"
+            step=".1"
+            data-cp-control="slider"
+            data-channel="alpha"
+        /></label>
+        <div class="composition-channels">
+          <label
+            ><span>Red</span
+            ><input
+              type="number"
+              data-cp-control="input"
+              data-format="rgb"
+              data-index="0" /></label
+          ><label
+            ><span>Green</span
+            ><input
+              type="number"
+              data-cp-control="input"
+              data-format="rgb"
+              data-index="1" /></label
+          ><label
+            ><span>Blue</span
+            ><input
+              type="number"
+              data-cp-control="input"
+              data-format="rgb"
+              data-index="2"
+          /></label>
+        </div>
+        <label><span>Color value</span><input data-cp-control="input" /></label
+        ><button type="button" data-cp-control="format">Show next format</button
+        ><output></output>
+      </div>
+    </div>
+    <script src="/assets/color-picker.min.js"></script>
+    <script>
+      const root = document.querySelector('[data-composition="color"]');
+      const store = ColorPicker.createColorStore('#5268E080');
+      const controls = ColorPicker.mountColorControls(root, store);
+      const render = () =>
+        (root.querySelector('output').textContent = store.getSnapshot().value);
+      render();
+      const unsubscribe = store.subscribe(render);
+      // When this editor is removed, call controls.destroy() and unsubscribe().
+    </script>
+  </body>
+</html>

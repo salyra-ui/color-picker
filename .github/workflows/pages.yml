@@ -19,6 +19,7 @@ jobs:
           cache: npm
       - uses: actions/configure-pages@v5
         id: pages
+      - run: npm run prepare:peer
       - run: npm ci
       - run: npm test
       - run: npm run check

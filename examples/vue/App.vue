@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import ColorComposition from '../composition/ColorVue.vue';
+import ThemeComposition from '../composition/ThemeVue.vue';
+import '../composition/styles.css';
 import { ref } from 'vue';
 import ColorWorkflow from '../workflows/ColorVue.vue';
 import ThemeWorkflow from '../workflows/ThemeVue.vue';
@@ -97,7 +100,7 @@ function options() {
           </div>
           <div class="panel-body">
             <ThemeName />
-        <ThemeSelect
+            <ThemeSelect
               :themes="[indigo, coral, forest]"
             /><ThemePicker /><ThemeHarmony />
 
@@ -201,7 +204,36 @@ function options() {
         Simulate failure
       </button>
     </div>
-    <section class="native-workflows"><h2>Color and theme workflows</h2><p>Use these examples to try history, forms, saved colors and draft editing.</p><div class="native-workflow-grid"><article class="native-workflow-card"><h3>Color form &amp; history</h3><p>Submit a color with alpha, undo edits, reset the form and save recent or favorite colors.</p><ColorWorkflow /></article><article class="native-workflow-card"><h3>Draft &amp; Apply</h3><p>Edit a separate draft, lock accent during generation and apply it to the preview. Export the selected tokens for Tailwind.</p><ThemeWorkflow /></article></div></section>
+    <section class="native-workflows">
+      <h2>Color and theme workflows</h2>
+      <p>
+        Use these examples to try history, forms, saved colors and draft
+        editing.
+      </p>
+      <div class="native-workflow-grid">
+        <article class="native-workflow-card">
+          <h3>Color form &amp; history</h3>
+          <p>
+            Submit a color with alpha, undo edits, reset the form and save
+            recent or favorite colors.
+          </p>
+          <ColorWorkflow />
+        </article>
+        <article class="native-workflow-card">
+          <h3>Draft &amp; Apply</h3>
+          <p>
+            Edit a separate draft, lock accent during generation and apply it to
+            the preview. Export the selected tokens for Tailwind.
+          </p>
+          <ThemeWorkflow />
+        </article>
+      </div>
+    </section>
+    <section class="native-workflows" id="composition-v1">
+      <h2>Compose your own controls</h2>
+      <p>These examples use the v1 primitives and application-owned markup.</p>
+      <ColorComposition /><ThemeComposition />
+    </section>
     <footer>Independent context per provider · No shared server state</footer>
   </main>
 </template>

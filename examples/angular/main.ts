@@ -1,4 +1,7 @@
 import '@angular/compiler';
+import { ColorComposition } from '../composition/ColorAngular';
+import { ThemeComposition } from '../composition/ThemeAngular';
+import '../composition/styles.css';
 import {
   Component,
   provideExperimentalZonelessChangeDetection,
@@ -32,7 +35,11 @@ import {
   ThemeReady,
   ThemeError,
 } from '@salyra-ui/theme-studio/angular';
-import { createThemeStore, generateTheme, type ThemeOptions } from '@salyra-ui/theme-studio';
+import {
+  createThemeStore,
+  generateTheme,
+  type ThemeOptions,
+} from '@salyra-ui/theme-studio';
 import '../demo.css';
 import '../workflows/workflow.css';
 import { ColorWorkflow } from '../workflows/ColorAngular';
@@ -41,7 +48,10 @@ import { ThemeWorkflow } from '../workflows/ThemeAngular';
   selector: 'demo-root',
   standalone: true,
   imports: [
-    ColorWorkflow, ThemeWorkflow,
+    ColorWorkflow,
+    ThemeWorkflow,
+    ColorComposition,
+    ThemeComposition,
     ColorSurface,
     ColorViewSelect,
     ColorFormatSelect,
@@ -94,7 +104,7 @@ import { ThemeWorkflow } from '../workflows/ThemeAngular';
             </div>
             <div class="panel-body">
               <tk-name />
-        <tk-select
+              <tk-select
                 [themes]="themes"
               /><tk-picker /><tk-harmony /><tk-background />
 
@@ -159,7 +169,35 @@ import { ThemeWorkflow } from '../workflows/ThemeAngular';
         <button (click)="simulate(false)">Simulate success</button
         ><button (click)="simulate(true)">Simulate failure</button>
       </div>
-<section class="native-workflows"><h2>Color and theme workflows</h2><p>Use these examples to try history, forms, saved colors and draft editing.</p><div class="native-workflow-grid"><article class="native-workflow-card"><h3>Color form &amp; history</h3><p>Submit a color with alpha, undo edits, reset the form and save recent or favorite colors.</p><color-workflow></color-workflow></article><article class="native-workflow-card"><h3>Draft &amp; Apply</h3><p>Edit a separate draft, lock accent during generation and apply it to the preview. Export the selected tokens for Tailwind.</p><theme-workflow></theme-workflow></article></div></section>
+      <section class="native-workflows">
+        <h2>Color and theme workflows</h2>
+        <p>
+          Use these examples to try history, forms, saved colors and draft
+          editing.
+        </p>
+        <div class="native-workflow-grid">
+          <article class="native-workflow-card">
+            <h3>Color form &amp; history</h3>
+            <p>
+              Submit a color with alpha, undo edits, reset the form and save
+              recent or favorite colors.
+            </p>
+            <color-workflow></color-workflow>
+          </article>
+          <article class="native-workflow-card">
+            <h3>Draft &amp; Apply</h3>
+            <p>
+              Edit a separate draft, lock accent during generation and apply it
+              to the preview. Export the selected tokens for Tailwind.
+            </p>
+            <theme-workflow></theme-workflow>
+          </article>
+        </div>
+      </section>
+      <section class="native-workflows" id="composition-v1">
+        <h2>Compose your own controls</h2>
+        <color-composition /><theme-composition />
+      </section>
     </main>`,
 })
 export class App {
@@ -175,7 +213,7 @@ export class App {
     return {
       fallbackTheme: selected.theme,
       mode: selected.mode,
-    modeStorage: false,
+      modeStorage: false,
       loadTheme: async () => {
         await new Promise((r) => setTimeout(r, 900));
         if (fail) throw new Error('Demo offline');

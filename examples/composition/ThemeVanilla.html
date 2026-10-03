@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="stylesheet" href="./styles.css" />
+    <title>Custom theme editor</title>
+  </head>
+  <body>
+    <section data-composition="theme">
+      <div class="composition-editor">
+        <div
+          class="composition-wheel"
+          data-tk-control="wheel"
+          role="group"
+          aria-label="Theme colors"
+        >
+          <button
+            type="button"
+            data-marker-id="primary"
+            data-cp-part="marker"
+            aria-label="Brand color"
+          >
+            P</button
+          ><button
+            type="button"
+            data-marker-id="accent"
+            data-cp-part="marker"
+            aria-label="Highlight"
+          >
+            A
+          </button>
+        </div>
+        <div class="composition-fields">
+          <div class="composition-roles">
+            <button type="button" data-tk-control="role" data-role="primary">
+              Brand color</button
+            ><button type="button" data-tk-control="role" data-role="accent">
+              Highlight
+            </button>
+          </div>
+          <label
+            ><span>Brightness</span
+            ><input
+              type="range"
+              min="0"
+              max="100"
+              data-cp-control="slider"
+              data-channel="v" /></label
+          ><label
+            ><span>Active color</span
+            ><input data-cp-control="input" data-format="hex"
+          /></label>
+          <label
+            ><span>Card corners in rem</span
+            ><input
+              type="number"
+              min="0"
+              max="1000"
+              step=".125"
+              data-tk-control="geometry"
+              data-kind="radius"
+              data-target="card" /></label
+          ><label
+            ><span>Button border in px</span
+            ><input
+              type="number"
+              min="0"
+              max="1000"
+              data-tk-control="geometry"
+              data-kind="width"
+              data-target="button"
+          /></label>
+          <article class="composition-preview">
+            <h3>Live theme</h3>
+            <button type="button">Continue</button>
+          </article>
+        </div>
+      </div>
+      <details>
+        <summary>Selected configuration</summary>
+        <pre data-configuration></pre>
+      </details>
+    </section>
+    <script src="/assets/theme-studio.min.js"></script>
+    <script>
+      const root = document.querySelector('[data-composition="theme"]');
+      const store = ThemeStudio.createThemeStore({
+        theme: ThemeStudio.generateTheme('#5268E0'),
+        mode: 'dark',
+        modeStorage: false,
+      });
+      const scope = ThemeStudio.bindThemeScope(root, store);
+      const controls = ThemeStudio.mountThemeControls(root, store, {
+        roles: ['primary', 'accent'],
+      });
+      const render = () =>
+        (root.querySelector('[data-configuration]').textContent =
+          controls.getConfiguration().json);
+      render();
+      const unsubscribe = store.subscribe(render);
+      // On removal, call controls.destroy(), scope() and unsubscribe().
+    </script>
+  </body>
+</html>

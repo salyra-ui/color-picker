@@ -1,0 +1,26 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+import {
+  createColorStore,
+  sliderAttributes,
+  sliderTrackStyle,
+  sliderLabels,
+  type SliderChannel,
+} from '../core';
+interface Props extends Omit<HTMLAttributes<'input'>, 'value'> {
+  value?: string;
+  channel?: SliderChannel;
+}
+const { value, channel = 'h', style = '', ...attributes } = Astro.props,
+  state = createColorStore(value).getSnapshot();
+---
+
+<input
+  aria-label={sliderLabels[channel]}
+  {...sliderAttributes(state, channel)}
+  {...attributes}
+  data-cp-part="slider"
+  data-cp-control="slider"
+  data-channel={channel}
+  style={`${sliderTrackStyle(state)};${style}`}
+/>

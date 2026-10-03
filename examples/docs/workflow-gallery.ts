@@ -59,7 +59,7 @@ export function workflowFiles(kit: WorkflowKit, id: string) {
           private: true,
           type: 'module',
           scripts: { dev: 'vite', build: 'vite build' },
-          dependencies: { [`@salyra-ui/${kit}`]: '^0.3.0' },
+          dependencies: { [`@salyra-ui/${kit}`]: '^1.0.0' },
           devDependencies: { vite: '^6.1.0', typescript: '~5.8.3' },
         },
         null,
@@ -77,7 +77,7 @@ export function mountWorkflowGallery(host: HTMLElement, kit: WorkflowKit) {
   let selected: string = items[0].id,
     dispose: (() => void) | undefined;
   host.classList.add('workflow-gallery');
-  host.innerHTML = `<div class="workflow-selector"><label>Workflow<select aria-label="${kit === 'color-picker' ? 'Color picker' : 'Theme studio'} workflow">${items.map((item) => `<option value="${item.id}">${escape(item.title)}</option>`).join('')}</select></label><div class="view-tabs" role="group" aria-label="Workflow display"><button type="button" data-view="preview" aria-pressed="true">Preview</button><button type="button" data-view="code" aria-pressed="false">Code</button></div></div><div class="workflow-summary"><h3></h3><p></p><span>Vanilla controls · Framework-independent core</span></div><div data-workflow-preview></div><div data-workflow-code hidden></div>`;
+  host.innerHTML = `<div class="workflow-selector"><label>Workflow<select aria-label="${kit === 'color-picker' ? 'Color picker' : 'Theme studio'} workflow">${items.map((item) => `<option value="${item.id}">${escape(item.title)}</option>`).join('')}</select></label><div class="view-tabs" role="group" aria-label="Workflow display"><button type="button" data-workflow-view="preview" aria-pressed="true">Preview</button><button type="button" data-workflow-view="code" aria-pressed="false">Code</button></div></div><div class="workflow-summary"><h3></h3><p></p><span>Vanilla controls · Framework-independent core</span></div><div data-workflow-preview></div><div data-workflow-code hidden></div>`;
   const preview = host.querySelector<HTMLElement>('[data-workflow-preview]')!,
     code = host.querySelector<HTMLElement>('[data-workflow-code]')!;
   const panel = codePanel(code, () => '', {
@@ -101,14 +101,15 @@ export function mountWorkflowGallery(host: HTMLElement, kit: WorkflowKit) {
     selected = (e.currentTarget as HTMLSelectElement).value;
     update();
   };
-  for (const b of host.querySelectorAll<HTMLButtonElement>('[data-view]'))
+  const viewTabs = host.querySelectorAll<HTMLButtonElement>(
+    '.workflow-selector button[data-workflow-view]',
+  );
+  for (const b of viewTabs)
     b.onclick = () => {
-      const showCode = b.dataset.view === 'code';
+      const showCode = b.dataset.workflowView === 'code';
       preview.hidden = showCode;
       code.hidden = !showCode;
-      for (const other of host.querySelectorAll<HTMLButtonElement>(
-        '[data-view]',
-      ))
+      for (const other of viewTabs)
         other.setAttribute('aria-pressed', String(other === b));
     };
   update();

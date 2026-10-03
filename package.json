@@ -1,12 +1,12 @@
 {
   "name": "salyra-ui-color-picker-workspace",
-  "version": "0.3.1",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "description": "Copy-first theme engine and composable framework components",
   "scripts": {
     "test": "vitest run",
-    "check": "tsc --noEmit && svelte-check --tsconfig ./tsconfig.svelte.json && vue-tsc --noEmit -p tsconfig.vue.json && ngc -p tsconfig.angular.json && astro check --root examples/astro",
+    "check": "tsx scripts/generate-scope-recipes.ts && tsc --noEmit && svelte-check --tsconfig ./tsconfig.svelte.json && vue-tsc --noEmit -p tsconfig.vue.json && ngc -p tsconfig.angular.json && astro check --root examples/astro",
     "dev": "vite --host 127.0.0.1",
     "build": "node scripts/build.mjs && vite build",
     "test:browser": "playwright test",
@@ -24,7 +24,8 @@
     "check:bundles": "node scripts/bundle-check.mjs",
     "test:performance": "playwright test --config playwright.performance.config.ts",
     "test:recipes": "npm run check:recipes -- --browser",
-    "generate:examples": "tsx scripts/generate-demo-workflows.ts && tsx scripts/generate-workflow-sources.ts && prettier --write examples/workflows examples/docs/workflow-sources.ts"
+    "generate:examples": "tsx scripts/generate-demo-workflows.ts && tsx scripts/generate-workflow-sources.ts && prettier --write examples/workflows examples/docs/workflow-sources.ts",
+    "prepare:peer": "node scripts/prepare-peer.mjs"
   },
   "devDependencies": {
     "@angular/common": "~19.2.0",
@@ -71,8 +72,5 @@
   ],
   "engines": {
     "node": ">=22.19.0"
-  },
-  "dependencies": {
-    "@salyra-ui/theme-studio": "0.3.1"
   }
 }

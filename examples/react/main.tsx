@@ -1,3 +1,6 @@
+import ColorComposition from '../composition/ColorReact';
+import ThemeComposition from '../composition/ThemeReact';
+import '../composition/styles.css';
 import { StrictMode, Fragment, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
@@ -246,8 +249,40 @@ function App() {
           </section>
         </div>
         <AsyncDemo source={editorStore} />
-        <section className="native-workflows"><h2>Color and theme workflows</h2><p>Use these examples to try history, forms, saved colors and draft editing.</p><div className="native-workflow-grid"><article className="native-workflow-card"><h3>Color form &amp; history</h3><p>Submit a color with alpha, undo edits, reset the form and save recent or favorite colors.</p><ColorWorkflow /></article><article className="native-workflow-card"><h3>Draft &amp; Apply</h3><p>Edit a separate draft, lock accent during generation and apply it to the preview. Export the selected tokens for Tailwind.</p><ThemeWorkflow /></article></div></section>
-      <footer>
+        <section className="native-workflows">
+          <h2>Color and theme workflows</h2>
+          <p>
+            Use these examples to try history, forms, saved colors and draft
+            editing.
+          </p>
+          <div className="native-workflow-grid">
+            <article className="native-workflow-card">
+              <h3>Color form &amp; history</h3>
+              <p>
+                Submit a color with alpha, undo edits, reset the form and save
+                recent or favorite colors.
+              </p>
+              <ColorWorkflow />
+            </article>
+            <article className="native-workflow-card">
+              <h3>Draft &amp; Apply</h3>
+              <p>
+                Edit a separate draft, lock accent during generation and apply
+                it to the preview. Export the selected tokens for Tailwind.
+              </p>
+              <ThemeWorkflow />
+            </article>
+          </div>
+        </section>
+        <section className="native-workflows" id="composition-v1">
+          <h2>Compose your own controls</h2>
+          <p>
+            These examples use the v1 primitives and application-owned markup.
+          </p>
+          <ColorComposition />
+          <ThemeComposition />
+        </section>
+        <footer>
           Framework independent core · Scoped providers · SSR ready · Copy and
           customize
         </footer>

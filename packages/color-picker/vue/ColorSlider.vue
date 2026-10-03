@@ -1,45 +1,29 @@
 <script setup lang="ts">
 import {
   sliderLabels,
-  sliderValue,
-  setSliderValue,
-  sliderTrackStyle,
   type SliderChannel,
   type ColorPartClasses,
 } from '../core';
-import { useColor, useColorStore } from './context';
+import ColorRange from './ColorRange.vue';
+defineOptions({ inheritAttrs: false });
 withDefaults(
   defineProps<{
     channel?: SliderChannel;
     label?: string;
     classes?: ColorPartClasses;
   }>(),
-  { channel: 'h', classes: () => ({}) },
+  { channel: 'h' },
 );
-const store = useColorStore(),
-  color = useColor();
 </script>
 <template>
   <label
-    :class="['cp-slider', classes.root, classes.label]"
+    :class="['cp-slider', $attrs.class, classes?.root, classes?.label]"
     data-cp-part="slider"
     :data-channel="channel"
-    :style="sliderTrackStyle(color)"
-    >{{ label ?? sliderLabels[channel]
-    }}<input
-      data-cp-part="track"
-      :class="[classes.track, classes.input]"
-      type="range"
-      min="0"
-      :max="channel === 'h' ? 359 : 100"
-      step="1"
-      :value="sliderValue(color, channel)"
-      @input="
-        setSliderValue(
-          store,
-          channel,
-          Number(($event.target as HTMLInputElement).value),
-        )
-      "
+    >{{ label ?? sliderLabels[channel] }}
+    <ColorRange
+      v-bind="{ ...$attrs, class: [classes?.track, classes?.input] }"
+      :channel="channel"
+      :aria-label="label ?? sliderLabels[channel]"
   /></label>
 </template>

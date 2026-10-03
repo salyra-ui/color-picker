@@ -44,7 +44,7 @@ export function bindMarkerWheel(
     }
   };
   const read = (event: PointerEvent) => {
-    if (disabled()) return;
+    if (event.defaultPrevented || disabled()) return;
     const current = options.getMarkers().find((item) => item.id === draggedId);
     if (!draggedId || !current) return;
     const r = element.getBoundingClientRect();
@@ -62,6 +62,7 @@ export function bindMarkerWheel(
   };
   const down = (event: PointerEvent) => {
     if (
+      event.defaultPrevented ||
       disabled() ||
       pointer !== undefined ||
       event.button !== 0 ||
@@ -71,6 +72,7 @@ export function bindMarkerWheel(
     const button = (event.target as HTMLElement).closest<HTMLElement>(
       '[data-marker-id]',
     );
+    if (button?.matches(':disabled, [aria-disabled="true"]')) return;
     if (button) {
       options.select(button.dataset.markerId!);
       button.focus();
@@ -112,17 +114,19 @@ export function bindMarkerWheel(
     draggedId = undefined;
   };
   const click = (event: MouseEvent) => {
-    if (disabled()) return;
+    if (event.defaultPrevented || disabled()) return;
     const button = (event.target as HTMLElement).closest<HTMLElement>(
       '[data-marker-id]',
     );
+    if (button?.matches(':disabled, [aria-disabled="true"]')) return;
     if (button) options.select(button.dataset.markerId!);
   };
   const key = (event: KeyboardEvent) => {
-    if (disabled()) return;
+    if (event.defaultPrevented || disabled()) return;
     const button = (event.target as HTMLElement).closest<HTMLElement>(
       '[data-marker-id]',
     );
+    if (button?.matches(':disabled, [aria-disabled="true"]')) return;
     if (
       button &&
       [

@@ -1,0 +1,26 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+import {
+  createColorStore,
+  colorInputAttributes,
+  type ColorInputOptions,
+} from '../core';
+interface Props
+  extends Omit<HTMLAttributes<'input'>, 'value'>, ColorInputOptions {
+  value?: string;
+}
+const { value, format, index, ...attributes } = Astro.props;
+---
+
+<input
+  {...colorInputAttributes(createColorStore(value).getSnapshot(), {
+    format,
+    index,
+  })}
+  {...attributes}
+  data-cp-part="input"
+  data-cp-control="input"
+  data-format={format}
+  data-index={index}
+  spellcheck="false"
+/>

@@ -1,0 +1,19 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+import type { ColorFormat } from '../core';
+interface Props extends HTMLAttributes<'button'> {
+  format?: ColorFormat;
+}
+const { format, ...attributes } = Astro.props;
+---
+
+<button
+  type="button"
+  aria-label="Change color format"
+  {...attributes}
+  data-cp-part="format-trigger"
+  data-cp-control="format"
+  data-format={format}
+>
+  <slot>Change format</slot>
+</button>
