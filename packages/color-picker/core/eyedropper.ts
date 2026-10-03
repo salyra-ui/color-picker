@@ -149,7 +149,10 @@ export function bindColorEyeDropper(
     button.ownerDocument.defaultView as EyeDropperHost | undefined,
   );
   const ownDisabled =
-    button.disabled && !button.hasAttribute('data-cp-supported');
+    button.disabled &&
+    !['data-cp-supported', 'data-cp-disabled', 'data-tk-disabled'].some(
+      (attribute) => button.hasAttribute(attribute),
+    );
   let disposed = false;
   const EventConstructor = button.ownerDocument.defaultView!.CustomEvent;
   const refresh = () => {

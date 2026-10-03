@@ -180,3 +180,18 @@ it('cancels a DOM binding when the owner disables it while sampling', async () =
   binding.destroy();
   dom.window.close();
 });
+
+it('re-enables a button disabled initially by its color context', () => {
+  const dom = new JSDOM('<button disabled data-cp-disabled>Sample</button>'),
+    mock = screen();
+  Object.assign(dom.window, mock.host);
+  const store = createColorStore('#123456');
+  store.setDisabled(true);
+  const button = dom.window.document.querySelector('button')!;
+  const binding = bindColorEyeDropper(button, store);
+  expect(button.disabled).toBe(true);
+  store.setDisabled(false);
+  expect(button.disabled).toBe(false);
+  binding.destroy();
+  dom.window.close();
+});

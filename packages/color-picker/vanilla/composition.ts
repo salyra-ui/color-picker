@@ -41,7 +41,10 @@ export function mountColorControls(root: HTMLElement, store: ColorStore) {
       const button = element as HTMLButtonElement;
       const disabled =
         button.hasAttribute('data-disabled') ||
-        (button.disabled && !button.hasAttribute('data-cp-supported'));
+        (button.disabled &&
+          !['data-cp-supported', 'data-cp-disabled', 'data-tk-disabled'].some(
+            (attribute) => button.hasAttribute(attribute),
+          ));
       const binding = bindColorEyeDropper(button, store, {
         preserveAlpha: button.dataset.preserveAlpha !== 'false',
         disabled: () => disabled || button.hasAttribute('data-disabled'),
