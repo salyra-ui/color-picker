@@ -17,7 +17,7 @@
     "build:packages": "node scripts/build.mjs && node scripts/prepare-packages.mjs",
     "build:site": "npm run build:packages && vite build && node scripts/site-build.mjs",
     "pack:all": "npm run build:packages && node scripts/pack-all.mjs",
-    "check:docs": "tsx scripts/docs-check.ts",
+    "check:docs": "tsx scripts/docs-check.ts && node scripts/check-documentation-archives.mjs",
     "test:consumer": "node scripts/consumer-check.mjs",
     "check:release": "node scripts/release-check.mjs",
     "check:recipes": "npm run build:packages && tsx scripts/recipes-check.ts",

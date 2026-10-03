@@ -10,10 +10,11 @@ const layout = `.screen-picker { display: grid; gap: 16px; max-width: 360px; }
 .screen-picker button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px; border: 1px solid #d8d8df; background: white; color: #171717; font: inherit; cursor: pointer; }
 .screen-picker button:disabled { opacity: .45; cursor: default; }
 .screen-picker .pixel-button { border-color: #e4002b; background: #e4002b; color: white; border-radius: 24px; }
+.screen-picker [role="status"]:empty { display: none; }
 .screen-picker [role="alert"]:empty { display: none; }
 .screen-picker .sampling-help { margin: 0; font-size: 12px; line-height: 1.6; color: #666; }`;
-const help =
-  'Available from 1.0.1. Requires EyeDropper support and HTTPS or localhost. Escape cancels without changing the color.';
+const help = 'Choose a pixel from your screen. Press Escape to cancel.';
+const support = `<details><summary>Browser support</summary><p>Screen sampling works in desktop Chrome and Edge. Open this page over HTTPS or localhost.</p></details>`;
 const buttonContent = (custom: boolean) =>
   custom ? `${icon}<span>Sample a pixel</span>` : 'Pick from screen';
 export function eyedropperMarkup(custom: boolean) {
@@ -23,7 +24,8 @@ export function eyedropperMarkup(custom: boolean) {
   <button type="button" data-screen-sample class="${custom ? 'pixel-button' : ''}">${buttonContent(custom)}</button>
   <p data-screen-status role="status" aria-live="polite"></p>
   <p data-screen-error role="alert"></p>
-  <p class="sampling-help">${help} ${custom ? 'This example makes sampled colors opaque.' : 'This example preserves your opacity.'}</p>
+  <p class="sampling-help">${help}</p>
+  ${support}
 </cp-provider>`;
 }
 export function mountEyeDropperExample(
@@ -40,10 +42,10 @@ export function mountEyeDropperExample(
       preserveAlpha: !custom,
       onStateChange(state) {
         status.textContent = !state.supported
-          ? 'Screen sampling is unavailable in this browser.'
+          ? 'Your browser does not support screen sampling.'
           : state.pending
-            ? 'Pick a pixel from your screen. Press Escape to cancel.'
-            : 'Ready to sample a color.';
+            ? 'Choose a pixel. Press Escape to cancel.'
+            : '';
         error.textContent = state.error?.message ?? '';
       },
       onPick(hex) {
@@ -65,25 +67,25 @@ export function eyedropperExample(integration: Integration, custom: boolean) {
           '.screen-picker :global($1) {',
         )
       : layout;
-  const note = `<p class="sampling-help">${help} ${custom ? 'Sampled colors are opaque.' : 'Existing opacity is preserved.'}</p>`;
+  const note = `<p class="sampling-help">${help}</p>${support}`;
   if (integration === 'React')
     return `import { useState } from 'react';
-import { ColorRoot, ColorField, ColorRange, ColorEyeDropper, createColorStore } from '${pkg}';
+import { ColorPicker as Color, createColorStore } from '${pkg}';
 export function ScreenPicker() {
   const [store] = useState(() => createColorStore('#5268E080'));
   const [error, setError] = useState('');
-  return <ColorRoot store={store}>
+  return <Color.Root store={store}>
     <section className="screen-picker">
-      <label>Color<ColorField format="hex" /></label>
-      <label>Opacity<ColorRange channel="alpha" /></label>
-      <ColorEyeDropper className="${className}" preserveAlpha={${preserve}}
+      <label>Color<Color.Input format="hex" /></label>
+      <label>Opacity<Color.Slider channel="alpha" /></label>
+      <Color.EyeDropper className="${className}" preserveAlpha={${preserve}}
         onPick={() => setError('')} onPickError={error => setError(error.message)}>
         ${children}
-      </ColorEyeDropper>
+      </Color.EyeDropper>
       <p role="alert">{error}</p>
       ${note.replace('class=', 'className=')}
     </section>
-  </ColorRoot>;
+  </Color.Root>;
 }
 /* Add to your stylesheet: */
 ${layout}`;
@@ -195,8 +197,8 @@ const error = root.querySelector('[data-screen-error]');
 const binding = ColorPicker.bindColorEyeDropper(root.querySelector('[data-screen-sample]'), store, {
   preserveAlpha: ${preserve},
   onStateChange(state) {
-    status.textContent = !state.supported ? 'Screen sampling is unavailable in this browser.'
-      : state.pending ? 'Pick a pixel. Press Escape to cancel.' : 'Ready to sample a color.';
+    status.textContent = !state.supported ? 'Your browser does not support screen sampling.'
+      : state.pending ? 'Choose a pixel. Press Escape to cancel.' : '';
     error.textContent = state.error?.message ?? '';
   },
   onPick(hex) { status.textContent = 'Sampled ' + hex + '.'; },

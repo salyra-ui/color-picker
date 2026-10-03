@@ -2,6 +2,9 @@
 
 ## 1.0.1 (unreleased)
 
+- Add versioned documentation for 0.3.0, 1.0.0 and the 1.0.1 preview, with a shared release selector and per-package changelog.
+- Use the compound ColorPicker API in React working examples, customization, form recipes and pipette examples.
+
 - Add an optional screen color pipette with customizable button content in all six integrations.
 - Preserve alpha by default, handle unavailable browsers and cancellation, and abort pending sampling on unmount or disabled state.
 - Replace native color dialogs in documentation background, customization and seed controls with the Salyra Color Picker.

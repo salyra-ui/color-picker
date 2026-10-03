@@ -18,6 +18,7 @@ export default defineConfig({
       input: {
         main: 'index.html',
         docs: 'docs.html',
+        changelog: 'changelog.html',
         site: 'site.html',
         generator: 'generator.html',
         color: 'color.html',

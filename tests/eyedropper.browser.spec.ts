@@ -166,7 +166,7 @@ test('dedicated screen pipette example preserves alpha and exposes all six code 
   await expect(
     example.getByRole('option', { name: 'Custom pipette button' }),
   ).toHaveCount(0);
-  await expect(example.getByRole('status')).toContainText('Ready');
+  await expect(example.getByRole('status')).toBeHidden();
   await example
     .getByRole('button', { name: 'Pick from screen', exact: true })
     .click();
@@ -188,7 +188,11 @@ test('dedicated screen pipette example preserves alpha and exposes all six code 
     await expect(
       example.locator('.example-code pre code').first(),
     ).toContainText(
-      framework === 'Vanilla' ? 'bindColorEyeDropper' : 'ColorEyeDropper',
+      framework === 'Vanilla'
+        ? 'bindColorEyeDropper'
+        : framework === 'React'
+          ? 'Color.EyeDropper'
+          : 'ColorEyeDropper',
     );
     await expect(
       example.getByRole('button', { name: 'Copy code', exact: true }),
@@ -240,7 +244,7 @@ test('dedicated screen pipette example explains missing browser support', async 
   await page.goto(base + '/docs.html?kit=color-picker#examples');
   const example = page.locator('#docs-explorer');
   await example.getByLabel('Color picker example').selectOption('eyedropper');
-  await expect(example.getByRole('status')).toContainText('unavailable');
+  await expect(example.getByRole('status')).toContainText('does not support');
   await expect(
     example.getByRole('button', { name: 'Pick from screen', exact: true }),
   ).toBeDisabled();

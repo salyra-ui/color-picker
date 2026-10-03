@@ -1,3 +1,4 @@
+import { reactColorExample } from './react-color-examples';
 import { eyedropperExample, eyedropperMarkup } from './eyedropper-examples';
 import { recipeSource } from './recipes';
 import {
@@ -185,8 +186,6 @@ function baseColorExample(
   const format = variant === 'channels' ? 'rgb' : 'hex';
   const imports = `ColorProvider, ${[...new Set(parts)].join(', ')}, createColorStore`;
   const cssImport = `import '${stylesheetFor(pkg)}';`;
-  if (integration === 'React')
-    return `import { useState } from 'react';\nimport { ${imports} } from '${pkg}';\n${cssImport}\n\nexport function Picker() {\n  const [store] = useState(() => createColorStore('#5268E080', '${format}'));\n  return <div${custom ? ' className="picker-parts custom-picker"' : ' className="picker-parts"'}>\n    <ColorProvider store={store} onChange={() => {\n      const color = store.getColor();\n      console.log(color.name, color.hex, color.hsl, color.formats);\n    }}>\n    ${children}\n    </ColorProvider>\n  </div>;\n}${custom ? '\n\n/* Add to your stylesheet: */\n' + customCss : ''}`;
   if (integration === 'Svelte')
     return `<script lang="ts">\n  import { ${imports} } from '${pkg}';\n  ${cssImport}\n  const store = createColorStore('#5268E080', '${format}');\n</script>\n\n<div${custom ? ' class="picker-parts custom-picker"' : ' class="picker-parts"'}>\n  <ColorProvider {store} onChange={() => console.log(store.getColor())}>\n    ${children}\n  </ColorProvider>\n</div>${custom ? '\n<style>\n' + customCss.replace('[data-cp-part="thumb-text"]', ':global([data-cp-part="thumb-text"])') + '\n</style>' : ''}`;
   if (integration === 'Vue')
@@ -463,6 +462,8 @@ export function colorExample(
   if (variant === 'eyedropper' || variant === 'eyedropper-custom')
     return eyedropperExample(integration, variant === 'eyedropper-custom');
   if (variant === 'form') return recipeSource('color-picker', integration);
+  if (integration === 'React')
+    return reactColorExample(variant, settings, customStyle(settings));
   let source = withColorLayout(
     baseColorExample(
       integration,
@@ -472,11 +473,6 @@ export function colorExample(
   );
   if (variant === 'disabled') return disableExample(source, integration, false);
   if (variant !== 'custom') return source;
-  if (integration === 'React')
-    source = source.replace(
-      '<ColorMode />',
-      '<ColorMode>{format => <span>Change {format.toUpperCase()} format</span>}</ColorMode>',
-    );
   if (integration === 'Svelte')
     source = source.replace(
       '<ColorMode />',

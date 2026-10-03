@@ -13,7 +13,14 @@ for (const kit of ['color-picker', 'theme-studio']) {
     recursive: true,
     filter: (source) => !source.split('/').includes('dist'),
   });
-  for (const folder of ['examples', 'tests', 'scripts', '.github', 'public'])
+  for (const folder of [
+    'examples',
+    'tests',
+    'scripts',
+    '.github',
+    'public',
+    'documentation',
+  ])
     await cp(folder, join(target, folder), {
       recursive: true,
       filter: (source) =>

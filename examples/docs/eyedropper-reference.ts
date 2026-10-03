@@ -60,12 +60,12 @@ export const eyedropperReferenceEntries: ApiEntry[] = [
     ],
     example: {
       file: 'Usage.tsx',
-      code: `import { ColorRoot, ColorEyeDropper } from '@salyra-ui/color-picker/react';
+      code: `import { ColorPicker as Color } from '@salyra-ui/color-picker/react';
 export function ScreenPicker() {
-  return <ColorRoot defaultValue="#5268E080">
-    <ColorEyeDropper preserveAlpha onPick={hex => console.log(hex)}
+  return <Color.Root defaultValue="#5268E080">
+    <Color.EyeDropper preserveAlpha onPick={hex => console.log(hex)}
       render={state => state.pending ? 'Picking…' : 'Pick from screen'} />
-  </ColorRoot>;
+  </Color.Root>;
 }`,
     },
   },

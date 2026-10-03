@@ -8,6 +8,7 @@ export default defineConfig({
     'controls.browser.spec.ts',
     'composition.browser.spec.ts',
     'eyedropper.browser.spec.ts',
+    'documentation-versions.browser.spec.ts',
     'providers.browser.spec.ts',
   ],
   workers: 1,

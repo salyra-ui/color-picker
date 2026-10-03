@@ -1,0 +1,53 @@
+.docs-version-picker {
+  display: grid;
+  gap: 12px;
+  padding: 0 0 24px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #d8d8df;
+  font-family: Helvetica, Arial, sans-serif;
+}
+.docs-version-picker label {
+  display: grid;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #555;
+}
+.docs-version-picker select {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  color: #171717;
+  background: white;
+  border: 1px solid #d8d8df;
+  border-radius: 0;
+}
+.docs-version-picker select:focus-visible {
+  outline: 2px solid #e4002b;
+  outline-offset: 3px;
+}
+.docs-version-picker a {
+  width: fit-content;
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  color: #171717;
+}
+#overview > [data-release-status='preview'] {
+  color: #e4002b;
+}
+[data-version-error] {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #555;
+}
+@media (max-width: 760px) {
+  .docs-version-picker {
+    max-width: 280px;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+  }
+}
