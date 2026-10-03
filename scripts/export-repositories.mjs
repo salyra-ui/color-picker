@@ -29,7 +29,8 @@ for (const kit of ['color-picker', 'theme-studio']) {
         ),
     });
   await rm(join(target, 'scripts/split-packages.mjs'), { force: true });
-  await cp('CHANGELOG.md', join(target, 'CHANGELOG.md'));
+  for (const file of ['CHANGELOG.md', '.gitattributes', '.prettierignore'])
+    await cp(file, join(target, file));
   for (const file of await readdir('.'))
     if (
       /^(tsconfig.*\.json|.*\.html|.*config.*\.(?:ts|js|mjs|cjs))$/.test(file)

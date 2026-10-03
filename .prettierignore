@@ -1,0 +1,9 @@
+node_modules
+**/dist
+.angular-build
+.types-build
+**/.astro
+package-lock.json
+test-results
+
+documentation/archives/

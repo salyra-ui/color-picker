@@ -16,7 +16,7 @@ node scripts/freeze-documentation.mjs --version 1.0.0 \
   --theme-repo /path/to/theme-studio
 ```
 
-The script checks both package versions and pins the historical installation command to that version. It keeps runtime code and API examples from the release commits. Each snapshot includes source commit IDs and SHA-256 file hashes. Published archives are immutable. The freezer refuses to replace an existing archive.
+The script checks both package versions and pins the historical installation command to that version. It keeps runtime code and API examples from the release commits. Each snapshot includes source commit IDs and SHA-256 file hashes. Published archives are immutable and excluded from formatting. Generated build files retain spaces inside bundled strings. The freezer refuses to replace an existing archive.
 
 ## Check and deploy
 
