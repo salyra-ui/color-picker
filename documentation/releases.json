@@ -3,7 +3,7 @@
   "versions": [
     {
       "version": "1.0.1",
-      "status": "preview",
+      "status": "released",
       "changes": {
         "color-picker": {
           "Added": [
@@ -27,6 +27,11 @@
             "Choose documentation by version and read the changes in a separate changelog."
           ]
         }
+      },
+      "date": "2026-10-03",
+      "sources": {
+        "color-picker": "36aacbb",
+        "theme-studio": "58fc5eb"
       }
     },
     {

@@ -2,7 +2,7 @@
 
 Components in harmony with your stack.
 
-Version 1.0.0 includes context roots, native controls and application-owned markup. Use the ready components or compose your own editor. See the package README for the API and framework examples.
+Version 1.0.1 includes context roots, native controls and application-owned markup. Use the ready components or compose your own editor. See the package README for the API and framework examples.
 
 ## Install
 

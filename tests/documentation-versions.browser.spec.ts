@@ -115,7 +115,7 @@ test('changelog links lead to the selected package release', async ({
   page,
 }) => {
   await page.goto(`${base}/versions/1.0.1/changelog.html?kit=theme-studio`);
-  await expect(page.locator('#v1\\.0\\.1')).toContainText('Not released yet');
+  await expect(page.locator('#v1\\.0\\.1')).toContainText('Released');
   await expect(page.locator('#v0\\.3\\.0')).toContainText('1 October 2026');
   const link = page
     .locator('#v0\\.3\\.0')
