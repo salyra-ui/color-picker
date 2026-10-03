@@ -156,6 +156,38 @@ test('color-picker: wheel marker clicks and dragging keep the docs preview open'
   await expect(code).toBeVisible();
   await expect(preview).toBeHidden();
 });
+for (const [path, kit] of [
+  ['/site.html', 'color-picker'],
+  ['/color.html', 'color-picker'],
+  ['/generator.html', 'theme-studio'],
+]) {
+  test(`${path}: released composition examples expose working controls and framework source`, async ({
+    page,
+  }) => {
+    await page.goto(base + path);
+    const example = page.locator('#composition-example');
+    await expect(example.locator('[data-preview]')).toBeVisible();
+    await example
+      .locator('[data-cp-part="surface"]')
+      .first()
+      .click({ position: { x: 80, y: 80 } });
+    await expect(example.locator('[data-preview]')).toBeVisible();
+    await expect(example.locator('[data-code]')).toBeHidden();
+    await example.getByRole('tab', { name: 'Code', exact: true }).click();
+    await example.getByRole('tab', { name: 'Svelte', exact: true }).click();
+    await expect(example.locator('pre code')).toContainText(
+      kit === 'color-picker' ? 'ColorPicker.Root' : 'ThemeStudio.Root',
+    );
+    await example.getByRole('tab', { name: 'Preview', exact: true }).click();
+    await page.setViewportSize({ width: 390, height: 844 });
+    await example.scrollIntoViewIfNeeded();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth > innerWidth,
+      ),
+    ).toBe(false);
+  });
+}
 for (const path of ['/svelte.html', '/vue.html'])
   test(`${path}: custom wheel and inputs fit a narrow screen`, async ({
     page,

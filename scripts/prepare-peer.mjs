@@ -3,8 +3,8 @@ import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-// The two repositories share integration examples. During an unreleased v1 change,
-// validate against the same branch of the peer instead of the published v0 API.
+// Shared integration examples validate against the matching peer branch.
+// Set SALYRA_PEER_REF when the peer change lives on a different branch.
 const manifest = JSON.parse(await readFile('package.json', 'utf8'));
 const own = manifest.name.replace(/^salyra-ui-/, '').replace(/-workspace$/, '');
 if (!['color-picker', 'theme-studio'].includes(own)) {

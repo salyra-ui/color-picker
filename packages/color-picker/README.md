@@ -23,7 +23,7 @@ The store supports HEX, RGB, HSL, HSV, OKLCH and OKLab. Color names come from th
 
 ## V1 composition
 
-Version 1.0.0 is being developed on `composable-primitives`. The examples in this section use that branch.
+Version 1.0.0 separates context and behavior from your editor markup. The examples below use the published composition API.
 
 A root owns state and context. It does not render a wrapper or load a stylesheet. Each part renders one native control and forwards its HTML attributes. Put labels, spacing, icons and any extra content in your own markup.
 
@@ -81,6 +81,12 @@ See THIRD_PARTY_NOTICES.md for attribution of the bundled color names.
 JavaScript runtime bundles and CSS are minified. The `styles.css` export loads `styles.min.css`, so existing imports work. Svelte, Vue and Astro retain their compiler inputs and type syntax with compact scripts. Declaration files remain readable. No sourcemaps are included.
 
 Vanilla includes readable and minified browser bundles, `browser/color-picker.js` and `browser/color-picker.min.js`. The default ESM entry is minified. Import `/vanilla/standard` for the readable ESM entry, or `/styles.standard.css` for readable CSS.
+
+## Version 1
+
+![Custom v1 color-picker composition](https://salyra-ui.github.io/color-picker/npm/color-picker-composition.jpg)
+
+Use `ColorPicker.Root` and its primitives for a custom layout. `ColorProvider` and the styled controls remain available for ready-made editors. Root supplies state without a wrapper, while surfaces, native inputs and format triggers accept your attributes, classes and content. Custom compositions do not require the package stylesheet.
 
 ## Migration
 

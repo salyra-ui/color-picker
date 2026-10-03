@@ -2,7 +2,7 @@
 
 Components in harmony with your stack.
 
-This branch prepares version 1.0.0. The new composition API is unreleased. See the package README for context roots, native parts and framework examples.
+Version 1.0.0 includes context roots, native controls and application-owned markup. Use the ready components or compose your own editor. See the package README for the API and framework examples.
 
 ## Install
 

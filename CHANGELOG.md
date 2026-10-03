@@ -1,6 +1,6 @@
 # Salyra UI changelog
 
-## 1.0.0 (unreleased)
+## 1.0.0 (2026-10-03)
 
 - Compose ThemeProvider over Root lifecycle and Scope styling in all six integrations. Add native tk-root/tk-scope and Astro ThemeVariableScope with matching SSR seeds.
 - Context roots no longer prescribe a layout in the composition API. Theme context and the CSS variable scope are separate parts.
@@ -11,6 +11,9 @@
 - Shared input controllers preserve focused drafts, normalize invalid values on blur and respect disabled state.
 - Theme geometry controls register only their own radius or border width target. Configuration exports contain the roles and targets selected by the editor.
 - New composition examples and API reference entries cover all six integrations.
+- Landing, package pages and documentation show the v1 composition API with independent framework tabs and downloadable source.
+- Theme context guidance covers ready Providers, separate Roots and Scopes, and nested draft previews with Save and Cancel.
+- Documentation preview tab listeners are scoped to their toolbar, so wheel interaction cannot switch to Code.
 
 ## 0.3.1
 
