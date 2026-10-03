@@ -7,6 +7,7 @@ export default defineConfig({
     'workflows.browser.spec.ts',
     'controls.browser.spec.ts',
     'composition.browser.spec.ts',
+    'eyedropper.browser.spec.ts',
     'providers.browser.spec.ts',
   ],
   workers: 1,

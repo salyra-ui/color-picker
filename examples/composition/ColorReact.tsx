@@ -39,6 +39,7 @@ export default function ColorExample() {
               `Show next format (${color.format.toUpperCase()})`
             }
           />
+          <ColorPicker.EyeDropper>Pick from screen</ColorPicker.EyeDropper>
           <output>{value}</output>
         </div>
       </div>

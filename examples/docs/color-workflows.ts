@@ -1,3 +1,4 @@
+import { mountColorPopover } from './color-popover';
 import {
   createColorStore,
   createColorHistory,
@@ -99,7 +100,7 @@ export function mountWorkflow(host: HTMLElement, id: string): () => void {
     update();
   } else if (id === 'contrast') {
     controls.innerHTML =
-      '<label class="workflow-field">Background<input type="color" data-background value="#ffffff"></label>' +
+      '<div class="workflow-field"><span>Background</span><div data-background></div></div>' +
       field(
         'Text size',
         'text',
@@ -107,24 +108,34 @@ export function mountWorkflow(host: HTMLElement, id: string): () => void {
       ) +
       '<article data-text-sample>Text on the selected background</article>' +
       actions(button('suggest', 'Use suggested foreground'));
-    const background =
-        host.querySelector<HTMLInputElement>('[data-background]')!,
-      text = host.querySelector<HTMLSelectElement>('[data-text]')!;
+    const text = host.querySelector<HTMLSelectElement>('[data-text]')!;
+    const background = mountColorPopover(
+      host.querySelector<HTMLElement>('[data-background]')!,
+      {
+        label: 'Background',
+        value: '#FFFFFF',
+        onChange: () => update(),
+      },
+    );
+    cleanup.push(background.destroy);
     const result = () =>
-      colorContrast(store.getSnapshot().value, background.value, {
-        text: text.value as 'normal' | 'large',
-      });
+      colorContrast(
+        store.getSnapshot().value,
+        background.store.getSnapshot().value,
+        {
+          text: text.value as 'normal' | 'large',
+        },
+      );
     const update = () => {
       const c = result(),
         sample = host.querySelector<HTMLElement>('[data-text-sample]')!;
       sample.style.color = store.getSnapshot().value;
-      sample.style.background = background.value;
+      sample.style.background = background.store.getSnapshot().value;
       output(
         host,
         `Contrast ${c.ratio.toFixed(2)}:1\nAA ${c.aa ? 'passes' : 'fails'}\nAAA ${c.aaa ? 'passes' : 'fails'}\nSuggested foreground ${c.suggestedForeground}`,
       );
     };
-    background.oninput = update;
     text.onchange = update;
     listenButton(host, 'suggest', () =>
       store.setHex(result().suggestedForeground),

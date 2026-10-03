@@ -1,3 +1,4 @@
+import { mountColorPopover } from './color-popover';
 import {
   createThemeStore,
   createThemeEditor,
@@ -141,7 +142,7 @@ export function mountWorkflow(host: HTMLElement, id: string): () => void {
               `<label><input type="checkbox" data-lock="${role}">${role}</label>`,
           )
           .join('') +
-        '</fieldset><label class="workflow-field">New primary<input data-seed type="color" value="#c25d3d"></label>' +
+        '</fieldset><div class="workflow-field"><span>New primary</span><div data-seed></div></div>' +
         actions(button('generate', 'Generate theme'));
       for (const input of controls.querySelectorAll<HTMLInputElement>(
         '[data-lock]',
@@ -151,10 +152,17 @@ export function mountWorkflow(host: HTMLElement, id: string): () => void {
             input.dataset.lock as Role | 'background',
             input.checked,
           );
+      const seed = mountColorPopover(
+        host.querySelector<HTMLElement>('[data-seed]')!,
+        {
+          label: 'New primary',
+          value: '#C25D3D',
+          onChange: () => {},
+        },
+      );
+      cleanup.push(seed.destroy);
       listenButton(host, 'generate', () =>
-        store.generate(
-          host.querySelector<HTMLInputElement>('[data-seed]')!.value,
-        ),
+        store.generate(seed.store.getSnapshot().value),
       );
       const update = () => {
         const state = store.getSnapshot();

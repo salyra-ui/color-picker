@@ -1,5 +1,11 @@
 # Salyra UI changelog
 
+## 1.0.1 (unreleased)
+
+- Add an optional screen color pipette with customizable button content in all six integrations.
+- Preserve alpha by default, handle unavailable browsers and cancellation, and abort pending sampling on unmount or disabled state.
+- Replace native color dialogs in documentation background, customization and seed controls with the Salyra Color Picker.
+
 ## 1.0.0 (2026-10-03)
 
 - Compose ThemeProvider over Root lifecycle and Scope styling in all six integrations. Add native tk-root/tk-scope and Astro ThemeVariableScope with matching SSR seeds.

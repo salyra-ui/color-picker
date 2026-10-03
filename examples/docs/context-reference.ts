@@ -20,6 +20,7 @@ export const componentAliases: Record<Kit, Record<string, string[]>> = {
     ColorAlphaInput: ['ColorAlphaInput'],
     ColorFormatSelect: ['ColorFormatSelect'],
     ColorMode: ['ColorMode'],
+    'ColorEyeDropper / ColorPicker.EyeDropper': ['ColorEyeDropper'],
     'ColorViewSelect / ColorSurface': ['ColorViewSelect', 'ColorSurface'],
     'ColorSwatch / ColorPreview': ['ColorSwatch', 'ColorPreview'],
     ColorCollection: ['ColorCollection'],

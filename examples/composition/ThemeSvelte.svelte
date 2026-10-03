@@ -49,6 +49,9 @@
               target="button"
             /></label
           >
+          <ColorPicker.EyeDropper
+            >Pick active color from screen</ColorPicker.EyeDropper
+          >
           <article class="composition-preview">
             <h3>Live theme</h3>
             <button type="button">Continue</button>

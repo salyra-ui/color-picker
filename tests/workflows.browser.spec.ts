@@ -25,7 +25,7 @@ test('color history restores alpha and groups focused field edits', async ({
   page,
 }) => {
   const lab = await openWorkflow(page, 'color-picker', 'history');
-  const hex = lab.getByLabel('HEX', { exact: true });
+  const hex = lab.getByRole('textbox', { name: 'HEX', exact: true });
   await hex.fill('#12345680');
   await hex.press('Tab');
   await expect(lab.locator('[data-result]')).toContainText(
@@ -40,8 +40,10 @@ test('recent colors survive reload and a favorite swatch selects its value', asy
   page,
 }) => {
   let lab = await openWorkflow(page, 'color-picker', 'collections');
-  await lab.getByLabel('HEX', { exact: true }).fill('#12345680');
-  await lab.getByLabel('HEX', { exact: true }).press('Tab');
+  await lab
+    .getByRole('textbox', { name: 'HEX', exact: true })
+    .fill('#12345680');
+  await lab.getByRole('textbox', { name: 'HEX', exact: true }).press('Tab');
   await lab.getByRole('button', { name: 'Save to recent' }).click();
   await lab.getByRole('button', { name: 'Toggle favorite' }).click();
   await page.reload();
@@ -51,7 +53,9 @@ test('recent colors survive reload and a favorite swatch selects its value', asy
     lab.locator('[data-recent] button[aria-label="#12345680"]'),
   ).toHaveCount(1);
   await lab.locator('[data-favorites] button[aria-label="#12345680"]').click();
-  await expect(lab.getByLabel('HEX', { exact: true })).toHaveValue('#12345680');
+  await expect(
+    lab.getByRole('textbox', { name: 'HEX', exact: true }),
+  ).toHaveValue('#12345680');
   await lab.getByRole('button', { name: 'Clear recent' }).click();
   await expect(lab.locator('[data-recent] button')).toHaveCount(0);
 });
@@ -59,7 +63,7 @@ test('contrast includes opacity and applies a suggestion only on demand', async 
   page,
 }) => {
   const lab = await openWorkflow(page, 'color-picker', 'contrast');
-  const hex = lab.getByLabel('HEX', { exact: true });
+  const hex = lab.getByRole('textbox', { name: 'HEX', exact: true });
   await hex.fill('#00000080');
   await hex.press('Tab');
   await expect(lab.locator('[data-result]')).toContainText('AA fails');
@@ -135,8 +139,8 @@ test('palette contrast follows edits to each theme role', async ({ page }) => {
     .last()
     .getAttribute('style');
   await lab.getByRole('button', { name: 'accent', exact: true }).click();
-  await lab.getByLabel('HEX', { exact: true }).fill('#277D59');
-  await lab.getByLabel('HEX', { exact: true }).press('Tab');
+  await lab.getByRole('textbox', { name: 'HEX', exact: true }).fill('#277D59');
+  await lab.getByRole('textbox', { name: 'HEX', exact: true }).press('Tab');
   expect(
     await lab.locator('[data-pairs] article').last().getAttribute('style'),
   ).not.toBe(before);
@@ -165,7 +169,7 @@ test('external changes block Apply until the user loads or replaces them', async
   page,
 }) => {
   const lab = await openWorkflow(page, 'theme-studio', 'conflict');
-  const hex = lab.getByLabel('HEX', { exact: true });
+  const hex = lab.getByRole('textbox', { name: 'HEX', exact: true });
   await hex.fill('#123456');
   await hex.press('Tab');
   await lab.getByRole('button', { name: 'Simulate external update' }).click();
@@ -218,14 +222,14 @@ for (const path of ['/', '/svelte.html', '/vue.html', '/angular.html']) {
       });
     const color = cards.first(),
       theme = cards.last();
-    const colorHex = color.getByLabel('HEX', { exact: true });
+    const colorHex = color.getByRole('textbox', { name: 'HEX', exact: true });
     await colorHex.fill('#12345680');
     await colorHex.press('Tab');
     await color.getByRole('button', { name: 'Submit', exact: true }).click();
     await expect(color.locator('output')).toContainText('#12345680');
     await color.getByRole('button', { name: 'Reset', exact: true }).click();
     await expect(colorHex).toHaveValue('#5268E080');
-    const themeHex = theme.getByLabel('HEX', { exact: true });
+    const themeHex = theme.getByRole('textbox', { name: 'HEX', exact: true });
     await themeHex.fill('#123456');
     await themeHex.press('Tab');
     await expect(theme.getByRole('status')).toHaveText('Unapplied changes');
@@ -289,17 +293,23 @@ for (const kit of ['color-picker', 'theme-studio'] as const) {
               'schemaVersion: 1',
             );
           } else {
-            await expect(page.getByLabel('HEX', { exact: true })).toBeVisible();
+            await expect(
+              page.getByRole('textbox', { name: 'HEX', exact: true }),
+            ).toBeVisible();
             await expect(page.locator('[data-result]')).not.toBeEmpty();
             if (id === 'history') {
-              await page.getByLabel('HEX', { exact: true }).fill('#123456');
-              await page.getByLabel('HEX', { exact: true }).press('Tab');
+              await page
+                .getByRole('textbox', { name: 'HEX', exact: true })
+                .fill('#123456');
+              await page
+                .getByRole('textbox', { name: 'HEX', exact: true })
+                .press('Tab');
               await page
                 .getByRole('button', { name: 'Undo', exact: true })
                 .click();
-              await expect(page.getByLabel('HEX', { exact: true })).toHaveValue(
-                kit === 'color-picker' ? '#5268E080' : '#5268E0',
-              );
+              await expect(
+                page.getByRole('textbox', { name: 'HEX', exact: true }),
+              ).toHaveValue(kit === 'color-picker' ? '#5268E080' : '#5268E0');
             }
           }
           expect(errors).toEqual([]);

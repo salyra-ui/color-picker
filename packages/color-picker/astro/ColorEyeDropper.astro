@@ -1,0 +1,21 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+interface Props extends HTMLAttributes<'button'> {
+  preserveAlpha?: boolean;
+}
+const { preserveAlpha = true, disabled = false, ...attributes } = Astro.props;
+---
+
+<button
+  type="button"
+  aria-label="Pick color from screen"
+  {...attributes}
+  disabled
+  data-disabled={disabled ? '' : undefined}
+  data-cp-supported="false"
+  data-cp-part="eyedropper"
+  data-cp-control="eyedropper"
+  data-preserve-alpha={String(preserveAlpha)}
+>
+  <slot>Pick from screen</slot>
+</button>

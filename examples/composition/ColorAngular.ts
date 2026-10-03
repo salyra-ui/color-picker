@@ -5,6 +5,7 @@ import {
   ColorThumb,
   ColorRange,
   ColorField,
+  ColorEyeDropper,
   ColorFormatTrigger,
   createColorStore,
 } from '@salyra-ui/color-picker/angular';
@@ -17,6 +18,7 @@ import {
     ColorThumb,
     ColorRange,
     ColorField,
+    ColorEyeDropper,
     ColorFormatTrigger,
   ],
   template: ` <section cpRoot [store]="store">
@@ -40,6 +42,7 @@ import {
         </div>
         <label><span>Color value</span><input cpInput /></label
         ><button cpFormatTrigger>Show next format</button>
+        <button cpEyeDropper>Pick from screen</button>
       </div>
     </div>
   </section>`,

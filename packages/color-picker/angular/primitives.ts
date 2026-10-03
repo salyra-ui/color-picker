@@ -1,3 +1,4 @@
+import { ColorEyeDropper } from './ColorEyeDropper';
 import {
   Directive,
   Injectable,
@@ -286,6 +287,7 @@ export class ColorFormatTrigger {
   }
 }
 export const colorPickerPrimitives = [
+  ColorEyeDropper,
   ColorRoot,
   ColorPlane,
   ColorThumb,

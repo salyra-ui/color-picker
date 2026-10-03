@@ -14,3 +14,5 @@ export * from './form';
 export * from './collection';
 
 export * from './controls';
+
+export * from './eyedropper';

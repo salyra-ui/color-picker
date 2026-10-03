@@ -144,3 +144,23 @@ History captures color and alpha. Format, surface and disabled changes do not ad
 ## Control styling
 
 The optional stylesheet uses inherited variables such as `--cp-control-height`, `--cp-control-radius`, `--cp-control-border`, `--cp-focus-color`, `--cp-area-height` and `--cp-gap`. Set them on your picker wrapper to keep styles local. Existing thumb, marker and track variables still work. Number fields retain arrow-key editing while hiding native spinner buttons. Saturation and brightness tracks follow the current HSV color, including retained hue for black and gray.
+
+## Screen color sampling
+
+Starting in 1.0.1, add `ColorPicker.EyeDropper` inside your color root. It renders a native button and accepts your classes, label, icon and disabled state. The headless `createColorEyeDropper(store)` and `bindColorEyeDropper(button, store)` helpers expose the same behavior.
+
+```tsx
+import { ColorPicker } from '@salyra-ui/color-picker/react';
+
+<ColorPicker.Root defaultValue="#5268E080">
+  <ColorPicker.EyeDropper
+    className="sample-button"
+    onPick={hex => console.log(hex)}
+    render={state => state.pending ? 'Picking…' : 'Pick from screen'}
+  />
+</ColorPicker.Root>
+```
+
+Screen sampling requires a secure context and a browser that implements [EyeDropper](https://developer.mozilla.org/en-US/docs/Web/API/EyeDropper). The component detects support after hydration and stays disabled when unavailable. Call the headless `pick()` directly from a user gesture. Escape cancels without changing the selected color. Screen pixels supply opaque sRGB, so the store keeps its current alpha unless `preserveAlpha` is false. `onPick` receives opaque `#RRGGBB`. Read the store snapshot for the resulting color with alpha.
+
+Svelte accepts a `children(state)` snippet. Vue exposes a `{state}` slot and emits `pick` and `pickError`. Angular uses `button[cpEyeDropper]` with `colorPick` and `colorPickError` outputs. Astro uses `ColorEyeDropper.astro` inside `ColorRoot`. Vanilla accepts `<cp-eye-dropper><button>Sample</button></cp-eye-dropper>` inside a provider, or `data-cp-control="eyedropper"` with `mountColorControls`. Use `data-preserve-alpha="false"` on the native control to replace opacity.

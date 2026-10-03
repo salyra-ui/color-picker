@@ -27,7 +27,8 @@ const value = ref('#5268E080');
           >Show next format ({{
             state.format.toUpperCase()
           }})</ColorPicker.FormatTrigger
-        ><output>{{ value }}</output>
+        ><ColorPicker.EyeDropper>Pick from screen</ColorPicker.EyeDropper>
+        <output>{{ value }}</output>
       </div>
     </div></ColorPicker.Root
   >

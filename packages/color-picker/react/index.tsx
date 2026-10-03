@@ -17,3 +17,5 @@ export { ColorViewSelect } from './ColorViewSelect';
 export { ColorWheel } from './ColorWheel';
 export * from './context';
 export * from './primitives';
+
+export { ColorEyeDropper } from './ColorEyeDropper';

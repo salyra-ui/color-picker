@@ -1,3 +1,4 @@
+import ColorEyeDropper from './ColorEyeDropper.svelte';
 export * from '../core';
 export { default as ColorProvider } from './ColorProvider.svelte';
 export { default as ColorArea } from './ColorArea.svelte';
@@ -54,4 +55,7 @@ export const ColorPicker = {
   Input: ColorField,
   ChannelInput: ColorField,
   FormatTrigger: ColorFormatTrigger,
+  EyeDropper: ColorEyeDropper,
 };
+
+export { default as ColorEyeDropper } from './ColorEyeDropper.svelte';
