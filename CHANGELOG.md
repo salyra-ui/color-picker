@@ -2,7 +2,7 @@
 
 ## 1.0.1 (2026-10-03)
 
-- Add versioned documentation for 0.3.0, 1.0.0 and the 1.0.1 preview, with a shared release selector and per-package changelog.
+- Add versioned documentation for 0.3.0, 1.0.0 and 1.0.1, with a shared release selector and per-package changelog.
 - Use the compound ColorPicker API in React working examples, customization, form recipes and pipette examples.
 
 - Add an optional screen color pipette with customizable button content in all six integrations.
