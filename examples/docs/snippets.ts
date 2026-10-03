@@ -1,3 +1,4 @@
+import { eyedropperExample, eyedropperMarkup } from './eyedropper-examples';
 import { recipeSource } from './recipes';
 import {
   themePickerMarkup,
@@ -17,7 +18,14 @@ export const integrations = [
 export type Integration = (typeof integrations)[number];
 export type Kit = 'color-picker' | 'theme-studio';
 export type ColorVariant =
-  'rectangle' | 'wheel' | 'channels' | 'custom' | 'disabled' | 'form';
+  | 'rectangle'
+  | 'wheel'
+  | 'channels'
+  | 'custom'
+  | 'disabled'
+  | 'form'
+  | 'eyedropper'
+  | 'eyedropper-custom';
 export type ThemeVariant =
   | 'editing'
   | 'shared'
@@ -58,7 +66,26 @@ export const colorVariants: {
       'Change the label inside the dot, the control color and the track size. Copy the updated component and styles.',
   },
 ];
-colorVariants.push({id:'form', title:'Forms & saved colors', description:'Submit the selected color, reset the form, undo edits and keep recent or favorite swatches.'});
+colorVariants.push(
+  {
+    id: 'eyedropper',
+    title: 'Screen pipette',
+    description:
+      'Sample a pixel from your screen. The color field updates while the existing opacity stays unchanged. Escape cancels sampling.',
+  },
+  {
+    id: 'eyedropper-custom',
+    title: 'Custom pipette button',
+    description:
+      'Use your own label, SVG icon and button classes. This example sets preserveAlpha to false so sampled colors are opaque.',
+  },
+);
+colorVariants.push({
+  id: 'form',
+  title: 'Forms & saved colors',
+  description:
+    'Submit the selected color, reset the form, undo edits and keep recent or favorite swatches.',
+});
 colorVariants.push({
   id: 'disabled',
   title: 'Disabled',
@@ -107,7 +134,12 @@ export const themeVariants: {
       'Give the editor your own labels, colors and classes. The appearance buttons show how to replace the default text.',
   },
 ];
-themeVariants.push({id:'editing', title:'Draft & Apply', description:'Edit a draft, undo changes, lock accent during generation and apply the result to a separate preview.'});
+themeVariants.push({
+  id: 'editing',
+  title: 'Draft & Apply',
+  description:
+    'Edit a draft, undo changes, lock accent during generation and apply the result to a separate preview.',
+});
 themeVariants.push(
   {
     id: 'palette',
@@ -206,6 +238,8 @@ provider.addEventListener('color-change', () => console.log(store.getColor()));
 </script>${custom ? '\n<style>\n' + customCss + '\n</style>' : ''}`;
 }
 export function colorMarkup(variant: ColorVariant) {
+  if (variant === 'eyedropper' || variant === 'eyedropper-custom')
+    return eyedropperMarkup(variant === 'eyedropper-custom');
   const surface =
     variant === 'channels'
       ? ''
@@ -426,6 +460,8 @@ export function colorExample(
   variant: ColorVariant,
   settings = defaultCustom,
 ) {
+  if (variant === 'eyedropper' || variant === 'eyedropper-custom')
+    return eyedropperExample(integration, variant === 'eyedropper-custom');
   if (variant === 'form') return recipeSource('color-picker', integration);
   let source = withColorLayout(
     baseColorExample(
@@ -726,8 +762,14 @@ const applicationStyles = `.app-preview { display: grid; gap: 16px; padding: 24p
 .app-actions button { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); padding: 10px 16px; border: 0; border-radius: var(--border-radius-button); }
 .app-actions .secondary { background: hsl(var(--secondary)); color: hsl(var(--secondary-foreground)); }
 .app-preview aside { background: hsl(var(--accent)); color: hsl(var(--accent-foreground)); padding: 16px; border-radius: var(--border-radius-card); }`;
-function withApplicationPreview(source: string, integration: Integration, roles: readonly string[] = ['primary', 'secondary', 'accent']) {
-  const markup = roles.includes('accent') ? applicationContent : applicationContent.replace('<aside>Accent surface</aside>', '');
+function withApplicationPreview(
+  source: string,
+  integration: Integration,
+  roles: readonly string[] = ['primary', 'secondary', 'accent'],
+) {
+  const markup = roles.includes('accent')
+    ? applicationContent
+    : applicationContent.replace('<aside>Accent surface</aside>', '');
   const content =
     integration === 'React'
       ? markup

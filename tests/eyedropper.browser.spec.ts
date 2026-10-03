@@ -155,3 +155,96 @@ test('custom controls color opens our picker without changing the edited color',
   await expect(trigger).toBeFocused();
   await expect(page.locator('input[type=color]')).toHaveCount(0);
 });
+
+test('dedicated screen pipette example preserves alpha and exposes all six code tabs', async ({
+  page,
+}) => {
+  await mockScreen(page);
+  await page.goto(base + '/docs.html?kit=color-picker#examples');
+  const example = page.locator('#docs-explorer');
+  await example.getByLabel('Color picker example').selectOption('eyedropper');
+  await expect(
+    example.getByRole('option', { name: 'Custom pipette button' }),
+  ).toHaveCount(0);
+  await expect(example.getByRole('status')).toContainText('Ready');
+  await example
+    .getByRole('button', { name: 'Pick from screen', exact: true })
+    .click();
+  await expect(example.getByRole('status')).toContainText('Escape');
+  await page.evaluate(() => (window as any).sample('#112233'));
+  await expect(
+    example.getByRole('textbox', { name: 'HEX', exact: true }),
+  ).toHaveValue('#11223380');
+  await example.getByRole('button', { name: 'Code', exact: true }).click();
+  for (const framework of [
+    'React',
+    'Svelte',
+    'Vue',
+    'Angular',
+    'Astro',
+    'Vanilla',
+  ]) {
+    await example.getByRole('tab', { name: framework, exact: true }).click();
+    await expect(
+      example.locator('.example-code pre code').first(),
+    ).toContainText(
+      framework === 'Vanilla' ? 'bindColorEyeDropper' : 'ColorEyeDropper',
+    );
+    await expect(
+      example.getByRole('button', { name: 'Copy code', exact: true }),
+    ).toBeVisible();
+    await expect(
+      example.getByRole('button', { name: 'Download files', exact: true }),
+    ).toBeVisible();
+  }
+});
+test('custom pipette example uses application button content and samples an opaque color', async ({
+  page,
+}) => {
+  await mockScreen(page);
+  await page.goto(base + '/docs.html?kit=color-picker#customization');
+  const example = page.locator('#custom-explorer');
+  await example
+    .getByLabel('Color picker customization')
+    .selectOption('eyedropper-custom');
+  await expect(
+    example.getByRole('option', { name: 'Screen pipette', exact: true }),
+  ).toHaveCount(0);
+  const button = example.getByRole('button', {
+    name: 'Sample a pixel',
+    exact: true,
+  });
+  await expect(button.locator('svg')).toHaveCount(1);
+  await expect(button).toHaveClass('pixel-button');
+  await button.click();
+  await page.evaluate(() => (window as any).sample('#445566'));
+  await expect(
+    example.getByRole('textbox', { name: 'HEX', exact: true }),
+  ).toHaveValue('#445566');
+  await expect(example.locator('.color-result code')).toHaveText('#445566');
+  await example.getByRole('button', { name: 'Code', exact: true }).click();
+  await example.getByRole('tab', { name: 'Svelte', exact: true }).click();
+  await expect(example.locator('.example-code pre code').first()).toContainText(
+    'preserveAlpha={false}',
+  );
+  await expect(example.locator('.example-code pre code').first()).toContainText(
+    'pixel-button',
+  );
+});
+test('dedicated screen pipette example explains missing browser support', async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    delete (window as any).EyeDropper;
+  });
+  await page.goto(base + '/docs.html?kit=color-picker#examples');
+  const example = page.locator('#docs-explorer');
+  await example.getByLabel('Color picker example').selectOption('eyedropper');
+  await expect(example.getByRole('status')).toContainText('unavailable');
+  await expect(
+    example.getByRole('button', { name: 'Pick from screen', exact: true }),
+  ).toBeDisabled();
+  await expect(
+    example.getByRole('textbox', { name: 'HEX', exact: true }),
+  ).toHaveValue('#5268E080');
+});

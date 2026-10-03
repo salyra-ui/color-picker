@@ -1,3 +1,4 @@
+import './eyedropper-examples.css';
 import { draftScopeExample } from './scope-recipes';
 /// <reference types="vite/client" />
 import { mountCompositionExample } from './composition';

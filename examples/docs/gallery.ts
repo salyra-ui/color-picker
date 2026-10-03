@@ -1,3 +1,4 @@
+import { mountEyeDropperExample } from './eyedropper-examples';
 import { mountColorPopover } from './color-popover';
 import { mountEditingLab, mountColorFormLab } from './labs';
 import { recipeFiles } from './recipes';
@@ -224,7 +225,8 @@ export function mountExplorer(
 ) {
   const isColor = kit === 'color-picker',
     variants = (isColor ? colorVariants : themeVariants).filter(({ id }) => {
-      const customizable = id === 'custom' || id === 'palette';
+      const customizable =
+        id === 'custom' || id === 'palette' || id === 'eyedropper-custom';
       return (
         section === 'all' ||
         (section === 'customization' ? customizable : !customizable)
@@ -317,10 +319,19 @@ export function mountExplorer(
         '.color-demo cp-provider',
       )!;
       provider.setStore(store);
+      const stopScreen =
+        variant === 'eyedropper' || variant === 'eyedropper-custom'
+          ? mountEyeDropperExample(
+              provider,
+              store,
+              variant === 'eyedropper-custom',
+            )
+          : undefined;
       const update = () => colorReadout(content, store.getColor());
       provider.addEventListener('color-change', update);
       update();
       cleanup = () => {
+        stopScreen?.();
         provider.removeEventListener('color-change', update);
         provider.remove();
       };
