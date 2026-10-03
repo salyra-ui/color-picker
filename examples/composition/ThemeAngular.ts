@@ -1,5 +1,6 @@
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import {
+  ColorEyeDropper,
   ColorField,
   ColorRange,
   ColorPlane,
@@ -27,6 +28,7 @@ import {
     ThemeRoleTrigger,
     ThemeGeometryInput,
     ThemeExport,
+    ColorEyeDropper,
     ColorField,
     ColorRange,
     ColorPlane,
@@ -77,6 +79,7 @@ import {
               ><span>Button border in px</span
               ><input tkGeometry="width" target="button"
             /></label>
+            <button cpEyeDropper>Pick active color from screen</button>
             <article class="composition-preview">
               <h3>Live theme</h3>
               <button type="button">Continue</button>

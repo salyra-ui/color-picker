@@ -1,0 +1,105 @@
+{
+  "current": "1.0.1",
+  "versions": [
+    {
+      "version": "1.0.1",
+      "status": "released",
+      "changes": {
+        "color-picker": {
+          "Added": [
+            "Sample screen colors with a pipette button in React, Svelte, Vue, Angular, Astro and Vanilla.",
+            "Give the sample button your own text, icon and classes. Keep the current opacity or sample an opaque color."
+          ],
+          "Changed": [
+            "Background and customization popups in the examples now use Salyra Color Picker.",
+            "Screen sampling has its own working example and customization example.",
+            "React working examples now use ColorPicker.Root and the other compound controls.",
+            "Choose documentation by version and read the changes in a separate changelog."
+          ]
+        },
+        "theme-studio": {
+          "Added": [
+            "Use the pipette inside PickerRoot to sample a color for the selected theme role."
+          ],
+          "Changed": [
+            "Generation seed and supporting color popups now use Salyra Color Picker.",
+            "Theme Studio uses Color Picker 1.0.1.",
+            "Choose documentation by version and read the changes in a separate changelog."
+          ]
+        }
+      },
+      "date": "2026-10-03",
+      "sources": {
+        "color-picker": "0dadaf452daec4dcf0af63576a75e02076de5fbf",
+        "theme-studio": "57ab53084d0cf1d7420c32803a20d470569e96e1"
+      }
+    },
+    {
+      "version": "1.0.0",
+      "status": "released",
+      "date": "2026-10-03",
+      "sources": {
+        "color-picker": "8e1cb497d063e74335ca564f4bf7aed360c25e01",
+        "theme-studio": "1ec2c54ab4102a0952b9c9037227c6fdaa21a3f9"
+      },
+      "changes": {
+        "color-picker": {
+          "Added": [
+            "Build an editor from context roots, native inputs, sliders, surfaces and custom markers."
+          ],
+          "Changed": [
+            "Your markup owns the layout, labels, thumb content and classes.",
+            "Input controls share draft handling and validation across adapters."
+          ],
+          "Fixed": [
+            "Clicking a wheel marker in the documentation keeps the preview open."
+          ]
+        },
+        "theme-studio": {
+          "Added": [
+            "Separate theme state and styling with ThemeRoot and ThemeScope. ThemeProvider combines both.",
+            "Keep a nested draft preview separate from the application's applied theme."
+          ],
+          "Changed": [
+            "Theme editors compose the same color controls as Color Picker.",
+            "Geometry controls register the radius and border width fields they render."
+          ]
+        }
+      }
+    },
+    {
+      "version": "0.3.0",
+      "status": "released",
+      "sources": {
+        "color-picker": "6eedff962fec68f8699f0d465aa4fbeb4f0428fb",
+        "theme-studio": "e188653c8acbdbe455f56ae6b04219bc6c0d3b17"
+      },
+      "changes": {
+        "color-picker": {
+          "Added": [
+            "Undo and redo color edits, including opacity.",
+            "Submit colors through native forms and restore them on reset.",
+            "Save recent and favorite colors with optional browser storage.",
+            "Check text contrast against a background."
+          ],
+          "Fixed": [
+            "Channel input precision matches each input's step value."
+          ]
+        },
+        "theme-studio": {
+          "Added": [
+            "Edit a draft with Apply, Cancel, undo and redo.",
+            "Lock colors and backgrounds during generation.",
+            "Detect changes to the applied theme while a draft is being edited.",
+            "Export selected colors, radius and border widths for Tailwind 4.",
+            "Save recent and favorite themes. Migrate older saved theme data."
+          ],
+          "Fixed": [
+            "Providers preserve a store's disabled persistence setting."
+          ]
+        }
+      },
+      "date": "2026-10-01"
+    }
+  ]
+}

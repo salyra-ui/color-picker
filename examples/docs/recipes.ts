@@ -84,20 +84,34 @@ const studioReact = `<ThemeProvider store={demo.editor.store} modeStorage={false
       <p>Primary text contrast: {view.contrast.ratio.toFixed(2)}:1 · {view.contrast.aa ? 'AA passes' : 'AA fails'}</p>
       <ThemeProvider store={demo.target} modeStorage={false}><article className="recipe-preview"><h2>Applied theme</h2><button type="button">Example button</button></article></ThemeProvider>
       <details><summary>Tailwind CSS</summary><pre className="recipe-output">{view.tailwind}</pre></details>`;
-const colorReact = `<ColorProvider store={demo.store}><ColorArea /><ColorSlider channel="h" /><ColorSlider channel="alpha" /><ColorInput /><ColorCollection collection={demo.collection} kind="favorites" label="Favorite colors" /><ColorCollection collection={demo.collection} /></ColorProvider>
-      <div className="recipe-actions"><button type="button" onClick={() => demo.collection.remember(view.color.value)}>Save color</button><button type="button" onClick={() => demo.collection.toggleFavorite(view.color.value)}>Toggle favorite</button><button type="button" disabled={!view.history.canUndo} onClick={demo.history.undo}>Undo</button><button type="button" disabled={!view.history.canRedo} onClick={demo.history.redo}>Redo</button><button type="reset">Reset</button><button type="submit">Submit</button></div>
+const colorActions = `      <div className="recipe-actions"><button type="button" onClick={() => demo.collection.remember(view.color.value)}>Save color</button><button type="button" onClick={() => demo.collection.toggleFavorite(view.color.value)}>Toggle favorite</button><button type="button" disabled={!view.history.canUndo} onClick={demo.history.undo}>Undo</button><button type="button" disabled={!view.history.canRedo} onClick={demo.history.redo}>Redo</button><button type="reset">Reset</button><button type="submit">Submit</button></div>
       <p>Text on white: {view.contrast.ratio.toFixed(2)}:1 · {view.contrast.aa ? 'AA passes' : 'AA fails'}</p>
       <output className="recipe-output" aria-live="polite">{view.submitted}</output>`;
+const colorPresets = `<ColorProvider store={demo.store}><ColorArea /><ColorSlider channel="h" /><ColorSlider channel="alpha" /><ColorInput /><ColorCollection collection={demo.collection} kind="favorites" label="Favorite colors" /><ColorCollection collection={demo.collection} /></ColorProvider>
+${colorActions}`;
+const colorReact = `<Color.Root store={demo.store}>
+        <Color.Area className="cp-area"><Color.Thumb className="cp-thumb" /></Color.Area>
+        <label className="cp-slider" data-channel="h">Hue<Color.Slider channel="h" /></label>
+        <label className="cp-slider" data-channel="alpha">Opacity<Color.Slider channel="alpha" /></label>
+        <label>Color<Color.Input /></label>
+        <ColorCollection collection={demo.collection} kind="favorites" label="Favorite colors" />
+        <ColorCollection collection={demo.collection} />
+      </Color.Root>
+${colorActions}`;
 export function recipeSource(kit: Kit, integration: Integration) {
   const studio = kit === 'theme-studio';
   const components = studio
     ? 'ThemeProvider, ThemePicker, ThemeName, ThemeRadius, ThemeBorderWidth, ThemeHarmony, ThemeBackground, ThemeSelect'
     : 'ColorProvider, ColorArea, ColorSlider, ColorInput, ColorCollection';
   const root = studio ? 'div' : 'form';
-  const react = studio ? studioReact : colorReact;
+  const react = studio
+    ? studioReact
+    : integration === 'React'
+      ? colorReact
+      : colorPresets;
   if (integration === 'React')
     return `import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { ${components} } from '@salyra-ui/${kit}/react';
+import { ${studio ? components : 'ColorPicker as Color, ColorCollection'} } from '@salyra-ui/${kit}/react';
 import '@salyra-ui/${kit}/styles.min.css';
 import './recipe.css';
 import { createDemo } from './controller';

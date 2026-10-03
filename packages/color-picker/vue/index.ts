@@ -1,3 +1,4 @@
+import ColorEyeDropper from './ColorEyeDropper.vue';
 export * from '../core';
 export { default as ColorProvider } from './ColorProvider.vue';
 export { default as ColorArea } from './ColorArea.vue';
@@ -54,4 +55,7 @@ export const ColorPicker = {
   Input: ColorField,
   ChannelInput: ColorField,
   FormatTrigger: ColorFormatTrigger,
+  EyeDropper: ColorEyeDropper,
 };
+
+export { default as ColorEyeDropper } from './ColorEyeDropper.vue';

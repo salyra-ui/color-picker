@@ -1,4 +1,5 @@
 'use client';
+import { ColorEyeDropper } from './ColorEyeDropper';
 import {
   createContext,
   forwardRef,
@@ -316,4 +317,5 @@ export const ColorPicker = {
   Input: ColorField,
   ChannelInput: ColorField,
   FormatTrigger: ColorFormatTrigger,
+  EyeDropper: ColorEyeDropper,
 };

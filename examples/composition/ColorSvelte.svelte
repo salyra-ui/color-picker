@@ -37,6 +37,11 @@
       <ColorPicker.FormatTrigger
         >{#snippet children(color)}Show next format ({color.format.toUpperCase()}){/snippet}</ColorPicker.FormatTrigger
       >
+      <ColorPicker.EyeDropper
+        >{#snippet children(state)}{state.pending
+            ? 'Picking…'
+            : 'Pick from screen'}{/snippet}</ColorPicker.EyeDropper
+      >
       <output>{value}</output>
     </div>
   </div>

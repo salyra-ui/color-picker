@@ -47,7 +47,9 @@ for (const kit of ['color-picker', 'theme-studio'] as const) {
             if (node.expression.kind === ts.SyntaxKind.TrueKeyword)
               return node.thenStatement;
             if (node.expression.kind === ts.SyntaxKind.FalseKeyword)
-              return node.elseStatement ?? ts.factory.createBlock([]);
+              return (
+                node.elseStatement ?? ts.factory.createNotEmittedStatement(node)
+              );
           }
           if (ts.isConditionalExpression(node)) {
             if (node.condition.kind === ts.SyntaxKind.TrueKeyword)
@@ -86,7 +88,7 @@ for (const kit of ['color-picker', 'theme-studio'] as const) {
           'const store = target;',
         )
         .replace(/if \(editor\)\s+cleanup.push\(editor.destroy\);/g, '');
-    printed = printed.replace(/\{\s*\}/g, '');
+
     const focused = ts.createSourceFile(
       'workflow.ts',
       printed,

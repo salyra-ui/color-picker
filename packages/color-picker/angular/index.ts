@@ -16,3 +16,5 @@ export { ColorSurface } from './ColorSurface';
 export { ColorAlphaInput } from './ColorAlphaInput';
 export { ColorCollection } from './ColorCollection';
 export * from './primitives';
+
+export { ColorEyeDropper } from './ColorEyeDropper';

@@ -1,3 +1,5 @@
+import colorPopoverSource from './color-popover.ts?raw';
+import colorPopoverStyles from './color-popover.css?raw';
 import { codePanel, escape } from './gallery';
 import { mountWorkflow as mountColor } from './color-workflows';
 import { mountWorkflow as mountTheme } from './theme-workflows';
@@ -35,6 +37,8 @@ export function workflowFiles(kit: WorkflowKit, id: string) {
       code: `import { mountWorkflow } from './workflow';\nimport './styles.css';\n\nconst cleanup = mountWorkflow(document.querySelector<HTMLElement>('#example')!);\n// Call cleanup() when removing this view.\nwindow.addEventListener('pagehide', cleanup, { once: true });`,
     },
     { name: 'workflow-ui.ts', code: helpers },
+    { name: 'color-popover.ts', code: colorPopoverSource },
+    { name: 'color-popover.css', code: colorPopoverStyles },
     {
       name: 'styles.css',
       code:
@@ -59,7 +63,7 @@ export function workflowFiles(kit: WorkflowKit, id: string) {
           private: true,
           type: 'module',
           scripts: { dev: 'vite', build: 'vite build' },
-          dependencies: { [`@salyra-ui/${kit}`]: '^1.0.0' },
+          dependencies: { [`@salyra-ui/${kit}`]: '^1.0.1' },
           devDependencies: { vite: '^6.1.0', typescript: '~5.8.3' },
         },
         null,

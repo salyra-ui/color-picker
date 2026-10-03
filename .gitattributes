@@ -1,0 +1,3 @@
+# Keep generated release builds byte-for-byte, including spaces inside bundled strings.
+documentation/archives/** linguist-generated=true whitespace=-blank-at-eol,-blank-at-eof
+documentation/archives/*/snapshot.json linguist-generated=false

@@ -1,3 +1,5 @@
+import { mountEyeDropperExample } from './eyedropper-examples';
+import { mountColorPopover } from './color-popover';
 import { mountEditingLab, mountColorFormLab } from './labs';
 import { recipeFiles } from './recipes';
 import { downloadSources } from './download';
@@ -152,7 +154,16 @@ export function codePanel(
       buttons[next].click();
       buttons[next].focus();
     });
-  host.querySelector('.download-button')!.addEventListener('click', () => downloadSources(files, options.downloadName?.() ?? (options.baseName ?? 'example') + (options.file ? '' : '-' + current.toLowerCase())));
+  host
+    .querySelector('.download-button')!
+    .addEventListener('click', () =>
+      downloadSources(
+        files,
+        options.downloadName?.() ??
+          (options.baseName ?? 'example') +
+            (options.file ? '' : '-' + current.toLowerCase()),
+      ),
+    );
   button.addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(code.textContent ?? '');
@@ -176,7 +187,9 @@ export function codePanel(
     },
   };
 }
-export function sampleMarkup(roles: readonly string[] = ['primary', 'secondary', 'accent']) {
+export function sampleMarkup(
+  roles: readonly string[] = ['primary', 'secondary', 'accent'],
+) {
   return `<div class="theme-sample"><div class="sample-header"><span>Application preview</span><span data-sample-mode></span></div><article class="sample-card"><span class="sample-name" data-sample-name></span><h3>Project settings</h3><p>Buttons, inputs and surfaces use the active theme tokens.</p><label>Project name<input value="Website redesign" aria-label="Example project name"></label><div class="sample-actions"><button class="sample-primary" type="button">Save changes</button><button class="sample-secondary" type="button">Cancel</button></div>${roles.includes('accent') ? '<div class="sample-note">Accent surface</div>' : ''}</article><div class="sample-colors">${roles.map((r) => `<span style="--role:var(--${r})"><i></i>${r}</span>`).join('')}</div></div>`;
 }
 export function updateSample(host: HTMLElement, config: ThemeConfiguration) {
@@ -212,11 +225,16 @@ export function mountExplorer(
 ) {
   const isColor = kit === 'color-picker',
     variants = (isColor ? colorVariants : themeVariants).filter(({ id }) => {
-      const customizable = id === 'custom' || id === 'palette';
-      return section === 'all' || (section === 'customization' ? customizable : !customizable);
+      const customizable =
+        id === 'custom' || id === 'palette' || id === 'eyedropper-custom';
+      return (
+        section === 'all' ||
+        (section === 'customization' ? customizable : !customizable)
+      );
     });
   let variant = variants.find(({ id }) => id === initial)?.id ?? variants[0].id,
-    cleanup: (() => void) | undefined;
+    cleanup: (() => void) | undefined,
+    cleanupCustomization: (() => void) | undefined;
   let custom: CustomSettings = {
     ...defaultCustom,
     ...(isColor ? {} : { text: 'B', size: 26 }),
@@ -250,11 +268,31 @@ export function mountExplorer(
     {
       label: isColor ? 'Color picker' : 'Theme editor',
       baseName: isColor ? 'ColorPicker' : 'ThemeEditor',
-      files: i => variant === 'editing' || variant === 'form' ? recipeFiles(kit,i) : sourceFiles(isColor ? colorExample(i,variant as ColorVariant,custom) : variant === 'palette' ? paletteExample(i,swatchSettings) : themeExample(i,variant as ThemeVariant,custom,variant === 'geometry' ? geometrySelection : themeExampleSelection(variant as ThemeVariant)), i, isColor ? 'ColorPicker' : 'ThemeEditor'),
+      files: (i) =>
+        variant === 'editing' || variant === 'form'
+          ? recipeFiles(kit, i)
+          : sourceFiles(
+              isColor
+                ? colorExample(i, variant as ColorVariant, custom)
+                : variant === 'palette'
+                  ? paletteExample(i, swatchSettings)
+                  : themeExample(
+                      i,
+                      variant as ThemeVariant,
+                      custom,
+                      variant === 'geometry'
+                        ? geometrySelection
+                        : themeExampleSelection(variant as ThemeVariant),
+                    ),
+              i,
+              isColor ? 'ColorPicker' : 'ThemeEditor',
+            ),
     },
   );
   const show = () => {
     cleanup?.();
+    cleanupCustomization?.();
+    cleanupCustomization = undefined;
     content.replaceChildren();
     if (exampleSelect) exampleSelect.value = variant;
     description.textContent = variants.find(
@@ -269,6 +307,7 @@ export function mountExplorer(
       if (variant === 'custom') {
         const form = customizationForm(custom, () => applyCustomization());
         content.prepend(form);
+        cleanupCustomization = form.destroy;
       }
       const store = createColorStore(
         '#5268E080',
@@ -276,13 +315,23 @@ export function mountExplorer(
         'area',
         variant === 'disabled',
       );
-      const provider =
-        content.querySelector<ColorProviderElement>('cp-provider')!;
+      const provider = content.querySelector<ColorProviderElement>(
+        '.color-demo cp-provider',
+      )!;
       provider.setStore(store);
+      const stopScreen =
+        variant === 'eyedropper' || variant === 'eyedropper-custom'
+          ? mountEyeDropperExample(
+              provider,
+              store,
+              variant === 'eyedropper-custom',
+            )
+          : undefined;
       const update = () => colorReadout(content, store.getColor());
       provider.addEventListener('color-change', update);
       update();
       cleanup = () => {
+        stopScreen?.();
         provider.removeEventListener('color-change', update);
         provider.remove();
       };
@@ -369,7 +418,12 @@ export function mountExplorer(
       )!;
       format.value = 'json';
       const renderOutput = () => {
-        output.textContent = format.value === 'tailwind' ? tailwind : format.value === 'css' ? css : json;
+        output.textContent =
+          format.value === 'tailwind'
+            ? tailwind
+            : format.value === 'css'
+              ? css
+              : json;
       };
       format.addEventListener('change', renderOutput);
       const changed = (config: ThemeConfiguration) => {
@@ -382,7 +436,9 @@ export function mountExplorer(
         renderOutput();
       };
       if (variant === 'custom') {
-        content.prepend(customizationForm(custom, () => applyCustomization()));
+        const form = customizationForm(custom, () => applyCustomization());
+        content.prepend(form);
+        cleanupCustomization = form.destroy;
         const options: ThemeOptions = {
           theme: themes[0],
           mode: 'system',
@@ -549,7 +605,11 @@ export function mountExplorer(
         .addEventListener('click', async () => {
           try {
             await navigator.clipboard.writeText(
-              format.value === 'tailwind' ? tailwind : format.value === 'css' ? css : json,
+              format.value === 'tailwind'
+                ? tailwind
+                : format.value === 'css'
+                  ? css
+                  : json,
             );
             content.querySelector('[data-output-status]')!.textContent =
               `${format.value.toUpperCase()} copied.`;
@@ -562,8 +622,16 @@ export function mountExplorer(
         .querySelector('[data-download]')!
         .addEventListener('click', () =>
           download(
-            format.value === 'tailwind' ? tailwind : format.value === 'css' ? css : json,
-            format.value === 'tailwind' ? 'theme.tailwind.css' : format.value === 'css' ? 'theme.css' : 'theme.json',
+            format.value === 'tailwind'
+              ? tailwind
+              : format.value === 'css'
+                ? css
+                : json,
+            format.value === 'tailwind'
+              ? 'theme.tailwind.css'
+              : format.value === 'css'
+                ? 'theme.css'
+                : 'theme.json',
           ),
         );
     }
@@ -598,7 +666,10 @@ export function mountExplorer(
       }),
     );
   show();
-  return () => cleanup?.();
+  return () => {
+    cleanup?.();
+    cleanupCustomization?.();
+  };
 }
 function mountedStore(
   config: ThemeConfiguration,
@@ -757,12 +828,23 @@ export function mountRenderingLab(host: HTMLElement) {
 function customizationForm(settings: CustomSettings, changed: () => void) {
   const form = document.createElement('div');
   form.className = 'customization-form';
-  form.innerHTML = `<p class="customization-title">Live customization</p><label>Thumb text<input data-custom="text" maxlength="3" value="${escape(settings.text)}"></label><label>Controls color<input data-custom="color" type="color" value="${settings.color}"></label><label>Thumb size (px)<input data-custom="size" type="number" min="8" max="60" value="${settings.size}"></label><label>Track height (px)<input data-custom="track" type="number" min="2" max="24" value="${settings.track}"></label>`;
+  form.innerHTML = `<p class="customization-title">Live customization</p><label>Thumb text<input data-custom="text" maxlength="3" value="${escape(settings.text)}"></label><div class="customization-color-field"><span>Controls color</span><div data-custom-color></div></div><label>Thumb size (px)<input data-custom="size" type="number" min="8" max="60" value="${settings.size}"></label><label>Track height (px)<input data-custom="track" type="number" min="2" max="24" value="${settings.track}"></label>`;
+  const color = mountColorPopover(
+    form.querySelector<HTMLElement>('[data-custom-color]')!,
+    {
+      label: 'Controls color',
+      value: settings.color,
+      onChange: (value) => {
+        settings.color = value;
+        changed();
+      },
+    },
+  );
   form.addEventListener('input', (event) => {
     const input = event.target as HTMLInputElement,
       key = input.dataset.custom;
+    if (!key) return;
     if (key === 'text') settings.text = input.value;
-    if (key === 'color') settings.color = input.value;
     if (key === 'size' || key === 'track') {
       const n = input.valueAsNumber;
       if (!Number.isFinite(n) || n < Number(input.min) || n > Number(input.max))
@@ -771,5 +853,5 @@ function customizationForm(settings: CustomSettings, changed: () => void) {
     }
     changed();
   });
-  return form;
+  return Object.assign(form, { destroy: color.destroy });
 }

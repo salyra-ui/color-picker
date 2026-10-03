@@ -1,0 +1,67 @@
+.supporting-color-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--line, #ddd);
+  background: #fff;
+  color: #171717;
+  text-align: left;
+  cursor: pointer;
+}
+.supporting-color-trigger code {
+  font-size: 12px;
+}
+.supporting-color-swatch {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+.supporting-color-dialog {
+  width: min(360px, calc(100vw - 32px));
+  max-height: calc(100dvh - 48px);
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #d8d8df;
+  background: #fff;
+  color: #171717;
+  overflow: auto;
+}
+.supporting-color-dialog::backdrop {
+  background: rgb(0 0 0 / 0.2);
+}
+.supporting-color-dialog header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.supporting-color-dialog h3 {
+  margin: 0;
+  font-size: 18px;
+}
+.supporting-color-dialog header button {
+  padding: 7px 10px;
+  border: 1px solid #d8d8df;
+  background: #fff;
+  color: #171717;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.supporting-color-dialog .cp-picker {
+  gap: 16px;
+}
+.supporting-color-dialog .cp-picker .cp-mode {
+  min-height: 38px;
+}
+.customization-color-field {
+  display: grid;
+  gap: 8px;
+  font-size: 12px;
+}

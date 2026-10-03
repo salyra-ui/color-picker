@@ -1,3 +1,4 @@
+import { eyedropperReferenceEntries } from './eyedropper-reference';
 import { withAdapterFields } from './primitive-adapters';
 import { compositionReferenceEntries } from './composition-reference';
 import { featureReferenceEntries } from './features-reference';
@@ -2775,6 +2776,7 @@ export function referenceEntries(kit: Kit): ApiEntry[] {
     ...compositionReferenceEntries(kit),
     ...(kit === 'color-picker' ? colorEntries : themeEntries),
     ...featureReferenceEntries(kit),
+    ...(kit === 'color-picker' ? eyedropperReferenceEntries : []),
     ...contextReferenceEntries(kit),
   ].map((entry) => {
     if (

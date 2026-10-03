@@ -1,4 +1,5 @@
 ---
+import ColorEyeDropper from '@salyra-ui/color-picker/astro/ColorEyeDropper.astro';
 import ThemeVariableScope from '@salyra-ui/theme-studio/astro/ThemeVariableScope.astro';
 import ThemeRoot from '@salyra-ui/theme-studio/astro/ThemeRoot.astro';
 import ThemePickerRoot from '@salyra-ui/theme-studio/astro/ThemePickerRoot.astro';
@@ -46,6 +47,7 @@ const options = {
             <span>Button border in px</span>
             <ThemeGeometryInput {theme} kind="width" target="button" />
           </label>
+          <ColorEyeDropper>Pick active color from screen</ColorEyeDropper>
           <article class="composition-preview">
             <h3>Live theme</h3>
             <button type="button">Continue</button>

@@ -1,4 +1,5 @@
 ---
+import ColorEyeDropper from '@salyra-ui/color-picker/astro/ColorEyeDropper.astro';
 import ColorRoot from '@salyra-ui/color-picker/astro/ColorRoot.astro';
 import ColorWheel from '@salyra-ui/color-picker/astro/ColorWheelSurface.astro';
 import ColorThumb from '@salyra-ui/color-picker/astro/ColorThumb.astro';
@@ -37,6 +38,7 @@ const value = '#5268E080';
         <ColorInput {value} />
       </label>
       <ColorFormatTrigger>Show next format</ColorFormatTrigger>
+      <ColorEyeDropper>Pick from screen</ColorEyeDropper>
     </div>
   </div>
 </ColorRoot>

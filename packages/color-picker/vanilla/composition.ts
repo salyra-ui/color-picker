@@ -1,4 +1,5 @@
 import {
+  bindColorEyeDropper,
   bindColorSurface,
   bindColorSlider,
   bindColorValueInput,
@@ -36,7 +37,20 @@ export function mountColorControls(root: HTMLElement, store: ColorStore) {
             : undefined,
         }),
       );
-    else if (kind === 'format') {
+    else if (kind === 'eyedropper') {
+      const button = element as HTMLButtonElement;
+      const disabled =
+        button.hasAttribute('data-disabled') ||
+        (button.disabled &&
+          !['data-cp-supported', 'data-cp-disabled', 'data-tk-disabled'].some(
+            (attribute) => button.hasAttribute(attribute),
+          ));
+      const binding = bindColorEyeDropper(button, store, {
+        preserveAlpha: button.dataset.preserveAlpha !== 'false',
+        disabled: () => disabled || button.hasAttribute('data-disabled'),
+      });
+      stops.push(binding.destroy);
+    } else if (kind === 'format') {
       const button = element as HTMLButtonElement,
         disabled =
           button.disabled &&
