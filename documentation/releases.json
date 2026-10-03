@@ -30,8 +30,8 @@
       },
       "date": "2026-10-03",
       "sources": {
-        "color-picker": "36aacbb",
-        "theme-studio": "58fc5eb"
+        "color-picker": "0dadaf452daec4dcf0af63576a75e02076de5fbf",
+        "theme-studio": "57ab53084d0cf1d7420c32803a20d470569e96e1"
       }
     },
     {
@@ -82,7 +82,9 @@
             "Save recent and favorite colors with optional browser storage.",
             "Check text contrast against a background."
           ],
-          "Fixed": ["Channel input precision matches each input's step value."]
+          "Fixed": [
+            "Channel input precision matches each input's step value."
+          ]
         },
         "theme-studio": {
           "Added": [
