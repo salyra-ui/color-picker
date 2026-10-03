@@ -114,6 +114,48 @@ for (const kit of ['color-picker', 'theme-studio']) {
     expect(errors).toEqual([]);
   });
 }
+test('color-picker: wheel marker clicks and dragging keep the docs preview open', async ({
+  page,
+}) => {
+  await page.goto(`${base}/docs.html?kit=color-picker`);
+  const example = page.locator('#composition-example');
+  const preview = example.locator('[data-preview]');
+  const code = example.locator('[data-code]');
+  const wheel = preview.locator('[data-cp-control="wheel"]');
+  await wheel.scrollIntoViewIfNeeded();
+  const thumb = await wheel.locator('[data-cp-part="thumb"]').boundingBox();
+  if (!thumb) throw new Error('Color wheel marker is missing');
+  await page.mouse.click(thumb.x + thumb.width / 2, thumb.y + thumb.height / 2);
+  await expect(preview).toBeVisible();
+  await expect(code).toBeHidden();
+  const value = preview.getByRole('textbox', {
+    name: 'Color value',
+    exact: true,
+  });
+  const before = await value.inputValue();
+  const bounds = await wheel.boundingBox();
+  if (!bounds) throw new Error('Color wheel is missing');
+  await page.mouse.move(
+    bounds.x + bounds.width / 2,
+    bounds.y + bounds.height / 2,
+  );
+  await page.mouse.down();
+  await page.mouse.move(
+    bounds.x + bounds.width * 0.75,
+    bounds.y + bounds.height * 0.4,
+    { steps: 5 },
+  );
+  await page.mouse.up();
+  await expect(value).not.toHaveValue(before);
+  await expect(preview).toBeVisible();
+  await expect(code).toBeHidden();
+  await expect(
+    example.getByRole('tab', { name: 'Preview', exact: true }),
+  ).toHaveAttribute('aria-selected', 'true');
+  await example.getByRole('tab', { name: 'Code', exact: true }).click();
+  await expect(code).toBeVisible();
+  await expect(preview).toBeHidden();
+});
 for (const path of ['/svelte.html', '/vue.html'])
   test(`${path}: custom wheel and inputs fit a narrow screen`, async ({
     page,
@@ -189,7 +231,9 @@ test('nested draft recipe has all six adapters without changing other example ta
     await expect(recipe.locator('pre code')).toContainText('createThemeEditor');
     await expect(recipe.locator('pre code')).toContainText('editor.apply()');
     await expect(recipe.locator('pre code')).toContainText('editor.cancel()');
-    await expect(recipe.locator('pre code')).toContainText(/(?:editor|next)\.destroy\(\)/);
+    await expect(recipe.locator('pre code')).toContainText(
+      /(?:editor|next)\.destroy\(\)/,
+    );
   }
   await page
     .locator('#composition-example')

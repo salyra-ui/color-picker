@@ -66,7 +66,7 @@ export function compositionFiles(kit: Kit, integration: Integration) {
 }
 export function mountCompositionExample(host: HTMLElement, kit: Kit) {
   const id = `composition-${kit}`;
-  host.innerHTML = `<div class="composition-example" data-example="composition"><div class="example-toolbar"><div class="view-tabs" role="tablist" aria-label="Composition view"><button type="button" role="tab" aria-selected="true" data-view="preview" aria-controls="${id}-preview">Preview</button><button type="button" role="tab" aria-selected="false" data-view="code" aria-controls="${id}-code">Code</button></div></div><div id="${id}-preview" role="tabpanel" data-preview></div><div id="${id}-code" role="tabpanel" data-code hidden></div></div>`;
+  host.innerHTML = `<div class="composition-example" data-example="composition"><div class="example-toolbar"><div class="view-tabs" role="tablist" aria-label="Composition view"><button type="button" role="tab" aria-selected="true" data-composition-view="preview" aria-controls="${id}-preview">Preview</button><button type="button" role="tab" aria-selected="false" data-composition-view="code" aria-controls="${id}-code">Code</button></div></div><div id="${id}-preview" role="tabpanel" data-preview></div><div id="${id}-code" role="tabpanel" data-code hidden></div></div>`;
   const preview = host.querySelector<HTMLElement>('[data-preview]')!,
     code = host.querySelector<HTMLElement>('[data-code]')!;
   codePanel(code, (integration) => sources[kit][integration], {
@@ -108,16 +108,17 @@ export function mountCompositionExample(host: HTMLElement, kit: Kit) {
     render();
     stops.push(store.subscribe(render), controls.destroy, scope);
   }
-  host.querySelectorAll<HTMLButtonElement>('[data-view]').forEach((button) =>
+  const viewTabs = host.querySelectorAll<HTMLButtonElement>(
+    '.example-toolbar button[data-composition-view]',
+  );
+  viewTabs.forEach((button) =>
     button.addEventListener('click', () => {
-      const show = button.dataset.view === 'preview';
+      const show = button.dataset.compositionView === 'preview';
       preview.hidden = !show;
       code.hidden = show;
-      host
-        .querySelectorAll<HTMLButtonElement>('[data-view]')
-        .forEach((tab) =>
-          tab.setAttribute('aria-selected', String(tab === button)),
-        );
+      viewTabs.forEach((tab) =>
+        tab.setAttribute('aria-selected', String(tab === button)),
+      );
     }),
   );
   return () => {
